@@ -1,5 +1,4 @@
 import { AnimatePresence, motion } from "motion/react";
-import bg from "./images/stock.svg";
 import { useState, useCallback, useEffect } from "react";
 import hero from "./images/heroWallpaper.jpg";
 import { MdArrowForward, MdPlayArrow, MdMenu, MdClose } from "react-icons/md";
@@ -7,6 +6,7 @@ import avatar1 from "./images/images 5.jpg";
 import avatar2 from "./images/images 9.jpg";
 import avatar3 from "./images/images 12.jpg";
 import Avatar from "@mui/material/Avatar";
+import logo from "./assets/tag-svgrepo-com.svg";
 const HeroSection = () => {
   const [drawer, setDrawer] = useState(false);
 
@@ -57,18 +57,7 @@ const HeroSection = () => {
           <DefaultNavbar />
         </div>
         <div className="block md:hidden">
-          <nav className="bg3 container absolute top-0 left-0 w-full items-center flex justify-between mx-auto px-5 py-6">
-            <h1 className="text-xl font-semibold text-[#fbfbfb]">Finly</h1>
-
-            <button
-              onClick={handleClick}
-              className="bg-transparent hover:border-transparent -mr-5"
-            >
-              <MdMenu
-                style={{ width: "30px", height: "30px", color: "#fbfbfb" }}
-              />
-            </button>
-          </nav>
+          <NavbarResponsive logo={logo} handleClick={handleClick} />
           <AnimatePresence>
             {drawer && (
               <motion.div
@@ -84,52 +73,9 @@ const HeroSection = () => {
                 style={{ zIndex: 1000 }}
               >
                 <div className="flex justify-between container items-center px-6 pt-6">
-                  <h1 className="flex items-center gap-2 text-xl font-semibold text-[#fbfbfb]">
+                  <h1 className="flex items-center gap-1 text-xl font-semibold text-[#fbfbfb]">
                     Finly
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                      <g
-                        id="SVGRepo_tracerCarrier"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      ></g>
-                      <g id="SVGRepo_iconCarrier">
-                        {" "}
-                        <g clip-path="url(#clip0_15_213)">
-                          {" "}
-                          <rect width="24" height="24" fill="white"></rect>{" "}
-                          <path
-                            d="M9.16894 21.8995L19.4357 11.6327C19.6505 11.4179 19.756 11.1171 19.7225 10.8152L19.1568 5.72404C19.1051 5.2592 18.7382 4.89224 18.2733 4.84059L13.1822 4.27491C12.8802 4.24136 12.5794 4.34687 12.3646 4.56168L2.09787 14.8284C1.70735 15.219 1.70735 15.8521 2.09787 16.2426L7.75472 21.8995C8.14525 22.29 8.77841 22.29 9.16894 21.8995Z"
-                            stroke="#8CE163"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          ></path>{" "}
-                          <circle
-                            cx="14.1205"
-                            cy="9.88055"
-                            r="2"
-                            transform="rotate(45 14.1205 9.88055)"
-                            stroke="#8CE163"
-                            stroke-linejoin="round"
-                          ></circle>{" "}
-                        </g>{" "}
-                        <defs>
-                          {" "}
-                          <clipPath id="clip0_15_213">
-                            {" "}
-                            <rect
-                              width="24"
-                              height="24"
-                              fill="white"
-                            ></rect>{" "}
-                          </clipPath>{" "}
-                        </defs>{" "}
-                      </g>
-                    </svg>
+                    <img src={logo} alt="" />
                   </h1>
                   <button
                     onClick={handleClose}
@@ -206,7 +152,13 @@ const HeroSection = () => {
         </div>
 
         {/* Hero Content */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 100 }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, delay: 0.5 },
+          }}
           className="text-center flex flex-col gap-2"
           style={{ color: "white" }}
         >
@@ -233,14 +185,14 @@ const HeroSection = () => {
               </p>
             </div>
           </div>
-          <h1 className="text-7xl font-medium mt-5 mb-5">
-            Take Control of Your <span className="text-primary">Finances</span>
+          <h1 className="text-3xl md:text-7xl font-medium mt-5 mb-5 md:px-40 px-5">
+            Take Control of Your Finances with Finly
           </h1>
-          <p className="text-lg mb-8 text-[#dedede]">
+          <p className="text-lg mb-8 text-[#dedede] px-5 md:px-0">
             Simplify and check your financial goals with our easy to use
             tracker.
           </p>
-          <div className="flex gap-5 justify-center">
+          <div className="flex-col sm:flex-row flex gap-5 justify-center items-center w-full">
             <motion.button
               initial={{}}
               whileHover={{}}
@@ -256,7 +208,12 @@ const HeroSection = () => {
               </motion.div>
             </motion.button>
             <button className="bg-transparent flex flex-row-reverse hover:border-transparent items-center gap-2  px-6 py-1.5 rounded-lg  ">
-              <p className="font-medium">Learn More </p>
+              <a
+                href="#features"
+                className="font-medium text-[#fff] hover:text-[#fff]"
+              >
+                Learn More{" "}
+              </a>
               <div
                 className="bg-[#31482A] p-2.5 rounded-full"
                 style={{ border: "1px solid #426534" }}
@@ -265,8 +222,26 @@ const HeroSection = () => {
               </div>
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
+      <motion.div
+        initial={{ opacity: 0, y: 100 }}
+        whileInView={{
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.5, delay: 0.5 },
+        }}
+        viewport={{ once: true }}
+        className="flex w-full justify-center px-2.5"
+      >
+        <img
+          className="finlty"
+          src="https://res.cloudinary.com/datm8nslc/image/upload/v1737144939/finlys_csxi5b.png"
+          alt=""
+          style={{ objectFit: "contain" }}
+        />
+      </motion.div>
+      <div className="empty w-full h-56"></div>
     </div>
   );
 };
@@ -276,7 +251,9 @@ export default HeroSection;
 function DefaultNavbar({}) {
   return (
     <nav className="bg3 container absolute top-0 left-0 w-full items-center flex justify-between mx-auto px-14 py-6">
-      <h1 className="text-xl font-semibold text-[#fbfbfb]">Finly</h1>
+      <h1 className="text-xl font-semibold text-[#fbfbfb] flex items-center gap-1">
+        Finly <img src={logo} alt="" />
+      </h1>
       <ul className="flex gap-7">
         <li>
           <a
@@ -311,8 +288,32 @@ function DefaultNavbar({}) {
           </a>
         </li>
       </ul>
-      <button className="flex items-center gap-2 rounded-xl -mr-6 bg-[#171717] text-[#d8dcd6] hover:bg-[#d8dcd6] hover:text-[#080809] transition-colors">
+      <button className="flex items-center gap-2 rounded-xl -mr-6 hover:border-transparent bg-[#171717] text-[#d8dcd6] hover:bg-[#d8dcd6] hover:text-[#080809] transition-colors">
         Get Started <MdArrowForward />
+      </button>
+    </nav>
+  );
+}
+
+function NavbarResponsive({ logo, handleClick }) {
+  return (
+    <nav className="bg3 container absolute top-0 left-0 w-full items-center flex justify-between mx-auto px-5 py-6">
+      <h1 className="text-xl font-semibold text-[#fbfbfb] flex items-center gap-1">
+        Finly
+        <img src={logo} alt="" />
+      </h1>
+
+      <button
+        onClick={handleClick}
+        className="bg-transparent hover:border-transparent -mr-5"
+      >
+        <MdMenu
+          style={{
+            width: "30px",
+            height: "30px",
+            color: "#fbfbfb",
+          }}
+        />
       </button>
     </nav>
   );

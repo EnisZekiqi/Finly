@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Product from "./Product";
 import Home from "./Home";
 import HeroSection from "./HeroSection";
+import AllContent from "./AllContent";
 
 function App() {
   const goBack = () => {
@@ -15,7 +16,15 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HeroSection />} />
+        <Route
+          path="/"
+          element={
+            <div>
+              <HeroSection />
+              <AllContent />
+            </div>
+          }
+        />
         <Route path="/product" element={<Product goBack={goBack} />} />
       </Routes>
     </Router>
