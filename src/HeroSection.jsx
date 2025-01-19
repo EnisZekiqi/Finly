@@ -112,7 +112,7 @@ const HeroSection = () => {
                       variants={childAnimation}
                       initial="initial"
                       whileInView="animate"
-                      href="#pricing"
+                      href="#services"
                       className="text-[#d8dcd6] hover:text-[#8de163] font-semibold text-xl"
                     >
                       Services
@@ -123,7 +123,7 @@ const HeroSection = () => {
                       variants={childAnimation}
                       initial="initial"
                       whileInView="animate"
-                      href="#contact"
+                      href="#review"
                       className="text-[#d8dcd6] hover:text-[#8de163] font-semibold text-xl"
                     >
                       Reviews
@@ -229,7 +229,7 @@ const HeroSection = () => {
         whileInView={{
           opacity: 1,
           y: 0,
-          transition: { duration: 0.5, delay: 0.5 },
+          transition: { duration: 0.5, delay: 0.2 },
         }}
         viewport={{ once: true }}
         className="flex w-full justify-center px-2.5"
@@ -265,7 +265,7 @@ function DefaultNavbar({}) {
         </li>
         <li>
           <a
-            href="#pricing"
+            href="#services "
             className="text-[#d8dcd6] hover:text-[#8de163] font-normal"
           >
             Services
@@ -273,7 +273,7 @@ function DefaultNavbar({}) {
         </li>
         <li>
           <a
-            href="#contact"
+            href="#review"
             className="text-[#d8dcd6] hover:text-[#8de163] font-normal"
           >
             Reviews
