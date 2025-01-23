@@ -15,6 +15,7 @@ import Avatar from "@mui/material/Avatar";
 import avatar1 from "./images/images 5.jpg";
 import avatar2 from "./images/images 9.jpg";
 import avatar3 from "./images/images 12.jpg";
+import { useInView } from "motion/react";
 const AllContent = () => {
   const containerVariants = {
     hidden: {
@@ -49,9 +50,11 @@ const AllContent = () => {
   };
   ///////////////////////////////
   const [clients, setClients] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false); //// the state for showing the numbers go up only in view
 
   useEffect(() => {
-    const interval = 65;
+    if (!hasStarted) return;
+    const interval = 50;
     const target = 79;
 
     const timer = setInterval(() => {
@@ -65,14 +68,15 @@ const AllContent = () => {
       });
     }, interval);
     return () => clearInterval(timer);
-  }, []);
+  }, [hasStarted]);
 
   ///////////////////
 
   const [ad, setAd] = useState(0);
 
   useEffect(() => {
-    const interval = 120; // Interval in milliseconds
+    if (!hasStarted) return;
+    const interval = 70; // Interval in milliseconds
     const target = 25; // Target value
 
     const timer = setInterval(() => {
@@ -88,11 +92,59 @@ const AllContent = () => {
 
     // Cleanup function to clear the interval on component unmount
     return () => clearInterval(timer);
-  }, []);
+  }, [hasStarted]);
+
+  ////////////////////////////
+
+  const [rev, setRev] = useState(0);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+    const interval = 45; // Interval in milliseconds
+    const target = 103; // Target value
+
+    const timer = setInterval(() => {
+      setRev((prev) => {
+        if (prev < target) {
+          return prev + 1;
+        } else {
+          clearInterval(timer); // Stop the interval
+          return prev;
+        }
+      });
+    }, interval);
+
+    // Cleanup function to clear the interval on component unmount
+    return () => clearInterval(timer);
+  }, [hasStarted]);
+
+  ////////////////////////
+
+  const [av, setAv] = useState(0);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+    const interval = 100; // Interval in milliseconds
+    const target = 13; // Target value
+
+    const timer = setInterval(() => {
+      setAv((prev) => {
+        if (prev < target) {
+          return prev + 1;
+        } else {
+          clearInterval(timer); // Stop the interval
+          return prev;
+        }
+      });
+    }, interval);
+
+    // Cleanup function to clear the interval on component unmount
+    return () => clearInterval(timer);
+  }, [hasStarted]);
 
   return (
     <div className="bg-[#010101]">
-      <Features
+      <Benefits
         containerVariants={containerVariants}
         childVariants={childVariants}
       />
@@ -102,164 +154,255 @@ const AllContent = () => {
       <div className="empty h-56"></div>
       <GetStarted avatar1={avatar1} avatar2={avatar2} avatar3={avatar3} />
       <div className="empty h-56"></div>
-      <div className="flex flex-col">
-        <div
-          id="review"
-          className="review container mx-auto px-10 flex items-center justify-between"
-        >
-          <div className=" flex flex-col justify-start items-start">
-            <motion.h1
-              initial={{
-                opacity: 0,
-                y: 100,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  duration: 0.5,
-                },
-              }}
-              viewport={{
-                once: true,
-              }}
-              className="text-[#D1D1D1] py-1.5 px-3 rounded-2xl text-base font-medium w-fit"
-              style={{
-                border: "1px solid #8CE163",
-              }}
-            >
-              Reviews
-            </motion.h1>
-            <motion.h1
-              initial={{
-                opacity: 0,
-                y: 100,
-              }}
-              whileInView={{
-                opacity: 1,
-                y: 0,
-                transition: {
-                  duration: 0.5,
-                },
-              }}
-              viewport={{
-                once: true,
-              }}
-              className="font-medium text-start text-2xl md:text-6xl  text-[#fff] mt-4 mb-4"
-            >
-              Our Work Results in Good Reviews
-            </motion.h1>
-          </div>
-          <div className="flex flex-col gap-3">
-            <p className="font-medium text-[#dedede] text-lg text-start">
-              Explore our comprehensive suite of marketing services designed to
-              elevate your brand
-            </p>
-            <div className="flex items-center">
-              <Avatar
-                alt="Remy Sharp"
-                src={avatar1}
-                sx={{
-                  border: "2px solid #fbfbfb",
+      <Reviews
+        setHasStarted={setHasStarted}
+        hasStarted={hasStarted}
+        clients={clients}
+        ad={ad}
+        rev={rev}
+        av={av}
+      />
+      <div className="empty h-56"></div>
+      <div id="features" className="features">
+        <div className="flex flex-col gap-4 justify-center items-center">
+          <motion.h1
+            className="text-[#D1D1D1] py-1.5 px-3 rounded-2xl text-base font-medium w-fit"
+            style={{
+              border: "1px solid #8CE163",
+            }}
+          >
+            Features
+          </motion.h1>
+          <motion.h1 className="font-medium text-2xl md:text-6xl text-[#fff] mt-4 mb-4">
+            Your Success Package
+          </motion.h1>
+          <div className="flex flex-col gap-12 items-center justify-center container mx-auto px-5 md:px-10 mt-10">
+            {" "}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+              <motion.div
+                initial={{
+                  opacity: 0,
                 }}
-              />
-              <Avatar
-                alt="Remy Sharp"
-                src={avatar2}
-                sx={{
-                  border: "2px solid #fbfbfb",
-                  marginLeft: "-15px",
+                whileInView={{
+                  opacity: 1,
+                  transition: {
+                    duration: 1,
+                  },
                 }}
-              />
-              <Avatar
-                alt="Remy Sharp"
-                src={avatar3}
-                sx={{
-                  border: "2px solid #fbfbfb",
-                  marginLeft: "-15px",
+                viewport={{
+                  once: true,
                 }}
-              />
-              <p className="text-[#fff]">
-                {" "}
-                <b className="text-[#c6f268] ml-3">900</b> Reviews
-              </p>
+                className="relative mb-6 md:mb-0"
+              >
+                {/* First Image (Background) */}
+                <img
+                  src="https://framerusercontent.com/images/TCL11c6gwT2EDEMbVShkGv8eaIA.png"
+                  alt=""
+                  className="w-full rounded-2xl h-[65vh] md:h-[75vh]" // Ensures the first image spans the container width
+                />
+
+                {/* Second Image (On Top of First Image) */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 -top-20">
+                  <img
+                    src="https://framerusercontent.com/images/PNcwK6lizEigO2bQrBDZMVhVqdI.svg"
+                    alt=""
+                    className="w-[85%] md:w-[90%] py-20" // Adjust size as needed
+                  />
+                </div>
+
+                {/* Text (Under the Second Image) */}
+                <div className="absolute inset-0 flex w-full items-start justify-center top-auto bottom-10 z-20">
+                  <div className="flex flex-col gap-2 items-start text-start px-6">
+                    <h1 className="text-[#fff] font-medium text-xl">
+                      Full Account Audit
+                    </h1>
+                    <p className="text-[#dedede] font-normal  text-md">
+                      Comprehensive analysis to maximize your PPC campaigns'
+                      performance and efficiency.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{
+                  opacity: 0,
+                }}
+                whileInView={{
+                  opacity: 1,
+                  transition: {
+                    duration: 1,
+                  },
+                }}
+                viewport={{
+                  once: true,
+                }}
+                className="relative mb-6 md:mb-0"
+              >
+                {/* First Image (Background) */}
+                <img
+                  src="https://framerusercontent.com/images/wo0Em8OOMXCl1dVgRk563mThcLw.png"
+                  alt=""
+                  className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
+                />
+
+                {/* Second Image (On Top of First Image) */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 -top-20">
+                  <img
+                    src="https://framerusercontent.com/images/v5yb0q7g9QH9nYV872QQIb0Wds.svg"
+                    alt=""
+                    className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
+                  />
+                </div>
+
+                {/* Text (Under the Second Image) */}
+                <div className="absolute inset-0 flex items-center justify-center top-auto bottom-10 z-20">
+                  <div className="flex flex-col gap-2 items-start text-center px-6">
+                    <h1 className="text-[#fff] font-medium text-xl">
+                      PPC Strategy
+                    </h1>
+                    <p className="text-[#dedede] font-normal  text-md text-start">
+                      Tailored strategies crafted to boost your ad campaigns and
+                      achieve your business goals.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
-        <div className="reviewContainer container mx-auto px-10 flex justify-around mt-10">
-          <div className="flex flex-col gap-4 items-center py-5">
-            <div
-              className="wrappericon bg-[#121214] rounded-lg p-1.5"
-              style={{
-                border: "1px solid #343839",
-              }}
-            >
-              <MdPeopleOutline
-                style={{
-                  color: "#8DE163",
-                  width: "30px",
-                  height: "30px",
+            <div className="flex flex-col md:flex-row items-center gap-4 justify-center">
+              <motion.div
+                initial={{
+                  opacity: 0,
                 }}
-              />
-            </div>
-            <h1 className="text-[#fff] text-4xl font-medium">{clients}</h1>
-            <p className="text-[#dedede] text-medium text-lg">Clients Helped</p>
-          </div>
-          <div className="flex flex-col gap-4 items-center py-5">
-            <div
-              className="wrappericon bg-[#121214] rounded-lg p-1.5"
-              style={{
-                border: "1px solid #343839",
-              }}
-            >
-              <MdAttachMoney
-                style={{
-                  color: "#8DE163",
-                  width: "30px",
-                  height: "30px",
+                whileInView={{
+                  opacity: 1,
+                  transition: {
+                    duration: 1,
+                  },
                 }}
-              />
-            </div>
-            <h1 className="text-[#fff] text-4xl font-medium">{ad}m+</h1>
-            <p className="text-[#dedede] text-medium text-lg">Total Ad Spend</p>
-          </div>
-          <div className="flex flex-col gap-4 items-center py-5">
-            <div
-              className="wrappericon bg-[#121214] rounded-lg p-1.5"
-              style={{
-                border: "1px solid #343839",
-              }}
-            >
-              <MdOutlineShoppingBag
-                style={{
-                  color: "#8DE163",
-                  width: "30px",
-                  height: "30px",
+                viewport={{
+                  once: true,
                 }}
-              />
-            </div>
-            <h1 className="text-[#fff] text-4xl font-medium">103m+</h1>
-            <p className="text-[#dedede] text-medium text-lg">
-              Collective Revenue
-            </p>
-          </div>
-          <div className="flex flex-col gap-4 items-center py-5">
-            <div
-              className="wrappericon bg-[#121214] rounded-lg p-1.5"
-              style={{
-                border: "1px solid #343839",
-              }}
-            >
-              <MdBarChart
-                style={{
-                  color: "#8DE163",
-                  width: "30px",
-                  height: "30px",
+                className="relative mb-6 md:mb-0"
+              >
+                {/* First Image (Background) */}
+                <img
+                  src="https://framerusercontent.com/images/LvbPdmHdWlfKpfkKQ2RgCeIDhE.png"
+                  alt=""
+                  className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
+                />
+
+                {/* Second Image (On Top of First Image) */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
+                  <img
+                    src="https://framerusercontent.com/images/T4IHPsdHUmQaIcIb5XdbQktSkQ.svg"
+                    alt=""
+                    className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
+                  />
+                </div>
+
+                {/* Text (Under the Second Image) */}
+                <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
+                  <div className="flex flex-col gap-2 items-start text-center px-6">
+                    <h1 className="text-[#fff] font-medium text-xl">
+                      Daily Reports
+                    </h1>
+                    <p className="text-[#dedede] font-normal  text-md text-start">
+                      Stay informed with detailed insights into your PPC
+                      performance delivered straight to your inbox.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{
+                  opacity: 0,
                 }}
-              />
+                whileInView={{
+                  opacity: 1,
+                  transition: {
+                    duration: 1,
+                  },
+                }}
+                viewport={{
+                  once: true,
+                }}
+                className="relative mb-6 md:mb-0"
+              >
+                {/* First Image (Background) */}
+                <img
+                  src="https://framerusercontent.com/images/H3YQpCWKplAgrr3OUe7kC0a3k.png"
+                  alt=""
+                  className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
+                />
+
+                {/* Second Image (On Top of First Image) */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
+                  <img
+                    src="https://framerusercontent.com/images/4MyvZHMTwxwWkDRdpSNGRkL098.svg"
+                    alt=""
+                    className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
+                  />
+                </div>
+
+                {/* Text (Under the Second Image) */}
+                <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
+                  <div className="flex flex-col gap-2 items-start text-center px-6">
+                    <h1 className="text-[#fff] font-medium text-xl">
+                      Constant Optimization
+                    </h1>
+                    <p className="text-[#dedede] font-normal text-md text-start">
+                      Continuous fine-tuning to ensure your PPC campaigns are
+                      always delivering optimal results.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{
+                  opacity: 0,
+                }}
+                whileInView={{
+                  opacity: 1,
+                  transition: {
+                    duration: 1,
+                  },
+                }}
+                viewport={{
+                  once: true,
+                }}
+                className="relative mb-6 md:mb-0"
+              >
+                {/* First Image (Background) */}
+                <img
+                  src="https://framerusercontent.com/images/r3rQfsio2FfbQaArwHLkCBISq8.png"
+                  alt=""
+                  className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
+                />
+
+                {/* Second Image (On Top of First Image) */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
+                  <img
+                    src="https://framerusercontent.com/images/ZtpHP52wEUBvHLiuggXQwCMr0g.png"
+                    alt=""
+                    className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
+                  />
+                </div>
+
+                {/* Text (Under the Second Image) */}
+                <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
+                  <div className="flex flex-col gap-2 items-start text-center px-6">
+                    <h1 className="text-[#fff] font-medium text-xl">
+                      Copywriting
+                    </h1>
+                    <p className="text-[#dedede] font-normal text-md text-start">
+                      Compelling ad copy that captivates your audience and
+                      drives conversions.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-            <h1 className="text-[#fff] text-4xl font-medium">4.58</h1>
-            <p className="text-[#dedede] text-medium text-lg">Average ROAS</p>
           </div>
         </div>
       </div>
@@ -270,9 +413,9 @@ const AllContent = () => {
 
 export default AllContent;
 
-function Features({ containerVariants, childVariants }) {
+function Benefits({ containerVariants, childVariants }) {
   return (
-    <div id="features" className="features">
+    <div className="benefits">
       <div className="container mx-auto px-10 flex flex-col justify-start items-start">
         <motion.h1
           initial={{
@@ -294,7 +437,7 @@ function Features({ containerVariants, childVariants }) {
             border: "1px solid #8CE163",
           }}
         >
-          Features
+          Benefits
         </motion.h1>
         <motion.h1
           initial={{
@@ -454,7 +597,7 @@ function Services({ services, handleChangeServ }) {
             whileInView={{
               opacity: 1,
               transition: {
-                duration: 0.5,
+                duration: 1,
               },
             }}
             viewport={{
@@ -474,7 +617,7 @@ function Services({ services, handleChangeServ }) {
             whileInView={{
               opacity: 1,
               transition: {
-                duration: 0.5,
+                duration: 1,
               },
             }}
             viewport={{
@@ -484,7 +627,21 @@ function Services({ services, handleChangeServ }) {
           >
             Crafting Your Success Story
           </motion.h1>
-          <div className="llojet-services flex flex-col gap-4 items-start mt-12">
+          <motion.div
+            initial={{
+              opacity: 0,
+            }}
+            whileInView={{
+              opacity: 1,
+              transition: {
+                duration: 1,
+              },
+            }}
+            viewport={{
+              once: true,
+            }}
+            className="llojet-services flex flex-col gap-4 items-start mt-12"
+          >
             <div
               className="f w-full md:w-[85%] flex flex-col gap-2 pb-3"
               style={{
@@ -581,9 +738,23 @@ function Services({ services, handleChangeServ }) {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
-        <div className="relative mb-6 md:mb-0">
+        <motion.div
+          initial={{
+            opacity: 0,
+          }}
+          whileInView={{
+            opacity: 1,
+            transition: {
+              duration: 1,
+            },
+          }}
+          viewport={{
+            once: true,
+          }}
+          className="relative mb-6 md:mb-0"
+        >
           <img
             src="https://framerusercontent.com/images/6l8u9RlHacqRAihVFjwOXXJhTtY.jpg"
             alt=""
@@ -596,7 +767,7 @@ function Services({ services, handleChangeServ }) {
               className="w-[85%] md:w-[90%]" // Adjust size as needed
             />
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -712,6 +883,172 @@ function GetStarted({ avatar1, avatar2, avatar3 }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Reviews({ setHasStarted, hasStarted, clients, ad, rev, av }) {
+  return (
+    <div className="flex flex-col">
+      <div
+        id="review"
+        className="review container mx-auto px-10 flex flex-col md:flex-row items-center justify-between"
+      >
+        <div className=" flex flex-col w-full justify-start items-start">
+          <motion.h1
+            initial={{
+              opacity: 0,
+              y: 100,
+            }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+              transition: {
+                duration: 0.5,
+              },
+            }}
+            viewport={{
+              once: true,
+            }}
+            className="text-[#D1D1D1] py-1.5 px-3 rounded-2xl text-base font-medium w-fit"
+            style={{
+              border: "1px solid #8CE163",
+            }}
+          >
+            Reviews
+          </motion.h1>
+          <motion.h1
+            initial={{
+              opacity: 0,
+              y: 100,
+            }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+              transition: {
+                duration: 0.5,
+              },
+            }}
+            viewport={{
+              once: true,
+            }}
+            className="font-medium text-start text-2xl md:text-6xl  text-[#fff] mt-4 mb-4"
+          >
+            Our Work Results in Good Reviews
+          </motion.h1>
+        </div>
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 100,
+          }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+            transition: {
+              duration: 0.5,
+            },
+          }}
+          viewport={{
+            once: true,
+          }}
+          className="flex flex-col gap-3"
+        >
+          <p className="font-normal text-[#dedede] text-md md:text-lg text-start">
+            Explore our comprehensive suite of marketing services designed to
+            elevate your brand
+          </p>
+        </motion.div>
+      </div>
+      <motion.div
+        whileInView={() => setHasStarted(true)}
+        viewport={{
+          once: true,
+        }}
+      >
+        <div className="reviewContainer md:container md:mx-auto px-10 flex flex-col md:flex-row justify-around mt-10">
+          <div className="flex flex-col gap-4 items-center py-5">
+            <div
+              className="wrappericon bg-[#121214] rounded-lg p-1.5"
+              style={{
+                border: "1px solid #343839",
+              }}
+            >
+              <MdPeopleOutline
+                style={{
+                  color: "#8DE163",
+                  width: "30px",
+                  height: "30px",
+                }}
+              />
+            </div>
+            {hasStarted === true && (
+              <div>
+                <h1 className="text-[#fff] text-4xl font-medium">{clients}</h1>
+                <p className="text-[#dedede] text-medium text-lg">
+                  Clients Helped
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-4 items-center py-5">
+            <div
+              className="wrappericon bg-[#121214] rounded-lg p-1.5"
+              style={{
+                border: "1px solid #343839",
+              }}
+            >
+              <MdAttachMoney
+                style={{
+                  color: "#8DE163",
+                  width: "30px",
+                  height: "30px",
+                }}
+              />
+            </div>
+            <h1 className="text-[#fff] text-4xl font-medium">{ad}m+</h1>
+            <p className="text-[#dedede] text-medium text-lg">Total Ad Spend</p>
+          </div>
+          <div className="flex flex-col gap-4 items-center py-5">
+            <div
+              className="wrappericon bg-[#121214] rounded-lg p-1.5"
+              style={{
+                border: "1px solid #343839",
+              }}
+            >
+              <MdOutlineShoppingBag
+                style={{
+                  color: "#8DE163",
+                  width: "30px",
+                  height: "30px",
+                }}
+              />
+            </div>
+            <h1 className="text-[#fff] text-4xl font-medium">{rev}m+</h1>
+            <p className="text-[#dedede] text-medium text-lg">
+              Collective Revenue
+            </p>
+          </div>
+          <div className="flex flex-col gap-4 items-center py-5">
+            <div
+              className="wrappericon bg-[#121214] rounded-lg p-1.5"
+              style={{
+                border: "1px solid #343839",
+              }}
+            >
+              <MdBarChart
+                style={{
+                  color: "#8DE163",
+                  width: "30px",
+                  height: "30px",
+                }}
+              />
+            </div>
+            <h1 className="text-[#fff] text-4xl font-medium">{av}</h1>
+            <p className="text-[#dedede] text-medium text-lg">Average ROAS</p>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
