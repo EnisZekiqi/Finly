@@ -7,7 +7,10 @@ import {
   MdPeopleOutline,
   MdAttachMoney,
   MdOutlineShoppingBag,
+  MdMailOutline,
   MdPlayArrow,
+  MdOutlinePhone,
+  MdOutlineLocationOn,
 } from "react-icons/md";
 import { motion } from "motion/react";
 import { useState, useCallback, useEffect } from "react";
@@ -16,6 +19,8 @@ import avatar1 from "./images/images 5.jpg";
 import avatar2 from "./images/images 9.jpg";
 import avatar3 from "./images/images 12.jpg";
 import { useInView } from "motion/react";
+import logo from "./assets/tag-svgrepo-com.svg";
+import { FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa";
 const AllContent = () => {
   const containerVariants = {
     hidden: {
@@ -44,10 +49,16 @@ const AllContent = () => {
     },
   };
 
-  const [services, setServices] = useState("finance");
+  const [services, setServices] = useState("finance"); //// changes for the services
   const handleChangeServ = (serv) => {
     setServices(serv);
   };
+
+  const [faq, setFaq] = useState("");
+  const handleChangeFaq = (faq) => {
+    setFaq(faq);
+  };
+
   ///////////////////////////////
   const [clients, setClients] = useState(0);
   const [hasStarted, setHasStarted] = useState(false); //// the state for showing the numbers go up only in view
@@ -163,250 +174,131 @@ const AllContent = () => {
         av={av}
       />
       <div className="empty h-56"></div>
-      <div id="features" className="features">
-        <div className="flex flex-col gap-4 justify-center items-center">
-          <motion.h1
-            className="text-[#D1D1D1] py-1.5 px-3 rounded-2xl text-base font-medium w-fit"
-            style={{
-              border: "1px solid #8CE163",
-            }}
-          >
-            Features
-          </motion.h1>
-          <motion.h1 className="font-medium text-2xl md:text-6xl text-[#fff] mt-4 mb-4">
-            Your Success Package
-          </motion.h1>
-          <div className="flex flex-col gap-12 items-center justify-center container mx-auto px-5 md:px-10 mt-10">
-            {" "}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-              <motion.div
-                initial={{
-                  opacity: 0,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  transition: {
-                    duration: 1,
-                  },
-                }}
-                viewport={{
-                  once: true,
-                }}
-                className="relative mb-6 md:mb-0"
-              >
-                {/* First Image (Background) */}
-                <img
-                  src="https://framerusercontent.com/images/TCL11c6gwT2EDEMbVShkGv8eaIA.png"
-                  alt=""
-                  className="w-full rounded-2xl h-[65vh] md:h-[75vh]" // Ensures the first image spans the container width
-                />
+      <Features />
+      <div className="empty h-56"></div>
+      <FAQ faq={faq} handleChangeFaq={handleChangeFaq} />
 
-                {/* Second Image (On Top of First Image) */}
-                <div className="absolute inset-0 flex items-center justify-center z-10 -top-20">
-                  <img
-                    src="https://framerusercontent.com/images/PNcwK6lizEigO2bQrBDZMVhVqdI.svg"
-                    alt=""
-                    className="w-[85%] md:w-[90%] py-20" // Adjust size as needed
-                  />
-                </div>
+      <div className="lastInfo relative min-h-screen">
+        {/* Blurred Background */}
+        <div
+          className="bg2 inset-0 absolute blur"
+          style={{ zIndex: 1000 }}
+        ></div>
 
-                {/* Text (Under the Second Image) */}
-                <div className="absolute inset-0 flex w-full items-start justify-center top-auto bottom-10 z-20">
-                  <div className="flex flex-col gap-2 items-start text-start px-6">
-                    <h1 className="text-[#fff] font-medium text-xl">
-                      Full Account Audit
-                    </h1>
-                    <p className="text-[#dedede] font-normal  text-md">
-                      Comprehensive analysis to maximize your PPC campaigns'
-                      performance and efficiency.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{
-                  opacity: 0,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  transition: {
-                    duration: 1,
-                  },
-                }}
-                viewport={{
-                  once: true,
-                }}
-                className="relative mb-6 md:mb-0"
-              >
-                {/* First Image (Background) */}
-                <img
-                  src="https://framerusercontent.com/images/wo0Em8OOMXCl1dVgRk563mThcLw.png"
-                  alt=""
-                  className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
-                />
-
-                {/* Second Image (On Top of First Image) */}
-                <div className="absolute inset-0 flex items-center justify-center z-10 -top-20">
-                  <img
-                    src="https://framerusercontent.com/images/v5yb0q7g9QH9nYV872QQIb0Wds.svg"
-                    alt=""
-                    className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
-                  />
-                </div>
-
-                {/* Text (Under the Second Image) */}
-                <div className="absolute inset-0 flex items-center justify-center top-auto bottom-10 z-20">
-                  <div className="flex flex-col gap-2 items-start text-center px-6">
-                    <h1 className="text-[#fff] font-medium text-xl">
-                      PPC Strategy
-                    </h1>
-                    <p className="text-[#dedede] font-normal  text-md text-start">
-                      Tailored strategies crafted to boost your ad campaigns and
-                      achieve your business goals.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+        {/* Content */}
+        <div
+          className="absolute inset-0 top-32 md:top-40 flex flex-col items-center justify-center"
+          style={{ zIndex: 1002 }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-10 items-start pb-0 md:pb-6 px-10">
+            {/* Finly Section */}
+            <div className="flex flex-col items-center md:items-start  gap-4 mb-2">
+              <h1 className="flex items-center text-center md:text-start gap-1 text-xl font-semibold text-[#fbfbfb]">
+                Finly
+                <img src={logo} alt="" />
+              </h1>
+              <p className="font-normal text-[#dedede] text-md text-center md:text-start ">
+                Get a high-end conversion-focused website for your agency.
+              </p>
             </div>
-            <div className="flex flex-col md:flex-row items-center gap-4 justify-center">
-              <motion.div
-                initial={{
-                  opacity: 0,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  transition: {
-                    duration: 1,
-                  },
-                }}
-                viewport={{
-                  once: true,
-                }}
-                className="relative mb-6 md:mb-0"
+
+            {/* Pages Section */}
+            <div className="flex flex-col gap-4 mb-2">
+              <h1 className="font-semibold text-xl text-[#fff]">Pages</h1>
+              <a
+                href="#features"
+                className="text-[#d8dcd6] hover:text-[#8de163] font-medium text-md transition-colors"
               >
-                {/* First Image (Background) */}
-                <img
-                  src="https://framerusercontent.com/images/LvbPdmHdWlfKpfkKQ2RgCeIDhE.png"
-                  alt=""
-                  className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
-                />
-
-                {/* Second Image (On Top of First Image) */}
-                <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
-                  <img
-                    src="https://framerusercontent.com/images/T4IHPsdHUmQaIcIb5XdbQktSkQ.svg"
-                    alt=""
-                    className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
-                  />
-                </div>
-
-                {/* Text (Under the Second Image) */}
-                <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
-                  <div className="flex flex-col gap-2 items-start text-center px-6">
-                    <h1 className="text-[#fff] font-medium text-xl">
-                      Daily Reports
-                    </h1>
-                    <p className="text-[#dedede] font-normal  text-md text-start">
-                      Stay informed with detailed insights into your PPC
-                      performance delivered straight to your inbox.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div
-                initial={{
-                  opacity: 0,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  transition: {
-                    duration: 1,
-                  },
-                }}
-                viewport={{
-                  once: true,
-                }}
-                className="relative mb-6 md:mb-0"
+                Features
+              </a>
+              <a
+                href="#services"
+                className="text-[#d8dcd6] hover:text-[#8de163] font-medium text-md transition-colors"
               >
-                {/* First Image (Background) */}
-                <img
-                  src="https://framerusercontent.com/images/H3YQpCWKplAgrr3OUe7kC0a3k.png"
-                  alt=""
-                  className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
-                />
-
-                {/* Second Image (On Top of First Image) */}
-                <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
-                  <img
-                    src="https://framerusercontent.com/images/4MyvZHMTwxwWkDRdpSNGRkL098.svg"
-                    alt=""
-                    className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
-                  />
-                </div>
-
-                {/* Text (Under the Second Image) */}
-                <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
-                  <div className="flex flex-col gap-2 items-start text-center px-6">
-                    <h1 className="text-[#fff] font-medium text-xl">
-                      Constant Optimization
-                    </h1>
-                    <p className="text-[#dedede] font-normal text-md text-start">
-                      Continuous fine-tuning to ensure your PPC campaigns are
-                      always delivering optimal results.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-              <motion.div
-                initial={{
-                  opacity: 0,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  transition: {
-                    duration: 1,
-                  },
-                }}
-                viewport={{
-                  once: true,
-                }}
-                className="relative mb-6 md:mb-0"
+                Services
+              </a>
+              <a
+                href="#review"
+                className="text-[#d8dcd6] hover:text-[#8de163] font-medium text-md transition-colors"
               >
-                {/* First Image (Background) */}
-                <img
-                  src="https://framerusercontent.com/images/r3rQfsio2FfbQaArwHLkCBISq8.png"
-                  alt=""
-                  className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
-                />
-
-                {/* Second Image (On Top of First Image) */}
-                <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
-                  <img
-                    src="https://framerusercontent.com/images/ZtpHP52wEUBvHLiuggXQwCMr0g.png"
-                    alt=""
-                    className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
-                  />
-                </div>
-
-                {/* Text (Under the Second Image) */}
-                <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
-                  <div className="flex flex-col gap-2 items-start text-center px-6">
-                    <h1 className="text-[#fff] font-medium text-xl">
-                      Copywriting
-                    </h1>
-                    <p className="text-[#dedede] font-normal text-md text-start">
-                      Compelling ad copy that captivates your audience and
-                      drives conversions.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+                Review
+              </a>
             </div>
+
+            {/* Contact Section */}
+            <div className="flex flex-col items-center gap-4">
+              <h1 className="font-semibold text-xl text-[#fff]">Contact</h1>
+              <p className="font-normal flex items-center gap-2 text-[#dedede] text-md text-start ">
+                <MdMailOutline style={{ color: "#8de163" }} />{" "}
+                enis_zekiqi@hotmail.com
+              </p>
+              <p className="font-normal flex items-center gap-2 text-[#dedede] text-md text-start ">
+                <MdOutlinePhone style={{ color: "#8de163" }} /> +383 44 256 853
+              </p>
+              <p className="font-normal flex items-center gap-2 text-[#dedede] text-md text-start ">
+                <MdOutlineLocationOn style={{ color: "#8de163" }} /> Faruk
+                Beqiri , Vushtrri
+              </p>
+            </div>
+
+            {/* Follow Section */}
+            <div className="hidden md:flex flex-row md:flex-col items-center gap-4">
+              <h1 className="font-semibold text-xl text-[#fff]">Follow</h1>
+              <a
+                href="https://www.instagram.com/eniszekiqi/"
+                className="w-fit font-normal flex items-center bg-transparent hover:bg-[#8de163] transition-colors hover:text-[#000] gap-2 text-[#dedede] text-md text-start rounded-xl p-1.5"
+                style={{ border: "1px solid #2B2C2B" }}
+              >
+                <FaInstagram /> Instagram
+              </a>
+              <a
+                href="https://www.linkedin.com/in/enis-zekiqi-090b692b9/"
+                className="w-fit font-normal flex items-center bg-transparent hover:bg-[#8de163] transition-colors hover:text-[#000] gap-2 text-[#dedede] text-md text-start rounded-xl p-1.5"
+                style={{ border: "1px solid #2B2C2B" }}
+              >
+                <FaLinkedin /> LinkedIn
+              </a>
+              <a
+                href="https://github.com/EnisZekiqi"
+                className="w-fit font-normal flex items-center bg-transparent hover:bg-[#8de163] transition-colors hover:text-[#000] gap-2 text-[#dedede] text-md text-start rounded-xl p-1.5"
+                style={{ border: "1px solid #2B2C2B" }}
+              >
+                <FaGithub /> GitHub
+              </a>
+            </div>
+            <div className=" flex md:hidden justify-center flex-row md:flex-col items-center gap-4 w-full">
+              <a
+                href="https://www.instagram.com/eniszekiqi/"
+                className="w-fit font-normal flex items-center bg-transparent hover:bg-[#8de163] transition-colors hover:text-[#000] gap-2 text-[#dedede] text-md text-start rounded-xl p-1.5"
+                style={{ border: "1px solid #2B2C2B" }}
+              >
+                <FaInstagram />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/enis-zekiqi-090b692b9/"
+                className="w-fit font-normal flex items-center bg-transparent hover:bg-[#8de163] transition-colors hover:text-[#000] gap-2 text-[#dedede] text-md text-start rounded-xl p-1.5"
+                style={{ border: "1px solid #2B2C2B" }}
+              >
+                <FaLinkedin />
+              </a>
+              <a
+                href="https://github.com/EnisZekiqi"
+                className="w-fit font-normal flex items-center bg-transparent hover:bg-[#8de163] transition-colors hover:text-[#000] gap-2 text-[#dedede] text-md text-start rounded-xl p-1.5"
+                style={{ border: "1px solid #2B2C2B" }}
+              >
+                <FaGithub />
+              </a>
+            </div>
+          </div>
+          <div className=" w-full px-10 opacity-0 md:opacity-30">
+            <hr style={{ color: "1px solid #374531" }} />
+          </div>
+          <div className=" hidden md:flex justify-between items-center w-full text-md text-[#dedede] font-medium px-10 mt-10">
+            <p>© Finly 2025. All rights reserved.</p>
+            <p>Designed & Made by Enis Zekiqi</p>
           </div>
         </div>
       </div>
-      <div className="empty h-56"></div>
     </div>
   );
 };
@@ -603,7 +495,7 @@ function Services({ services, handleChangeServ }) {
             viewport={{
               once: true,
             }}
-            className="text-[#D1D1D1] py-1.5 px-3 rounded-2xl text-base font-medium w-fit"
+            className="text-[#D1D1D1] py-1.5 px-3 rounded-2xl text-base font-medium w-fit mt-8 md:mt-0"
             style={{
               border: "1px solid #8CE163",
             }}
@@ -776,7 +668,7 @@ function Services({ services, handleChangeServ }) {
 function GetStarted({ avatar1, avatar2, avatar3 }) {
   return (
     <div className="start">
-      <div className="relative w-full flex items-center justify-center px-2 md:px-0">
+      <div className="relative w-full flex items-center justify-center px-10 md:px-0">
         <img
           src="https://framerusercontent.com/images/lTBYcGtW0iVzGDyEeRAozHdZck.jpg"
           alt=""
@@ -965,6 +857,7 @@ function Reviews({ setHasStarted, hasStarted, clients, ad, rev, av }) {
         viewport={{
           once: true,
         }}
+        className="px-10"
       >
         <div className="reviewContainer md:container md:mx-auto px-10 flex flex-col md:flex-row justify-around mt-10">
           <div className="flex flex-col gap-4 items-center py-5">
@@ -1049,6 +942,402 @@ function Reviews({ setHasStarted, hasStarted, clients, ad, rev, av }) {
           </div>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+function Features({}) {
+  return (
+    <div id="features" className="features">
+      <div className="flex flex-col gap-4 justify-center items-center">
+        <motion.h1
+          className="text-[#D1D1D1] py-1.5 px-3 rounded-2xl text-base font-medium w-fit"
+          style={{
+            border: "1px solid #8CE163",
+          }}
+        >
+          Features
+        </motion.h1>
+        <motion.h1 className="font-medium text-2xl md:text-6xl text-[#fff] mt-4 mb-4">
+          Your Success Package
+        </motion.h1>
+        <div className="flex flex-col gap-12 items-center justify-center container mx-auto px-7 md:px-10 mt-10">
+          {" "}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              whileInView={{
+                opacity: 1,
+                transition: {
+                  duration: 1,
+                },
+              }}
+              viewport={{
+                once: true,
+              }}
+              className="relative mb-6 md:mb-0"
+            >
+              {/* First Image (Background) */}
+              <img
+                src="https://framerusercontent.com/images/TCL11c6gwT2EDEMbVShkGv8eaIA.png"
+                alt=""
+                className="w-full rounded-2xl h-[65vh] md:h-[75vh]" // Ensures the first image spans the container width
+              />
+
+              {/* Second Image (On Top of First Image) */}
+              <div className="absolute inset-0 flex items-center justify-center z-10 -top-20">
+                <img
+                  src="https://framerusercontent.com/images/PNcwK6lizEigO2bQrBDZMVhVqdI.svg"
+                  alt=""
+                  className="w-[85%] md:w-[90%] py-20" // Adjust size as needed
+                />
+              </div>
+
+              {/* Text (Under the Second Image) */}
+              <div className="absolute inset-0 flex w-full items-start justify-center top-auto bottom-10 z-20">
+                <div className="flex flex-col gap-2 items-start text-start px-6">
+                  <h1 className="text-[#fff] font-medium text-xl">
+                    Full Account Audit
+                  </h1>
+                  <p className="text-[#dedede] font-normal  text-md">
+                    Comprehensive analysis to maximize your PPC campaigns'
+                    performance and efficiency.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              whileInView={{
+                opacity: 1,
+                transition: {
+                  duration: 1,
+                },
+              }}
+              viewport={{
+                once: true,
+              }}
+              className="relative mb-6 md:mb-0"
+            >
+              {/* First Image (Background) */}
+              <img
+                src="https://framerusercontent.com/images/wo0Em8OOMXCl1dVgRk563mThcLw.png"
+                alt=""
+                className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
+              />
+
+              {/* Second Image (On Top of First Image) */}
+              <div className="absolute inset-0 flex items-center justify-center z-10 -top-20">
+                <img
+                  src="https://framerusercontent.com/images/v5yb0q7g9QH9nYV872QQIb0Wds.svg"
+                  alt=""
+                  className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
+                />
+              </div>
+
+              {/* Text (Under the Second Image) */}
+              <div className="absolute inset-0 flex items-center justify-center top-auto bottom-10 z-20">
+                <div className="flex flex-col gap-2 items-start text-center px-6">
+                  <h1 className="text-[#fff] font-medium text-xl">
+                    PPC Strategy
+                  </h1>
+                  <p className="text-[#dedede] font-normal  text-md text-start">
+                    Tailored strategies crafted to boost your ad campaigns and
+                    achieve your business goals.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+          <div className="flex flex-col md:flex-row items-center gap-4 justify-center">
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              whileInView={{
+                opacity: 1,
+                transition: {
+                  duration: 1,
+                },
+              }}
+              viewport={{
+                once: true,
+              }}
+              className="relative mb-6 md:mb-0"
+            >
+              {/* First Image (Background) */}
+              <img
+                src="https://framerusercontent.com/images/LvbPdmHdWlfKpfkKQ2RgCeIDhE.png"
+                alt=""
+                className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
+              />
+
+              {/* Second Image (On Top of First Image) */}
+              <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
+                <img
+                  src="https://framerusercontent.com/images/T4IHPsdHUmQaIcIb5XdbQktSkQ.svg"
+                  alt=""
+                  className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
+                />
+              </div>
+
+              {/* Text (Under the Second Image) */}
+              <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
+                <div className="flex flex-col gap-2 items-start text-center px-6">
+                  <h1 className="text-[#fff] font-medium text-xl">
+                    Daily Reports
+                  </h1>
+                  <p className="text-[#dedede] font-normal  text-md text-start">
+                    Stay informed with detailed insights into your PPC
+                    performance delivered straight to your inbox.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              whileInView={{
+                opacity: 1,
+                transition: {
+                  duration: 1,
+                },
+              }}
+              viewport={{
+                once: true,
+              }}
+              className="relative mb-6 md:mb-0"
+            >
+              {/* First Image (Background) */}
+              <img
+                src="https://framerusercontent.com/images/H3YQpCWKplAgrr3OUe7kC0a3k.png"
+                alt=""
+                className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
+              />
+
+              {/* Second Image (On Top of First Image) */}
+              <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
+                <img
+                  src="https://framerusercontent.com/images/4MyvZHMTwxwWkDRdpSNGRkL098.svg"
+                  alt=""
+                  className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
+                />
+              </div>
+
+              {/* Text (Under the Second Image) */}
+              <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
+                <div className="flex flex-col gap-2 items-start text-center px-6">
+                  <h1 className="text-[#fff] font-medium text-xl">
+                    Constant Optimization
+                  </h1>
+                  <p className="text-[#dedede] font-normal text-md text-start">
+                    Continuous fine-tuning to ensure your PPC campaigns are
+                    always delivering optimal results.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              whileInView={{
+                opacity: 1,
+                transition: {
+                  duration: 1,
+                },
+              }}
+              viewport={{
+                once: true,
+              }}
+              className="relative mb-6 md:mb-0"
+            >
+              {/* First Image (Background) */}
+              <img
+                src="https://framerusercontent.com/images/r3rQfsio2FfbQaArwHLkCBISq8.png"
+                alt=""
+                className="w-full rounded-2xl h-[75vh]" // Ensures the first image spans the container width
+              />
+
+              {/* Second Image (On Top of First Image) */}
+              <div className="absolute inset-0 flex items-center justify-center z-10 -top-32">
+                <img
+                  src="https://framerusercontent.com/images/ZtpHP52wEUBvHLiuggXQwCMr0g.png"
+                  alt=""
+                  className="w-[85%] md:w-[70%] py-20" // Adjust size as needed
+                />
+              </div>
+
+              {/* Text (Under the Second Image) */}
+              <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
+                <div className="flex flex-col gap-2 items-start text-center px-6">
+                  <h1 className="text-[#fff] font-medium text-xl">
+                    Copywriting
+                  </h1>
+                  <p className="text-[#dedede] font-normal text-md text-start">
+                    Compelling ad copy that captivates your audience and drives
+                    conversions.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FAQ({ faq, handleChangeFaq }) {
+  return (
+    <div
+      id="faq"
+      className="faq flex flex-col justify-center items-center px-5"
+    >
+      <motion.h1
+        initial={{
+          opacity: 0,
+        }}
+        whileInView={{
+          opacity: 1,
+          transition: {
+            duration: 0.5,
+          },
+        }}
+        viewport={{
+          once: true,
+        }}
+        className="text-[#D1D1D1] py-1.5 px-3 rounded-2xl text-base font-medium w-fit"
+        style={{
+          border: "1px solid #8CE163",
+        }}
+      >
+        FAQ
+      </motion.h1>
+      <motion.h1
+        initial={{
+          opacity: 0,
+        }}
+        whileInView={{
+          opacity: 1,
+          transition: {
+            duration: 0.5,
+          },
+        }}
+        viewport={{
+          once: true,
+        }}
+        className="font-medium text-center text-2xl md:text-6xl  text-[#fff] mt-4 mb-4 "
+      >
+        Frequently Asked Questions
+      </motion.h1>
+      <div className="flex questions flex-col gap-4 items-center justify-center mt-6">
+        <div
+          className="f w-full md:w-[85%] flex flex-col gap-2 pb-2 p-3 rounded-md bg-[#121214]"
+          style={{
+            border:
+              faq === "quest1" ? "1px solid #8DE163" : "1px solid #2A2A2C",
+            transition: "all 0.5s ease",
+          }}
+        >
+          <p
+            onClick={() => handleChangeFaq("quest1")}
+            className="text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
+          >
+            Track your Finances{" "}
+            <MdOutlineClose
+              style={{
+                transform: faq === "quest1" ? "none" : "rotate(135deg)",
+                transition: "all 0.5s ease",
+              }}
+            />
+          </p>
+          <div
+            className={`overflow-hidden transition-all duration-500 ${faq === "quest1" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
+          >
+            <p className="text-[#dedede] text-start font-normal text-lg">
+              Drive targeted visitors to your website with expertly managed paid
+              traffic campaigns.
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="f w-full md:w-[85%] flex flex-col gap-2 pb-2 p-3 bg-[#121214] rounded-md"
+          style={{
+            border:
+              faq === "quest2" ? "1px solid #8DE163" : "1px solid #2A2A2C",
+            transition: "all 0.5s ease",
+          }}
+        >
+          <p
+            onClick={() => handleChangeFaq("quest2")}
+            className="text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
+          >
+            Track your Finances{" "}
+            <MdOutlineClose
+              style={{
+                transform: faq === "quest2" ? "none" : "rotate(135deg)",
+                transition: "all 0.5s ease",
+              }}
+            />
+          </p>
+          <div
+            className={`overflow-hidden transition-all duration-500 ${faq === "quest2" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
+          >
+            <p className="text-[#dedede] text-start font-normal text-lg">
+              Drive targeted visitors to your website with expertly managed paid
+              traffic campaigns.
+            </p>
+          </div>
+        </div>
+        <div
+          className="f w-full md:w-[85%] flex flex-col gap-2 pb-2 p-3 rounded-md bg-[#121214]"
+          style={{
+            border:
+              faq === "quest3" ? "1px solid #8DE163" : "1px solid #2A2A2C",
+            transition: "all 0.5s ease",
+          }}
+        >
+          <p
+            onClick={() => handleChangeFaq("quest3")}
+            className="text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
+          >
+            Track your Finances{" "}
+            {faq === "quest3" ? (
+              <MdOutlineClose
+                onClick={() => handleChangeFaq("")}
+                style={{
+                  transform: faq === "quest3" ? "none" : "rotate(135deg)",
+                  transition: "all 0.5s ease",
+                }}
+              />
+            ) : (
+              <MdOutlineClose
+                onClick={() => handleChangeFaq("")}
+                style={{
+                  transform: faq === "quest3" ? "none" : "rotate(135deg)",
+                  transition: "all 0.5s ease",
+                }}
+              />
+            )}
+          </p>
+          <div
+            className={`overflow-hidden transition-all duration-500 ${faq === "quest3" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
+          >
+            <p className="text-[#dedede] text-start font-normal text-lg">
+              Drive targeted visitors to your website with expertly managed paid
+              traffic campaigns.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
