@@ -7,6 +7,7 @@ import avatar2 from "./images/images 9.jpg";
 import avatar3 from "./images/images 12.jpg";
 import Avatar from "@mui/material/Avatar";
 import logo from "./assets/tag-svgrepo-com.svg";
+import { useNavigate, useNavigationType } from "react-router-dom";
 const HeroSection = () => {
   const [drawer, setDrawer] = useState(false);
 
@@ -43,6 +44,17 @@ const HeroSection = () => {
       staggerChildren: 0.3,
       transition: { duration: 0.3 },
     },
+  };
+
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    const userData = localStorage.getItem("userData");
+    if (userData) {
+      navigate("/tracker");
+    } else {
+      navigate("/setup");
+    }
   };
 
   return (
@@ -196,6 +208,7 @@ const HeroSection = () => {
             <motion.button
               initial={{}}
               whileHover={{}}
+              onClick={handleGetStarted}
               className="bg-button text-[#080809] px-6 py-1.5 flex items-center gap-2 rounded-xl  font-semibold "
             >
               Get Started{" "}

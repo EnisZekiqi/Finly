@@ -91,6 +91,103 @@ body {
   z-index: -1;
   display: block;
 }
+.drawer-finly {
+  background-color: rgba(10, 10, 10, 0.85);
+  width: 20%;
+  height: 100vh;
+  border-right: 2px solid #242426;
+  z-index: 1000;
+}
+.content-finly {
+  width: max-content;
+  height: 100vh;
+  z-index: 1000;
+}
+.bg-setup {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.9),
+      rgba(0, 0, 0, 0.7),
+      rgba(0, 0, 0, 0.5)
+    ),
+    url("./images/heroWallpaper.jpg") no-repeat;
+  background-position: center calc(100%);
+  background-size: cover;
+  filter: blur(10px); /* Add blur only to the background */
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  display: block;
+}
+.bg-tracker {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.9),
+      rgba(0, 0, 0, 0.7),
+      rgba(0, 0, 0, 0.7),
+      rgba(0, 0, 0, 0.9)
+    ),
+    url("./images/heroWallpaper.jpg") no-repeat;
+  background-position: center calc(100%);
+  background-size: cover;
+
+  width: 100%;
+  height: 100vh;
+  z-index: 100;
+  display: block;
+}
+.input[type="checkbox"] {
+  display: none;
+}
+
+/* Style for the custom checkbox */
+.custom-checkbox {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #8ce163;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+}
+
+/* Style for the custom checkmark */
+.custom-checkbox::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-color: #8ce163;
+  border-radius: 2px;
+  opacity: 0;
+}
+
+/* Show the checkmark when checkbox is checked */
+.input[type="checkbox"]:checked + .custom-checkbox::after {
+  opacity: 1;
+}
+.bg-started {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.9),
+      rgba(0, 0, 0, 0.7),
+      rgba(0, 0, 0, 0.5)
+    ),
+    url("./images/heroWallpaper.jpg") no-repeat;
+  background-position: center calc(100% - 150px);
+  background-size: cover;
+
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+  display: block;
+}
 .bg2 {
   background:
     linear-gradient(

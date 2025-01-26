@@ -3,10 +3,11 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Product from "./Product";
-import Home from "./Home";
+
 import HeroSection from "./HeroSection";
 import AllContent from "./AllContent";
+import Setup from "./Setup";
+import Tracker from "./Tracker";
 
 function App() {
   const goBack = () => {
@@ -25,7 +26,8 @@ function App() {
             </div>
           }
         />
-        <Route path="/product" element={<Product goBack={goBack} />} />
+        <Route path="/setup" element={<Setup />} />
+        <Route path="/tracker" element={<Tracker />} />
       </Routes>
     </Router>
   );
