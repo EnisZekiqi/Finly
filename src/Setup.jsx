@@ -18,7 +18,7 @@ const Setup = () => {
   const [currency, setCurrency] = useState("€");
 
   const handleSubmit = (e) => {
-    e.preventDefault;
+    e.preventDefault();
     if (name.trim() === "" || income.trim() === "") {
       setError("Please fill the empty fields");
       return;
@@ -27,11 +27,14 @@ const Setup = () => {
       setError("You must agree to the terms to proceed.");
       return;
     }
+    const updated = new Date().toISOString();
+
     const userData = {
       name: name || "User",
       income: parseFloat(income),
       currency: currency,
     };
+    localStorage.setItem("lastUpdated", updated);
     localStorage.setItem("userData", JSON.stringify(userData));
     navigate("/tracker");
   };
