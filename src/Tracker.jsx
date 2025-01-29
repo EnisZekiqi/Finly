@@ -219,6 +219,7 @@ const Tracker = () => {
           </div>
           <AnimatePresence mode="wait">
             <motion.div
+              key={showInfo} // ✅ Ensures correct animation behavior
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7 }}
@@ -237,17 +238,9 @@ const Tracker = () => {
                   removeExpense={removeExpense}
                 />
               )}
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.7 }}
-              exit={{ opacity: 0, transition: { duration: 0.7 } }}
-            >
               {showInfo === "store" && (
                 <Expenses
                   removeExpense={removeExpense}
-                  expenses={expenses}
                   handleSubmitExpenses={handleSubmitExpenses}
                   nameExpense={nameExpense}
                   setNameExpense={setNameExpense}
@@ -256,11 +249,13 @@ const Tracker = () => {
                   howMuch={howMuch}
                   setHowMuch={setHowMuch}
                   createExpense={createExpense}
-                  allExpenses={allExpenses}
+                  expenses={allExpenses}
+                  userData={userData}
                 />
               )}
             </motion.div>
           </AnimatePresence>
+
           {/* Centered Content */}
         </div>
       </div>
@@ -281,6 +276,7 @@ function Dashboard({
   checkExpenses,
   allExpenses,
   removeExpense,
+  expenses,
 }) {
   const allInfo = [
     {
@@ -411,8 +407,11 @@ function Dashboard({
             }}
           >
             {allExpenses.length > 0 ? (
-              allExpenses.map((info, index) => (
-                <div key={index} className="flex flex-col">
+              allExpenses.map((info) => (
+                <div
+                  key={info.id || `${info.nameExpense}-${info.howMuch}`}
+                  className="flex flex-col"
+                >
                   <div className="flex items-center">
                     <h1 className="text-[#fff] font-medium text-lg">
                       {info.nameExpense}
@@ -425,21 +424,18 @@ function Dashboard({
                     <p className="text-[#dedede] font-light text-sm">
                       {info.howMuch}
                     </p>
-                    <button onClick={() => removeExpense(info.id)}>
+                    <button
+                      onClick={() => removeExpense(info.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded-md ml-2 hover:bg-red-600 transition"
+                    >
                       Remove
                     </button>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center flex flex-col items-center gap-2 justify-center h-full text-gray-500">
-                No Story of Expenses Yet
-                <button
-                  onClick={checkExpenses}
-                  className="bg-button text-[#000]"
-                >
-                  Check Expenses
-                </button>
+              <div className="expen text-3xl font-semibold">
+                No Expenses Yet
               </div>
             )}
           </div>
@@ -453,7 +449,7 @@ function Expenses({
   allExpenses,
   removeExpense,
   expenses,
-
+  userData,
   handleSubmitExpenses,
   nameExpense,
   setNameExpense,
@@ -474,9 +470,12 @@ function Expenses({
         </p>
       </div>
       <div className="flex flex-col items-center justify-center w-full mt-20 gap-20 ml-20">
-        {allExpenses.length > 0 ? (
-          allExpenses.map((info, index) => (
-            <div key={index} className="flex flex-col">
+        {expenses.length > 0 ? (
+          expenses.map((info) => (
+            <div
+              key={info.id || `${info.nameExpense}-${info.howMuch}`}
+              className="flex flex-col"
+            >
               <div className="flex items-center">
                 <h1 className="text-[#fff] font-medium text-lg">
                   {info.nameExpense}
@@ -489,7 +488,12 @@ function Expenses({
                 <p className="text-[#dedede] font-light text-sm">
                   {info.howMuch}
                 </p>
-                <button onClick={() => removeExpense(info.id)}>Remove</button>
+                <button
+                  onClick={() => removeExpense(info.id)}
+                  className="bg-red-500 text-white px-3 py-1 rounded-md ml-2 hover:bg-red-600 transition"
+                >
+                  Remove
+                </button>
               </div>
             </div>
           ))
