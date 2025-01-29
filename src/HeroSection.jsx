@@ -52,10 +52,14 @@ const HeroSection = () => {
     const userData = localStorage.getItem("userData");
     if (userData) {
       navigate("/tracker");
+      setChangeName(true);
     } else {
       navigate("/setup");
+      setChangeName(false);
     }
   };
+
+  const [changeName, setChangeName] = useState(true); /// change the button text when the setup is complete
 
   return (
     <div className="bg-wrapper relative min-h-screen">
@@ -211,7 +215,7 @@ const HeroSection = () => {
               onClick={handleGetStarted}
               className="bg-button text-[#080809] px-6 py-1.5 flex items-center gap-2 rounded-xl  font-semibold "
             >
-              Get Started{" "}
+              {changeName === true ? <p>Check Finances</p> : <p>Get Started</p>}
               <motion.div
                 initial={{ x: 0 }}
                 whileHover={{ x: 5 }}

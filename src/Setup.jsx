@@ -81,7 +81,7 @@ const Setup = () => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="rounded-md bg-transparent p-2  w-full"
+              className="rounded-md bg-transparent p-2  w-full focus:outline-0"
               style={{ border: "1px solid #8CE163" }}
             />
             <label className="block text-[#D2D2D2]">Your Income:</label>
@@ -107,7 +107,7 @@ const Setup = () => {
                   type="number"
                   value={income}
                   onChange={(e) => setIncome(e.target.value)}
-                  className="rounded-md bg-transparent p-2 pl-8 w-full"
+                  className="rounded-md bg-transparent p-2 pl-8 w-full focus:outline-0"
                   style={{
                     border: "1px solid #8CE163",
                     appearance: "none",

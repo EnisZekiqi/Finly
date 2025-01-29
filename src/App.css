@@ -134,12 +134,17 @@ body {
   background-size: cover;
 
   width: 100%;
-  height: 100%;
+  height: 100vmax;
   z-index: 100;
   display: block;
 }
 .input[type="checkbox"] {
   display: none;
+}
+.createExpense {
+  background-color: #141718;
+  border: 1px solid rgba(222, 222, 222, 0.2);
+  width: 50%;
 }
 
 /* Style for the custom checkbox */
