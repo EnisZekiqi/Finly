@@ -11,6 +11,8 @@ import {
   MdSettings,
   MdNotifications,
   MdOutlineClose,
+  MdDelete,
+  MdEdit,
 } from "react-icons/md";
 import {
   LineChart,
@@ -83,9 +85,9 @@ const Tracker = () => {
     setShowInfo("store");
   };
 
-  const [expenses, setExpenses] = useState(false);
+  const [openExpense, setOpenExpense] = useState(false);
 
-  const createExpense = useCallback(() => setExpenses((prev) => !prev));
+  const createExpense = useCallback(() => setOpenExpense((prev) => !prev));
 
   /// charts functions .//////
 
@@ -148,7 +150,7 @@ const Tracker = () => {
     }
 
     const newExpense = {
-      id: Date.now(),
+      id: new Date().toISOString(),
       nameExpense,
       category,
       howMuch,
@@ -165,7 +167,15 @@ const Tracker = () => {
   };
 
   const removeExpense = (id) => {
+    ///// remove and update the specific expense you choose on the dashboard and the expenses component
     const updateExpenses = allExpenses.filter((expense) => expense.id !== id);
+    setAllExpenses(updateExpenses);
+    localStorage.setItem("allExpenses", JSON.stringify(updateExpenses));
+  };
+
+  const removeAllExpense = () => {
+    ///////////function to remove all the expenses on the dashboard component
+    const updateExpenses = [];
     setAllExpenses(updateExpenses);
     localStorage.setItem("allExpenses", JSON.stringify(updateExpenses));
   };
@@ -236,6 +246,7 @@ const Tracker = () => {
                   checkExpenses={checkExpenses}
                   allExpenses={allExpenses}
                   removeExpense={removeExpense}
+                  removeAllExpense={removeAllExpense}
                 />
               )}
               {showInfo === "store" && (
@@ -251,6 +262,7 @@ const Tracker = () => {
                   createExpense={createExpense}
                   expenses={allExpenses}
                   userData={userData}
+                  openExpense={openExpense}
                 />
               )}
             </motion.div>
@@ -277,6 +289,7 @@ function Dashboard({
   allExpenses,
   removeExpense,
   expenses,
+  removeAllExpense,
 }) {
   const allInfo = [
     {
@@ -410,7 +423,7 @@ function Dashboard({
               allExpenses.map((info) => (
                 <div
                   key={info.id || `${info.nameExpense}-${info.howMuch}`}
-                  className="flex flex-col"
+                  className="flex flex-col justify-between"
                 >
                   <div className="flex items-center">
                     <h1 className="text-[#fff] font-medium text-lg">
@@ -431,6 +444,7 @@ function Dashboard({
                       Remove
                     </button>
                   </div>
+                  <button onClick={removeAllExpense}>Remove all</button>
                 </div>
               ))
             ) : (
@@ -458,6 +472,7 @@ function Expenses({
   howMuch,
   setHowMuch,
   createExpense,
+  openExpense,
 }) {
   return (
     <div className="exp flex flex-col items-center justify-center gap-5">
@@ -474,26 +489,36 @@ function Expenses({
           expenses.map((info) => (
             <div
               key={info.id || `${info.nameExpense}-${info.howMuch}`}
-              className="flex flex-col"
+              className="flex flex-col rounded-xl px-2 border border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900"
             >
-              <div className="flex items-center">
+              <div className="flex items-center justify-between w-[400px]">
                 <h1 className="text-[#fff] font-medium text-lg">
                   {info.nameExpense}
                 </h1>{" "}
-                |
-                <p className="text-[#dedede] font-medium text-md">
-                  {info.category}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => removeExpense(info.id)}
+                    className="rounded bg-red-300/20 px-1.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
+                  >
+                    <MdDelete />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-[#dedede] font-normal text-sm flex items-center">
+                  Category:
+                  <b className="text-[#fff] font-medium"> {info.category}</b>
                 </p>{" "}
-                |
-                <p className="text-[#dedede] font-light text-sm">
-                  {info.howMuch}
+                <p className="text-[rgba(222,222,222,0.7)]">/</p>
+                <p className="text-[#dedede] font-light text-sm flex items-center">
+                  Amount:{" "}
+                  <b className="text-[#fff] font-medium">{info.howMuch}</b>
+                  {userData.currency}
                 </p>
-                <button
-                  onClick={() => removeExpense(info.id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded-md ml-2 hover:bg-red-600 transition"
-                >
-                  Remove
-                </button>
+                <p className="text-[rgba(222,222,222,0.7)]">/</p>
+                <p className="text-xs text-gray-500">
+                  Added: {new Date(info.id).toLocaleString()}
+                </p>
               </div>
             </div>
           ))
@@ -503,7 +528,7 @@ function Expenses({
 
         <div className="fixed bottom-6 left-1/2 w-full max-w-xl -translate-x-1/2 px-4">
           <AnimatePresence>
-            {expenses && (
+            {openExpense && (
               <motion.form
                 initial={{
                   opacity: 0,
@@ -561,7 +586,7 @@ function Expenses({
             className="grid w-full place-content-center rounded-full border border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors hover:bg-zinc-800 active:bg-zinc-900"
           >
             <MdOutlineClose
-              className={`transition-transform ${expenses ? "rotate-0" : "rotate-45"}`}
+              className={`transition-transform ${openExpense ? "rotate-0" : "rotate-45"}`}
             />
           </button>
         </div>
