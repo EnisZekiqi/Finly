@@ -146,7 +146,19 @@ body {
   border: 1px solid rgba(222, 222, 222, 0.2);
   width: 50%;
 }
+.cardTask::-webkit-scrollbar {
+  width: 8px;
+}
 
+.cardTask::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cardTask::-webkit-scrollbar-thumb {
+  background-color: rgba(141, 225, 99, 0.6);
+  border-radius: 20px;
+  border: 3px solid rgba(141, 225, 99, 0.6);
+}
 /* Style for the custom checkbox */
 .custom-checkbox {
   display: inline-block;

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import Avatar from "@mui/material/Avatar";
 import { AnimatePresence, motion } from "motion/react";
 import logo from "./assets/tag-svgrepo-com.svg";
+import { formatDistanceToNow, parseISO } from "date-fns";
 import {
   MdDashboard,
   MdStore,
@@ -164,7 +165,22 @@ const Tracker = () => {
     setNameExpense("");
     setCategory("");
     setHowMuch("");
+    setOpenExpense(false);
   };
+
+  const [shortTime, setShortTime] = useState("");
+
+  useEffect(() => {
+    const expenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
+    if (expenses.length > 0) {
+      const lastExpense = expenses[expenses.length - 1];
+      const expenseDate = parseISO(lastExpense.id);
+      const relativeTime = formatDistanceToNow(expenseDate, {
+        addSuffix: true,
+      });
+      setShortTime(relativeTime);
+    }
+  }, [allExpenses]);
 
   const removeExpense = (id) => {
     ///// remove and update the specific expense you choose on the dashboard and the expenses component
@@ -246,6 +262,7 @@ const Tracker = () => {
                   checkExpenses={checkExpenses}
                   allExpenses={allExpenses}
                   removeExpense={removeExpense}
+                  shortTime={shortTime}
                   removeAllExpense={removeAllExpense}
                 />
               )}
@@ -289,6 +306,7 @@ function Dashboard({
   allExpenses,
   removeExpense,
   expenses,
+  shortTime,
   removeAllExpense,
 }) {
   const allInfo = [
@@ -364,9 +382,9 @@ function Dashboard({
             </div>
           ))}
         </div>
-        <div className="flex w-[100%] justify-end gap-4">
+        <div className="flex w-[100%] justify-end items-center gap-4">
           <div
-            className="bg-[#141718] p-6 rounded-xl shadow-lg w-[50%]"
+            className="bg-[#141718] p-6 rounded-xl shadow-lg w-[40%]"
             style={{
               border: "1px solid rgb(222,222,222,0.2)",
             }}
@@ -413,38 +431,43 @@ function Dashboard({
               </ResponsiveContainer>
             </div>
           </div>
-          <div
-            className="cardTask bg-[#141718] rounded-xl p-2"
-            style={{
-              border: "1px solid rgb(222,222,222,0.2)",
-            }}
-          >
+          <div className="cardTask bg-[#] rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
             {allExpenses.length > 0 ? (
               allExpenses.map((info) => (
                 <div
                   key={info.id || `${info.nameExpense}-${info.howMuch}`}
-                  className="flex flex-col justify-between"
+                  className="flex flex-col rounded-xl px-2 border  border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900"
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-between ">
                     <h1 className="text-[#fff] font-medium text-lg">
                       {info.nameExpense}
                     </h1>{" "}
-                    |
-                    <p className="text-[#dedede] font-medium text-md">
-                      {info.category}
-                    </p>{" "}
-                    |
-                    <p className="text-[#dedede] font-light text-sm">
-                      {info.howMuch}
-                    </p>
-                    <button
-                      onClick={() => removeExpense(info.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-md ml-2 hover:bg-red-600 transition"
-                    >
-                      Remove
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => removeExpense(info.id)}
+                        className="rounded bg-red-300/20 px-1.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
+                      >
+                        <MdDelete />
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={removeAllExpense}>Remove all</button>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[#dedede] font-normal text-sm flex items-center">
+                      Category:
+                      <b className="text-[#fff] font-medium">
+                        {" "}
+                        {info.category}
+                      </b>
+                    </p>{" "}
+                    <p className="text-[rgba(222,222,222,0.7)]">/</p>
+                    <p className="text-[#dedede] font-light text-sm flex items-center">
+                      Amount:{" "}
+                      <b className="text-[#fff] font-medium">{info.howMuch}</b>
+                      {userData.currency}
+                    </p>
+                    <p className="text-[rgba(222,222,222,0.7)]">/</p>
+                    <p className="text-xs text-gray-500"> {shortTime}</p>
+                  </div>
                 </div>
               ))
             ) : (
@@ -452,6 +475,12 @@ function Dashboard({
                 No Expenses Yet
               </div>
             )}
+            <button
+              className="rounded bg-red-300/20 px-2 py-2 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
+              onClick={removeAllExpense}
+            >
+              Remove All
+            </button>
           </div>
         </div>
       </div>
@@ -484,7 +513,7 @@ function Expenses({
           Let's see what we've got to do today.
         </p>
       </div>
-      <div className="flex flex-col items-center justify-center w-full mt-20 gap-20 ml-20">
+      <div className="flex flex-col items-center justify-center w-full mt-20 gap-5 ml-20">
         {expenses.length > 0 ? (
           expenses.map((info) => (
             <div
