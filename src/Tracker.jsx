@@ -14,6 +14,7 @@ import {
   MdOutlineClose,
   MdDelete,
   MdEdit,
+  MdPayments,
 } from "react-icons/md";
 import {
   LineChart,
@@ -137,24 +138,40 @@ const Tracker = () => {
 
   ///// expenses functions //// /
 
-  const [nameExpense, setNameExpense] = useState("");
-  const [category, setCategory] = useState("");
-  const [howMuch, setHowMuch] = useState(0);
+  const [nameExpense, setNameExpense] = useState(""); ///// name of the expense
+  const [category, setCategory] = useState(""); ///// category of expense
+  const [howMuch, setHowMuch] = useState(0); //// value for the money of the expense
   const [allExpenses, setAllExpenses] = useState(() => {
     const storedExpenses = localStorage.getItem("allExpenses");
     return storedExpenses ? JSON.parse(storedExpenses) : [];
-  });
+  }); ///// the stored expenses in the local storage
+
+  const [daily, setDaily] = useState("Daily"); //// state that will work with expenses
+
+  const dateDaily = [
+    { date: "Daily" },
+    { date: "Week" },
+    { date: "Monthly" },
+    { date: "Year" },
+  ];
 
   const handleSubmitExpenses = () => {
     if (!nameExpense.length || !category.length || howMuch.trim() === 0) {
       return;
     }
 
+    const now = new Date().toISOString(); // Store timestamp
+    const relativeTime = formatDistanceToNow(new Date(now), {
+      addSuffix: true,
+    });
+
     const newExpense = {
-      id: new Date().toISOString(),
+      id: now,
       nameExpense,
       category,
       howMuch,
+      daily,
+      addedTime: relativeTime,
     };
 
     const updatedExpenses = [...allExpenses, newExpense];
@@ -165,6 +182,7 @@ const Tracker = () => {
     setNameExpense("");
     setCategory("");
     setHowMuch("");
+    setDaily("Daily");
     setOpenExpense(false);
   };
 
@@ -172,15 +190,14 @@ const Tracker = () => {
 
   useEffect(() => {
     const expenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
-    if (expenses.length > 0) {
-      const lastExpense = expenses[expenses.length - 1];
-      const expenseDate = parseISO(lastExpense.id);
-      const relativeTime = formatDistanceToNow(expenseDate, {
-        addSuffix: true,
-      });
-      setShortTime(relativeTime);
-    }
-  }, [allExpenses]);
+
+    const updatedExpenses = expenses.map((expense) => ({
+      ...expense,
+      addedTime: formatDistanceToNow(parseISO(expense.id), { addSuffix: true }), // Update each expense's relative time
+    }));
+
+    setAllExpenses(updatedExpenses);
+  }, []);
 
   const removeExpense = (id) => {
     ///// remove and update the specific expense you choose on the dashboard and the expenses component
@@ -195,6 +212,125 @@ const Tracker = () => {
     setAllExpenses(updateExpenses);
     localStorage.setItem("allExpenses", JSON.stringify(updateExpenses));
   };
+
+  ////// change state functions for the total income , monthly ,daily ,yearly of the income that was putted in the beggining :)
+
+  const [stateIncome, setStateIncome] = useState(0);
+  const [incomeValue, setIncomeValue] = useState(0);
+  const [changeIncome, setChangeIncome] = useState("Monthly");
+
+  useEffect(() => {
+    if (!income) return; // Avoid errors if income is missing
+
+    let incomeValue;
+
+    if (typeof income === "string") {
+      incomeValue = parseFloat(income.slice(2)); // Remove currency symbol
+    } else if (typeof income === "number") {
+      incomeValue = income; // It's already a number
+    } else {
+      console.error("Unexpected income format:", income);
+      return;
+    }
+
+    if (changeIncome === "Monthly") {
+      setStateIncome(incomeValue);
+    } else if (changeIncome === "Yearly") {
+      setStateIncome(incomeValue * 12);
+    } else if (changeIncome === "Daily") {
+      setStateIncome(incomeValue / 30);
+    }
+  }, [changeIncome, income]);
+
+  const cycleIncomeType = () => {
+    if (changeIncome === "Monthly") {
+      setStateIncome(incomeValue);
+      setChangeIncome("Yearly");
+    } else if (changeIncome === "Yearly") {
+      setStateIncome(incomeValue * 12);
+      setChangeIncome("Daily");
+    } else if (changeIncome === "Daily") {
+      setStateIncome(incomeValue / 30);
+      setChangeIncome("Monthly");
+    }
+
+    const showExpenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
+
+    const total = showExpenses.reduce(
+      (acc, expense) => acc + Number(expense.howMuch),
+      0
+    );
+
+    const getTotalMonthlyExpenses = (expenses) => {
+      return expenses
+        .filter((expense) => expense.daily === "Monthly")
+        .reduce((acc, expense) => acc + Number(expense.howMuch), 0);
+    };
+
+    const getTotalYearlyExpenses = (expenses) => {
+      return expenses
+        .filter((expense) => expense.daily === "Yearly")
+        .reduce((acc, expense) => acc + Number(expense.howMuch), 0);
+    };
+
+    const Daily = total / 365;
+    const totalMonthly = getTotalMonthlyExpenses(showExpenses);
+    const Yearly = getTotalYearlyExpenses(showExpenses) + totalMonthly * 12;
+
+    if (changeIncome === "Daily") {
+      setTotalExpenses(Daily);
+    }
+
+    if (changeIncome === "Monthly") {
+      setTotalExpenses(totalMonthly);
+    }
+
+    if (changeIncome === "Yearly") {
+      setTotalExpenses(Yearly);
+    }
+  };
+
+  ////// state and function of the total expenses that was taken by the component expenses :)
+
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const [changeHowMuch, setChangeHowMuch] = useState("Monthly");
+
+  useEffect(() => {
+    const showExpenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
+
+    const total = showExpenses.reduce(
+      (acc, expense) => acc + Number(expense.howMuch),
+      0
+    );
+
+    const getTotalMonthlyExpenses = (expenses) => {
+      return expenses
+        .filter((expense) => expense.daily === "Monthly")
+        .reduce((acc, expense) => acc + Number(expense.howMuch), 0);
+    };
+
+    const getTotalYearlyExpenses = (expenses) => {
+      return expenses
+        .filter((expense) => expense.daily === "Yearly")
+        .reduce((acc, expense) => acc + Number(expense.howMuch), 0);
+    };
+
+    const Daily = total / 30;
+    const totalMonthly = getTotalMonthlyExpenses(showExpenses);
+    const Yearly = getTotalYearlyExpenses(showExpenses) + totalMonthly * 12;
+
+    if (changeIncome === "Daily") {
+      setTotalExpenses(Daily);
+    }
+
+    if (changeIncome === "Monthly") {
+      setTotalExpenses(totalMonthly);
+    }
+
+    if (changeIncome === "Yearly") {
+      setTotalExpenses(Yearly);
+    }
+  }, [allExpenses]);
 
   return (
     <div>
@@ -264,6 +400,13 @@ const Tracker = () => {
                   removeExpense={removeExpense}
                   shortTime={shortTime}
                   removeAllExpense={removeAllExpense}
+                  daily={daily}
+                  stateIncome={stateIncome}
+                  changeIncome={changeIncome}
+                  setChangeIncome={setChangeIncome}
+                  cycleIncomeType={cycleIncomeType}
+                  totalExpenses={totalExpenses}
+                  setChangeHowMuch={setChangeHowMuch}
                 />
               )}
               {showInfo === "store" && (
@@ -280,6 +423,9 @@ const Tracker = () => {
                   expenses={allExpenses}
                   userData={userData}
                   openExpense={openExpense}
+                  daily={daily}
+                  setDaily={setDaily}
+                  dateDaily={dateDaily}
                 />
               )}
             </motion.div>
@@ -308,6 +454,13 @@ function Dashboard({
   expenses,
   shortTime,
   removeAllExpense,
+  daily,
+  stateIncome,
+  changeIncome,
+  setChangeIncome,
+  cycleIncomeType,
+  totalExpenses,
+  setChangeHowMuch,
 }) {
   const allInfo = [
     {
@@ -321,7 +474,7 @@ function Dashboard({
           }}
         />
       ),
-      income: userData.income,
+      income: stateIncome, // ✅ Dynamically updated income
       currency: userData.currency,
     },
     {
@@ -335,13 +488,13 @@ function Dashboard({
           }}
         />
       ),
-      income: userData.income,
+      income: stateIncome, // ✅ Dynamically updated income
       currency: userData.currency,
     },
     {
       name: "Total Expenses",
       icon: (
-        <MdWallet
+        <MdPayments
           style={{
             color: "#8DE163",
             width: "22px",
@@ -349,7 +502,7 @@ function Dashboard({
           }}
         />
       ),
-      income: userData.income,
+      income: totalExpenses, // ✅ Dynamically updated income
       currency: userData.currency,
     },
   ];
@@ -361,14 +514,25 @@ function Dashboard({
           {allInfo.map((info, index) => (
             <div
               key={index}
-              className="incomeD bg-[#141718] rounded-xl p-3 text-center flex flex-col gap-2"
+              className="incomeD bg-[#141718] rounded-xl p-3 text-center flex flex-col gap-2 w-[270px]"
               style={{
                 border: "1px solid rgb(222,222,222,0.2)",
               }}
             >
-              <div className="flex items-start gap-4 justify-between">
+              <div className="flex items-center gap-4 justify-between">
                 <p className="font-light text-sm text-gray-400">{info.name}</p>
-                <div className="bg-[#212c24] p-1 rounded-md"> {info.icon}</div>
+                <div className="flex flex-row-reverse items-center gap-1">
+                  <div className="bg-[#212c24] p-1 rounded-md">
+                    {" "}
+                    {info.icon}
+                  </div>
+                  <button
+                    className="bg-[#252923] border border-[#3e453b] text-xs font-light text-[#d8dcd6]"
+                    onClick={cycleIncomeType}
+                  >
+                    {changeIncome}
+                  </button>
+                </div>
               </div>
               <h1 className="font-semibold text-base flex items-center gap-1">
                 <p className="text-2xl"> {info.currency}</p>
@@ -411,7 +575,7 @@ function Dashboard({
             </div>
 
             <div className="flex items-start justify-center">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={330}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="1 1" />
                   <XAxis dataKey="name" />
@@ -431,56 +595,70 @@ function Dashboard({
               </ResponsiveContainer>
             </div>
           </div>
-          <div className="cardTask bg-[#] rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
-            {allExpenses.length > 0 ? (
-              allExpenses.map((info) => (
-                <div
-                  key={info.id || `${info.nameExpense}-${info.howMuch}`}
-                  className="flex flex-col rounded-xl px-2 border  border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900"
-                >
-                  <div className="flex items-center justify-between ">
-                    <h1 className="text-[#fff] font-medium text-lg">
-                      {info.nameExpense}
-                    </h1>{" "}
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => removeExpense(info.id)}
-                        className="rounded bg-red-300/20 px-1.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
-                      >
-                        <MdDelete />
-                      </button>
+          <div>
+            <div className="cardTask bg-[#]   rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
+              {allExpenses.length > 0 ? (
+                allExpenses.map((info) => (
+                  <div
+                    key={info.id || `${info.nameExpense}-${info.howMuch}`}
+                    className="flex flex-col rounded-xl px-2 border  border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900"
+                  >
+                    <div className="flex items-center justify-between ">
+                      <h1 className="text-[#fff] font-medium text-lg">
+                        {info.nameExpense}
+                      </h1>{" "}
+                      <div className="flex items-center gap-3">
+                        <div className="rounded text-xs font-light text-[#d8dcd6] bg-[#252923] p-1 border border-[#3e453b]">
+                          {info.daily}
+                        </div>
+                        <button
+                          onClick={() => removeExpense(info.id)}
+                          className="rounded bg-red-300/20 px-1.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
+                        >
+                          <MdDelete />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-1.5">
+                      <p className="text-[#dedede] font-normal text-sm flex items-center">
+                        Category:
+                        <b className="text-[#fff] font-medium">
+                          {" "}
+                          {info.category}
+                        </b>
+                      </p>{" "}
+                      <p className="text-[rgba(222,222,222,0.7)]">/</p>
+                      <p className="text-[#dedede] font-light text-sm flex items-center">
+                        Amount:{" "}
+                        <b className="text-[#fff] font-medium">
+                          {info.howMuch}
+                        </b>
+                        {userData.currency}
+                      </p>
+                      <p className="text-[rgba(222,222,222,0.7)]">/</p>
+                      <p className="text-[#aaa] text-xs">
+                        {info.addedTime}
+                      </p>{" "}
+                      {/* Show relative time */}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[#dedede] font-normal text-sm flex items-center">
-                      Category:
-                      <b className="text-[#fff] font-medium">
-                        {" "}
-                        {info.category}
-                      </b>
-                    </p>{" "}
-                    <p className="text-[rgba(222,222,222,0.7)]">/</p>
-                    <p className="text-[#dedede] font-light text-sm flex items-center">
-                      Amount:{" "}
-                      <b className="text-[#fff] font-medium">{info.howMuch}</b>
-                      {userData.currency}
-                    </p>
-                    <p className="text-[rgba(222,222,222,0.7)]">/</p>
-                    <p className="text-xs text-gray-500"> {shortTime}</p>
-                  </div>
+                ))
+              ) : (
+                <div className="expen text-3xl font-semibold">
+                  No Expenses Yet
                 </div>
-              ))
+              )}
+            </div>
+            {allExpenses.length > 0 ? (
+              <button
+                className="rounded w-full flex items-center justify-center bg-red-300/20 px-2 py-2 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
+                onClick={removeAllExpense}
+              >
+                Remove All
+              </button>
             ) : (
-              <div className="expen text-3xl font-semibold">
-                No Expenses Yet
-              </div>
+              ""
             )}
-            <button
-              className="rounded bg-red-300/20 px-2 py-2 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
-              onClick={removeAllExpense}
-            >
-              Remove All
-            </button>
           </div>
         </div>
       </div>
@@ -502,6 +680,9 @@ function Expenses({
   setHowMuch,
   createExpense,
   openExpense,
+  daily,
+  dateDaily,
+  setDaily,
 }) {
   return (
     <div className="exp flex flex-col items-center justify-center gap-5">
@@ -525,6 +706,9 @@ function Expenses({
                   {info.nameExpense}
                 </h1>{" "}
                 <div className="flex items-center gap-3">
+                  <div className="rounded text-xs font-light text-[#d8dcd6] bg-[#252923] p-1 border border-[#3e453b]">
+                    {info.daily}
+                  </div>
                   <button
                     onClick={() => removeExpense(info.id)}
                     className="rounded bg-red-300/20 px-1.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
@@ -599,6 +783,20 @@ function Expenses({
                       type="number"
                       className="w-24 px-1.5 py-1 text-sm text-zinc-500 bg-zinc-700  rounded focus:outline-0"
                     />
+                    <select
+                      className="resize-none rounded bg-[#141718] p-3 text-sm text-zinc-50 placeholder-zinc-500 caret-zinc-50 focus:outline-0"
+                      value={daily}
+                      onChange={(e) => setDaily(e.target.value)} // Update state correctly
+                    >
+                      {/* Fixed this line */}
+                      {dateDaily.map((option, index) => (
+                        <option key={index} value={String(option.date)}>
+                          {" "}
+                          {/* Ensure it's a string */}
+                          {option.date}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <button
                     type="submit"
