@@ -216,121 +216,86 @@ const Tracker = () => {
   ////// change state functions for the total income , monthly ,daily ,yearly of the income that was putted in the beggining :)
 
   const [stateIncome, setStateIncome] = useState(0);
-  const [incomeValue, setIncomeValue] = useState(0);
   const [changeIncome, setChangeIncome] = useState("Monthly");
 
-  useEffect(() => {
-    if (!income) return; // Avoid errors if income is missing
+  // Expense conversion states
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const [changeHowMuch, setChangeHowMuch] = useState("Monthly");
 
-    let incomeValue;
-
-    if (typeof income === "string") {
-      incomeValue = parseFloat(income.slice(2)); // Remove currency symbol
-    } else if (typeof income === "number") {
-      incomeValue = income; // It's already a number
-    } else {
-      console.error("Unexpected income format:", income);
-      return;
+  const convertExpense = (amount, expensePeriod, targetPeriod) => {
+    // For target period "Monthly"
+    if (targetPeriod === "Monthly") {
+      if (expensePeriod === "Monthly") return amount;
+      if (expensePeriod === "Yearly") return amount / 12;
+      if (expensePeriod === "Daily") return amount * 30;
     }
+    // For target period "Daily"
+    if (targetPeriod === "Daily") {
+      if (expensePeriod === "Daily") return amount;
+      if (expensePeriod === "Monthly") return amount / 30; // Converts monthly to daily
+      if (expensePeriod === "Yearly") return amount / 365; // Converts yearly to daily
+    }
+    // For target period "Yearly"
+    if (targetPeriod === "Yearly") {
+      if (expensePeriod === "Yearly") return amount;
+      if (expensePeriod === "Monthly") return amount * 12;
+      if (expensePeriod === "Daily") return amount * 365;
+    }
+    return amount; // fallback case
+  };
+  const getTotalExpensesByPeriod = (expenses, targetPeriod) => {
+    return expenses.reduce((acc, expense) => {
+      const amt = Number(expense.howMuch);
+      const converted = convertExpense(amt, expense.daily, targetPeriod);
+      return acc + converted;
+    }, 0);
+  };
+
+  useEffect(() => {
+    if (!income) return;
+    // Assume income is either a string with a currency symbol or a number.
+    let parsedIncome =
+      typeof income === "string" ? parseFloat(income.slice(2)) : income;
 
     if (changeIncome === "Monthly") {
-      setStateIncome(incomeValue);
+      setStateIncome(parsedIncome);
     } else if (changeIncome === "Yearly") {
-      setStateIncome(incomeValue * 12);
+      setStateIncome(parsedIncome * 12);
     } else if (changeIncome === "Daily") {
-      setStateIncome(incomeValue / 30);
+      setStateIncome(parsedIncome / 30);
     }
   }, [changeIncome, income]);
 
+  // When expenses or expense period changes, update totalExpenses
+  useEffect(() => {
+    const showExpenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
+    const total = getTotalExpensesByPeriod(showExpenses, changeHowMuch);
+    setTotalExpenses(total);
+  }, [allExpenses, changeHowMuch]);
+
+  // Cycle income period: Monthly -> Yearly -> Daily -> Monthly
   const cycleIncomeType = () => {
     if (changeIncome === "Monthly") {
-      setStateIncome(incomeValue);
       setChangeIncome("Yearly");
     } else if (changeIncome === "Yearly") {
-      setStateIncome(incomeValue * 12);
       setChangeIncome("Daily");
     } else if (changeIncome === "Daily") {
-      setStateIncome(incomeValue / 30);
       setChangeIncome("Monthly");
     }
+  };
 
-    const showExpenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
-
-    const total = showExpenses.reduce(
-      (acc, expense) => acc + Number(expense.howMuch),
-      0
-    );
-
-    const getTotalMonthlyExpenses = (expenses) => {
-      return expenses
-        .filter((expense) => expense.daily === "Monthly")
-        .reduce((acc, expense) => acc + Number(expense.howMuch), 0);
-    };
-
-    const getTotalYearlyExpenses = (expenses) => {
-      return expenses
-        .filter((expense) => expense.daily === "Yearly")
-        .reduce((acc, expense) => acc + Number(expense.howMuch), 0);
-    };
-
-    const Daily = total / 365;
-    const totalMonthly = getTotalMonthlyExpenses(showExpenses);
-    const Yearly = getTotalYearlyExpenses(showExpenses) + totalMonthly * 12;
-
-    if (changeIncome === "Daily") {
-      setTotalExpenses(Daily);
-    }
-
-    if (changeIncome === "Monthly") {
-      setTotalExpenses(totalMonthly);
-    }
-
-    if (changeIncome === "Yearly") {
-      setTotalExpenses(Yearly);
+  // Cycle expense period: Monthly -> Yearly -> Daily -> Monthly
+  const cycleExpenseType = () => {
+    if (changeHowMuch === "Monthly") {
+      setChangeHowMuch("Yearly");
+    } else if (changeHowMuch === "Yearly") {
+      setChangeHowMuch("Daily");
+    } else if (changeHowMuch === "Daily") {
+      setChangeHowMuch("Monthly");
     }
   };
 
   ////// state and function of the total expenses that was taken by the component expenses :)
-
-  const [totalExpenses, setTotalExpenses] = useState(0);
-  const [changeHowMuch, setChangeHowMuch] = useState("Monthly");
-
-  useEffect(() => {
-    const showExpenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
-
-    const total = showExpenses.reduce(
-      (acc, expense) => acc + Number(expense.howMuch),
-      0
-    );
-
-    const getTotalMonthlyExpenses = (expenses) => {
-      return expenses
-        .filter((expense) => expense.daily === "Monthly")
-        .reduce((acc, expense) => acc + Number(expense.howMuch), 0);
-    };
-
-    const getTotalYearlyExpenses = (expenses) => {
-      return expenses
-        .filter((expense) => expense.daily === "Yearly")
-        .reduce((acc, expense) => acc + Number(expense.howMuch), 0);
-    };
-
-    const Daily = total / 30;
-    const totalMonthly = getTotalMonthlyExpenses(showExpenses);
-    const Yearly = getTotalYearlyExpenses(showExpenses) + totalMonthly * 12;
-
-    if (changeIncome === "Daily") {
-      setTotalExpenses(Daily);
-    }
-
-    if (changeIncome === "Monthly") {
-      setTotalExpenses(totalMonthly);
-    }
-
-    if (changeIncome === "Yearly") {
-      setTotalExpenses(Yearly);
-    }
-  }, [allExpenses]);
 
   return (
     <div>
@@ -406,7 +371,9 @@ const Tracker = () => {
                   setChangeIncome={setChangeIncome}
                   cycleIncomeType={cycleIncomeType}
                   totalExpenses={totalExpenses}
+                  changeHowMuch={changeHowMuch}
                   setChangeHowMuch={setChangeHowMuch}
+                  cycleExpenseType={cycleExpenseType}
                 />
               )}
               {showInfo === "store" && (
@@ -460,50 +427,42 @@ function Dashboard({
   setChangeIncome,
   cycleIncomeType,
   totalExpenses,
+  changeHowMuch,
   setChangeHowMuch,
+  cycleExpenseType,
 }) {
   const allInfo = [
     {
       name: "Total Balance",
       icon: (
-        <MdWallet
-          style={{
-            color: "#8DE163",
-            width: "22px",
-            height: "22px",
-          }}
-        />
+        <MdWallet style={{ color: "#8DE163", width: "22px", height: "22px" }} />
       ),
-      income: stateIncome, // ✅ Dynamically updated income
+      income: stateIncome,
       currency: userData.currency,
+      button: cycleIncomeType,
+      buttonText: changeIncome,
     },
     {
       name: "Total Income",
       icon: (
-        <MdWallet
-          style={{
-            color: "#8DE163",
-            width: "22px",
-            height: "22px",
-          }}
-        />
+        <MdWallet style={{ color: "#8DE163", width: "22px", height: "22px" }} />
       ),
-      income: stateIncome, // ✅ Dynamically updated income
+      income: stateIncome,
       currency: userData.currency,
+      button: cycleIncomeType,
+      buttonText: changeIncome,
     },
     {
       name: "Total Expenses",
       icon: (
         <MdPayments
-          style={{
-            color: "#8DE163",
-            width: "22px",
-            height: "22px",
-          }}
+          style={{ color: "#8DE163", width: "22px", height: "22px" }}
         />
       ),
-      income: totalExpenses, // ✅ Dynamically updated income
+      income: totalExpenses,
       currency: userData.currency,
+      button: cycleExpenseType,
+      buttonText: changeHowMuch,
     },
   ];
 
@@ -515,28 +474,23 @@ function Dashboard({
             <div
               key={index}
               className="incomeD bg-[#141718] rounded-xl p-3 text-center flex flex-col gap-2 w-[270px]"
-              style={{
-                border: "1px solid rgb(222,222,222,0.2)",
-              }}
+              style={{ border: "1px solid rgba(222,222,222,0.2)" }}
             >
               <div className="flex items-center gap-4 justify-between">
                 <p className="font-light text-sm text-gray-400">{info.name}</p>
                 <div className="flex flex-row-reverse items-center gap-1">
-                  <div className="bg-[#212c24] p-1 rounded-md">
-                    {" "}
-                    {info.icon}
-                  </div>
+                  <div className="bg-[#212c24] p-1 rounded-md">{info.icon}</div>
                   <button
                     className="bg-[#252923] border border-[#3e453b] text-xs font-light text-[#d8dcd6]"
-                    onClick={cycleIncomeType}
+                    onClick={info.button}
                   >
-                    {changeIncome}
+                    {info.buttonText}
                   </button>
                 </div>
               </div>
               <h1 className="font-semibold text-base flex items-center gap-1">
-                <p className="text-2xl"> {info.currency}</p>
-                <p className="text-2xl">{info.income}</p>
+                <p className="text-2xl">{info.currency}</p>
+                <p className="text-2xl">{info.income.toFixed(2)}</p>
               </h1>
               {lastUpdated && (
                 <p className="text-xs text-gray-500">
