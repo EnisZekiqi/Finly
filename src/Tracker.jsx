@@ -3,6 +3,7 @@ import Avatar from "@mui/material/Avatar";
 import { AnimatePresence, motion } from "motion/react";
 import logo from "./assets/tag-svgrepo-com.svg";
 import { formatDistanceToNow, parseISO } from "date-fns";
+import MouseTrap from "mousetrap";
 import {
   MdDashboard,
   MdStore,
@@ -81,6 +82,7 @@ const Tracker = () => {
 
   const chooseInfo = (info) => {
     setShowInfo(info);
+    setOpenSearch(false);
   };
 
   const checkExpenses = () => {
@@ -148,12 +150,7 @@ const Tracker = () => {
 
   const [daily, setDaily] = useState("Daily"); //// state that will work with expenses
 
-  const dateDaily = [
-    { date: "Daily" },
-    { date: "Week" },
-    { date: "Monthly" },
-    { date: "Year" },
-  ];
+  const dateDaily = [{ date: "Daily" }, { date: "Monthly" }, { date: "Year" }];
 
   const handleSubmitExpenses = () => {
     if (!nameExpense.length || !category.length || howMuch.trim() === 0) {
@@ -164,13 +161,12 @@ const Tracker = () => {
     const relativeTime = formatDistanceToNow(new Date(now), {
       addSuffix: true,
     });
-
     const newExpense = {
       id: now,
-      nameExpense,
+      nameExpense, // 🛑 Should be "name" (to match your existing structure)
       category,
       howMuch,
-      daily,
+      daily, // 🛑 This should be "period" instead of "daily"
       addedTime: relativeTime,
     };
 
@@ -222,31 +218,49 @@ const Tracker = () => {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [changeHowMuch, setChangeHowMuch] = useState("Monthly");
 
-  const convertExpense = (amount, expensePeriod, targetPeriod) => {
-    // For target period "Monthly"
-    if (targetPeriod === "Monthly") {
-      if (expensePeriod === "Monthly") return amount;
-      if (expensePeriod === "Yearly") return amount / 12;
-      if (expensePeriod === "Daily") return amount * 30;
+  const convertExpense = (amount, fromPeriod, toPeriod) => {
+    const periodDays = {
+      Daily: 1,
+      Weekly: 7,
+      Monthly: 30,
+      Year: 365,
+    };
+
+    // Check if both periods exist in the conversion table
+    if (!(fromPeriod in periodDays) || !(toPeriod in periodDays)) {
+      console.error(`Invalid period: ${fromPeriod} or ${toPeriod}`);
+      return amount; // Return as is if invalid
     }
-    // For target period "Daily"
-    if (targetPeriod === "Daily") {
-      if (expensePeriod === "Daily") return amount;
-      if (expensePeriod === "Monthly") return amount / 30; // Converts monthly to daily
-      if (expensePeriod === "Yearly") return amount / 365; // Converts yearly to daily
-    }
-    // For target period "Yearly"
-    if (targetPeriod === "Yearly") {
-      if (expensePeriod === "Yearly") return amount;
-      if (expensePeriod === "Monthly") return amount * 12;
-      if (expensePeriod === "Daily") return amount * 365;
-    }
-    return amount; // fallback case
+
+    // Convert from original period to daily, then to target period
+    const dailyValue = amount / periodDays[fromPeriod];
+    const convertedAmount = dailyValue * periodDays[toPeriod];
+
+    console.log(
+      `Converting: ${amount} from ${fromPeriod} to ${toPeriod}, Result: ${convertedAmount}`
+    );
+
+    return convertedAmount;
   };
+
   const getTotalExpensesByPeriod = (expenses, targetPeriod) => {
     return expenses.reduce((acc, expense) => {
       const amt = Number(expense.howMuch);
-      const converted = convertExpense(amt, expense.daily, targetPeriod);
+      const expensePeriod = expense.period || expense.daily; // Ensure correct key
+
+      console.log(
+        `Checking conversion: Amount ${amt}, Period ${expensePeriod}, Target ${targetPeriod}`
+      );
+
+      // ✅ Fix: Ensure `converted` is always assigned a value
+      let converted = convertExpense
+        ? convertExpense(amt, expensePeriod, targetPeriod)
+        : 0;
+
+      console.log(
+        `Expense: ${expense.nameExpense}, Amount: ${amt}, Period: ${expensePeriod}, Converted: ${converted}`
+      );
+
       return acc + converted;
     }, 0);
   };
@@ -268,8 +282,8 @@ const Tracker = () => {
 
   // When expenses or expense period changes, update totalExpenses
   useEffect(() => {
-    const showExpenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
-    const total = getTotalExpensesByPeriod(showExpenses, changeHowMuch);
+    if (allExpenses.length === 0) return; // Prevent running on empty array
+    const total = getTotalExpensesByPeriod(allExpenses, changeHowMuch);
     setTotalExpenses(total);
   }, [allExpenses, changeHowMuch]);
 
@@ -296,6 +310,13 @@ const Tracker = () => {
   };
 
   ////// state and function of the total expenses that was taken by the component expenses :)
+
+  const [openSearch, setOpenSearch] = useState(false);
+
+  Mousetrap.bind("ctrl+k", () => {
+    setOpenSearch(!openSearch);
+    console.log("it works", openSearch);
+  });
 
   return (
     <div>
@@ -336,9 +357,20 @@ const Tracker = () => {
         <div className="bg-tracker   text-[#fff] items-center pr-10 pt-5">
           {/* Top-right userData.name */}
           <div
-            className=" flex items-end justify-end w-full gap-3"
+            className=" flex items-center justify-end w-full gap-3"
             style={{ zIndex: 10 }}
           >
+            <button
+              onClick={() => setOpenSearch(!openSearch)}
+              className="cursor-none rounded-md border border-[#dedede]"
+            >
+              {" "}
+              <input
+                className="bg-transparent"
+                placeholder="Quick Search"
+                type="text"
+              />
+            </button>
             <MdNotifications style={{ width: "25px", height: "25px" }} />
             <h1 className="text-base font-light text-[#fff]">
               {userData.name}
@@ -374,6 +406,7 @@ const Tracker = () => {
                   changeHowMuch={changeHowMuch}
                   setChangeHowMuch={setChangeHowMuch}
                   cycleExpenseType={cycleExpenseType}
+                  chooseInfo={chooseInfo}
                 />
               )}
               {showInfo === "store" && (
@@ -399,6 +432,26 @@ const Tracker = () => {
           </AnimatePresence>
 
           {/* Centered Content */}
+          {openSearch && (
+            <AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { duration: 0.5 } }}
+                exit={{ opacity: 0, transition: { duration: 0.5 } }}
+                className="fixed top-0 bottom-0 flex justify-center items-center right-0 left-0 bg-[rgba(0,0,0,0.2)] w-full
+                "
+                style={{ zIndex: 3000 }}
+                onClick={() => setOpenSearch(false)}
+              >
+                <div
+                  className="fixed  top-[50%] bottom-[50%] right-[50%] left-[50%] bg-[#dedede] w-[500px]"
+                  style={{ zIndex: 3001 }}
+                >
+                  Content
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
       </div>
     </div>
@@ -430,6 +483,7 @@ function Dashboard({
   changeHowMuch,
   setChangeHowMuch,
   cycleExpenseType,
+  chooseInfo,
 }) {
   const allInfo = [
     {
@@ -598,8 +652,14 @@ function Dashboard({
                   </div>
                 ))
               ) : (
-                <div className="expen text-3xl font-semibold">
+                <div className="expen text-3xl font-semibold flex flex-col gap-4 w-full items-center justify-center">
                   No Expenses Yet
+                  <button
+                    onClick={() => chooseInfo("store")}
+                    className="bg-button text-[#000] text-sm font-medium w-[200px]"
+                  >
+                    Create Expenses
+                  </button>
                 </div>
               )}
             </div>
