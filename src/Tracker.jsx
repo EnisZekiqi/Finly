@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import logo from "./assets/tag-svgrepo-com.svg";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import MouseTrap from "mousetrap";
+
 import {
   MdDashboard,
   MdStore,
@@ -16,6 +17,7 @@ import {
   MdDelete,
   MdEdit,
   MdPayments,
+  MdOutlineSearch,
 } from "react-icons/md";
 import {
   LineChart,
@@ -78,11 +80,14 @@ const Tracker = () => {
     },
   ];
 
+  ///// search functions /////
+
   const [showInfo, setShowInfo] = useState("dashboard");
 
   const chooseInfo = (info) => {
     setShowInfo(info);
     setOpenSearch(false);
+    setSearchQuery("");
   };
 
   const checkExpenses = () => {
@@ -236,9 +241,8 @@ const Tracker = () => {
     const dailyValue = amount / periodDays[fromPeriod];
     const convertedAmount = dailyValue * periodDays[toPeriod];
 
-    console.log(
-      `Converting: ${amount} from ${fromPeriod} to ${toPeriod}, Result: ${convertedAmount}`
-    );
+    const updated = new Date().toISOString();
+    localStorage.setItem("lastUpdated", updated);
 
     return convertedAmount;
   };
@@ -315,8 +319,111 @@ const Tracker = () => {
 
   Mousetrap.bind("ctrl+k", () => {
     setOpenSearch(!openSearch);
-    console.log("it works", openSearch);
   });
+
+  Mousetrap.bind("esc", () => {
+    setOpenSearch(false);
+  });
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+
+  const handleSearch = (e) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    if (!query) {
+      setSearchResults([]); // Clear results if empty
+      return;
+    }
+
+    const results = multiItems
+      .map((item) => {
+        // Check if main label matches
+        const mainMatch = item.label.toLowerCase().includes(query);
+
+        // Check if any `more` items match
+        const subMatches =
+          item.more?.filter((sub) =>
+            Object.values(sub)
+              .join(" ") // Convert object values to a single string
+              .toLowerCase()
+              .includes(query)
+          ) || [];
+
+        // ✅ If main matches but no sub-matches, keep all `more` items
+        if (mainMatch && subMatches.length === 0) {
+          return { ...item, more: item.more || [] }; // Keep all sub-items
+        }
+
+        // ✅ If there's a match in `more`, keep only matched sub-items
+        if (subMatches.length > 0) {
+          return { ...item, more: subMatches };
+        }
+
+        return null; // Otherwise, filter out this item
+      })
+      .filter(Boolean); // Remove null values
+
+    setSearchResults(results);
+  };
+
+  const multiItems = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <MdDashboard style={{ width: "30px", height: "30px" }} />,
+      more: [
+        {
+          balance: "Total Balance",
+          icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
+          money: income,
+        },
+        {
+          balance: "Total Income",
+          icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
+          money: income,
+        },
+      ],
+    },
+    {
+      id: "store",
+      label: "Expenses",
+      icon: <MdStore style={{ width: "30px", height: "30px" }} />,
+      more: [
+        {
+          nameExpense: "Expense",
+          icon: <MdPayments style={{ width: "30px", height: "30px" }} />,
+          money: "$100",
+        },
+        {
+          expense: "Total Expenses",
+          icon: <MdPayments style={{ width: "30px", height: "30px" }} />,
+          money: totalExpenses.toFixed(2),
+        },
+      ],
+    },
+    {
+      id: "analytic",
+      label: "Analytic",
+      icon: <MdPieChart style={{ width: "30px", height: "30px" }} />,
+    },
+    {
+      id: "wallet",
+      label: "Wallet",
+      icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
+    },
+    {
+      id: "category",
+      label: "Category",
+      icon: <MdCategory style={{ width: "30px", height: "30px" }} />,
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: <MdSettings style={{ width: "30px", height: "30px" }} />,
+    },
+  ];
 
   return (
     <div>
@@ -326,7 +433,7 @@ const Tracker = () => {
           initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1, transition: { duration: 0.7 } }}
           className="drawer-finly w-1/5 fixed left-0 top-0 bottom-0"
-          style={{ zIndex: 1000 }}
+          style={{ zIndex: 500 }}
         >
           <div className="flex flex-col items-center">
             <h1 className="text-3xl font-semibold text-[#fbfbfb] flex items-center gap-1 pl-10 pt-5 text-start w-full">
@@ -362,14 +469,22 @@ const Tracker = () => {
           >
             <button
               onClick={() => setOpenSearch(!openSearch)}
-              className="cursor-none rounded-md border border-[#dedede]"
+              className="cursor-pointer px-3 w-[250px] flex gap-2 justify-between items-center rounded-md border border-[rgba(222,222,222,0.2)] p-1 focus:outline-0"
             >
               {" "}
-              <input
-                className="bg-transparent"
-                placeholder="Quick Search"
-                type="text"
-              />
+              <div className="flex items-center gap-2">
+                <label>
+                  <MdOutlineSearch style={{ color: "rgba(222,222,222,0.6)" }} />
+                </label>
+                <p className="text-sm font-light text-[rgba(222,222,222,0.6)]">
+                  Quick Search
+                </p>
+              </div>
+              <label>
+                <p className="text-sm font-light text-[rgba(222,222,222,0.6)]">
+                  Ctrl K
+                </p>
+              </label>
             </button>
             <MdNotifications style={{ width: "25px", height: "25px" }} />
             <h1 className="text-base font-light text-[#fff]">
@@ -434,22 +549,107 @@ const Tracker = () => {
           {/* Centered Content */}
           {openSearch && (
             <AnimatePresence>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { duration: 0.5 } }}
-                exit={{ opacity: 0, transition: { duration: 0.5 } }}
-                className="fixed top-0 bottom-0 flex justify-center items-center right-0 left-0 bg-[rgba(0,0,0,0.2)] w-full
-                "
-                style={{ zIndex: 3000 }}
-                onClick={() => setOpenSearch(false)}
-              >
-                <div
-                  className="fixed  top-[50%] bottom-[50%] right-[50%] left-[50%] bg-[#dedede] w-[500px]"
-                  style={{ zIndex: 3001 }}
+              {openSearch && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1, transition: { duration: 0.5 } }}
+                  exit={{ opacity: 0, transition: { duration: 0.5 } }}
+                  className="fixed inset-0 bg-[rgba(0,0,0,0.7)] flex justify-center items-center"
+                  style={{ zIndex: 3000 }}
+                  onClick={() => setOpenSearch(false)} // Closes when clicking outside modal
                 >
-                  Content
-                </div>
-              </motion.div>
+                  {/* Modal */}
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{
+                      scale: 1,
+                      opacity: 1,
+                      transition: { duration: 0.4 },
+                    }}
+                    exit={{
+                      scale: 0.8,
+                      opacity: 0,
+                      transition: { duration: 0.3 },
+                    }}
+                    className="bg-[#141718] p-6 rounded-xl shadow-lg w-[550px] h-[350px] overflow-y-auto border border-[rgba(222,222,222,0.2)]"
+                    style={{ zIndex: 4000 }}
+                    onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside
+                  >
+                    {/* Header */}
+                    <div
+                      className="flex justify-between items-center mb-4 gap-3"
+                      style={{
+                        borderBottom: "3px solid rbga(222,222,222,0.2)",
+                      }}
+                    >
+                      <label htmlFor="">
+                        <MdOutlineSearch />
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        className="w-full p-2 rounded-lg focus:outline-0 bg-transparent -ml-2"
+                        value={searchQuery}
+                        onChange={handleSearch}
+                      />
+                      <button
+                        onClick={() => setOpenSearch(false)}
+                        className="text-gray-500 hover:text-gray-700 bg-transparent text-sm font-light border border-[rgba(222,222,222,0.1)] p-0.5"
+                      >
+                        esc
+                      </button>
+                    </div>
+
+                    {/* Search Input */}
+
+                    {searchResults.length > 0 ? (
+                      <ul className="space-y-2">
+                        {searchResults.map((item) => (
+                          <li
+                            key={item.id}
+                            className="p-3 border-b border-gray-300"
+                          >
+                            {/* Main Item */}
+                            <div
+                              onClick={() => chooseInfo(item.id)}
+                              className="flex items-center gap-3 text-lg font-semibold"
+                            >
+                              {item.icon} {/* ✅ Keep icon aligned left */}
+                              <span>{item.label}</span>
+                            </div>
+
+                            {/* Sub-items (if any) */}
+                            {item.more?.length > 0 && (
+                              <ul className="ml-10 mt-2 space-y-1">
+                                {item.more.map((sub, index) => (
+                                  <li
+                                    key={index}
+                                    className="pl-2 border-l-4 border-gray-400 text-gray-600 text-sm flex items-center gap-2"
+                                  >
+                                    {/* Nested Icon if available */}
+                                    {sub.icon && (
+                                      <span className="text-gray-500">
+                                        {sub.icon}
+                                      </span>
+                                    )}
+                                    {Object.values(sub).join(" - ")}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-600">
+                          Type to search...
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                </motion.div>
+              )}
             </AnimatePresence>
           )}
         </div>
@@ -708,12 +908,12 @@ function Expenses({
           Let's see what we've got to do today.
         </p>
       </div>
-      <div className="flex flex-col items-center justify-center w-full mt-20 gap-5 ml-20">
+      <div className="flex flex-col items-center justify-center w-full mt-20 gap-5 ml-20 overflow-y-auto h-[500px]">
         {expenses.length > 0 ? (
           expenses.map((info) => (
             <div
               key={info.id || `${info.nameExpense}-${info.howMuch}`}
-              className="flex flex-col rounded-xl px-2 border border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900"
+              className="flex flex-col rounded-xl px-2 border border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900 "
             >
               <div className="flex items-center justify-between w-[400px]">
                 <h1 className="text-[#fff] font-medium text-lg">
@@ -832,6 +1032,7 @@ function Expenses({
           </button>
         </div>
       </div>
+      <div className="empty h-36"></div>
     </div>
   );
 }
