@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Avatar from "@mui/material/Avatar";
 import { AnimatePresence, motion } from "motion/react";
 import logo from "./assets/tag-svgrepo-com.svg";
@@ -223,6 +223,11 @@ const Tracker = () => {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [changeHowMuch, setChangeHowMuch] = useState("Monthly");
 
+  ///// balance conversion states
+
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [changeBalance, setChangeBalance] = useState("Monthly");
+
   const convertExpense = (amount, fromPeriod, toPeriod) => {
     const periodDays = {
       Daily: 1,
@@ -302,6 +307,18 @@ const Tracker = () => {
     }
   };
 
+  useEffect(() => {
+    let calculatedBalance = income - totalExpenses; // Default is Monthly
+
+    if (changeBalance === "Yearly") {
+      calculatedBalance *= 12; // Convert Monthly → Yearly
+    } else if (changeBalance === "Daily") {
+      calculatedBalance /= 30; // Convert Monthly → Daily
+    }
+
+    setTotalBalance(calculatedBalance); // Format to 2 decimals
+  }, [income, totalExpenses, changeBalance]); // ✅ Include `changeBalance` so it updates
+
   // Cycle expense period: Monthly -> Yearly -> Daily -> Monthly
   const cycleExpenseType = () => {
     if (changeHowMuch === "Monthly") {
@@ -310,6 +327,18 @@ const Tracker = () => {
       setChangeHowMuch("Daily");
     } else if (changeHowMuch === "Daily") {
       setChangeHowMuch("Monthly");
+    }
+  };
+
+  ///// cycle balance period : monthly -> yearly -> daily -> monthly
+
+  const cycleBalanceType = () => {
+    if (changeBalance === "Monthly") {
+      setChangeBalance("Yearly");
+    } else if (changeBalance === "Yearly") {
+      setChangeBalance("Daily");
+    } else if (changeBalance === "Daily") {
+      setChangeBalance("Monthly");
     }
   };
 
@@ -368,62 +397,78 @@ const Tracker = () => {
     setSearchResults(results);
   };
 
-  const multiItems = [
-    {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: <MdDashboard style={{ width: "30px", height: "30px" }} />,
-      more: [
-        {
-          balance: "Total Balance",
-          icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
-          money: income,
-        },
-        {
-          balance: "Total Income",
-          icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
-          money: income,
-        },
-      ],
+  useEffect(
+    () => {
+      handleSearch({ target: { value: searchQuery } });
     },
-    {
-      id: "store",
-      label: "Expenses",
-      icon: <MdStore style={{ width: "30px", height: "30px" }} />,
-      more: [
-        {
-          nameExpense: "Expense",
-          icon: <MdPayments style={{ width: "30px", height: "30px" }} />,
-          money: "$100",
-        },
-        {
-          expense: "Total Expenses",
-          icon: <MdPayments style={{ width: "30px", height: "30px" }} />,
-          money: totalExpenses.toFixed(2),
-        },
-      ],
-    },
-    {
-      id: "analytic",
-      label: "Analytic",
-      icon: <MdPieChart style={{ width: "30px", height: "30px" }} />,
-    },
-    {
-      id: "wallet",
-      label: "Wallet",
-      icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
-    },
-    {
-      id: "category",
-      label: "Category",
-      icon: <MdCategory style={{ width: "30px", height: "30px" }} />,
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: <MdSettings style={{ width: "30px", height: "30px" }} />,
-    },
-  ];
+    [changeIncome, stateIncome, changeHowMuch, totalExpenses.toFixed(2)],
+    totalBalance,
+    changeBalance
+  );
+
+  const multiItems = useMemo(
+    () => [
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        icon: <MdDashboard style={{ width: "30px", height: "30px" }} />,
+        more: [
+          {
+            balance: "Total Balance",
+            icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
+            money: totalBalance.toFixed(2),
+            date: changeBalance,
+          },
+          {
+            balance: "Total Income",
+            icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
+            money: stateIncome,
+            date: changeIncome,
+          },
+        ],
+      },
+      {
+        id: "store",
+        label: "Expenses",
+        icon: <MdStore style={{ width: "30px", height: "30px" }} />,
+        more: [
+          {
+            nameExpense: "Expense",
+            icon: <MdPayments style={{ width: "30px", height: "30px" }} />,
+            money: allExpenses[1],
+            date: changeHowMuch,
+          },
+          {
+            expense: "Total Expenses",
+            icon: <MdPayments style={{ width: "30px", height: "30px" }} />,
+            money: totalExpenses.toFixed(2),
+            date: changeHowMuch,
+          },
+        ],
+      },
+      {
+        id: "analytic",
+        label: "Analytic",
+        icon: <MdPieChart style={{ width: "30px", height: "30px" }} />,
+      },
+      {
+        id: "wallet",
+        label: "Wallet",
+        icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
+      },
+      {
+        id: "category",
+        label: "Category",
+        icon: <MdCategory style={{ width: "30px", height: "30px" }} />,
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        icon: <MdSettings style={{ width: "30px", height: "30px" }} />,
+      },
+    ],
+    [stateIncome, changeIncome, allExpenses, totalExpenses, changeHowMuch]
+  );
 
   return (
     <div>
@@ -521,6 +566,9 @@ const Tracker = () => {
                   changeHowMuch={changeHowMuch}
                   setChangeHowMuch={setChangeHowMuch}
                   cycleExpenseType={cycleExpenseType}
+                  cycleBalanceType={cycleBalanceType}
+                  changeBalance={changeBalance}
+                  totalBalance={totalBalance}
                   chooseInfo={chooseInfo}
                 />
               )}
@@ -571,7 +619,7 @@ const Tracker = () => {
                       opacity: 0,
                       transition: { duration: 0.3 },
                     }}
-                    className="bg-[#141718] p-6 rounded-xl shadow-lg w-[550px] h-[350px] overflow-y-auto border border-[rgba(222,222,222,0.2)]"
+                    className="search bg-[#141718] p-6 rounded-xl shadow-lg w-[550px] h-[350px] overflow-y-auto border border-[rgba(222,222,222,0.2)]"
                     style={{ zIndex: 4000 }}
                     onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside
                   >
@@ -603,16 +651,16 @@ const Tracker = () => {
                     {/* Search Input */}
 
                     {searchResults.length > 0 ? (
-                      <ul className="space-y-2">
+                      <ul className=" space-y-2">
                         {searchResults.map((item) => (
                           <li
                             key={item.id}
-                            className="p-3 border-b border-gray-300"
+                            className=" p-3 border-b border-gray-300"
                           >
                             {/* Main Item */}
                             <div
                               onClick={() => chooseInfo(item.id)}
-                              className="flex items-center gap-3 text-lg font-semibold"
+                              className="flex cursor-pointer hover:text-[#8CE163] transition-colors items-center gap-3 text-lg font-semibold w-fit "
                             >
                               {item.icon} {/* ✅ Keep icon aligned left */}
                               <span>{item.label}</span>
@@ -624,15 +672,23 @@ const Tracker = () => {
                                 {item.more.map((sub, index) => (
                                   <li
                                     key={index}
-                                    className="pl-2 border-l-4 border-gray-400 text-gray-600 text-sm flex items-center gap-2"
+                                    className="pl-2 cursor-not-allowed border-l-4 border-gray-400 text-gray-600 text-sm flex items-center gap-2"
                                   >
                                     {/* Nested Icon if available */}
                                     {sub.icon && (
-                                      <span className="text-gray-500">
+                                      <span className="text-gray-500 ">
                                         {sub.icon}
                                       </span>
                                     )}
-                                    {Object.values(sub).join(" - ")}
+
+                                    {/* Prevent [object Object] by filtering non-string/non-number values */}
+                                    <span>
+                                      {Object.values(sub)
+                                        .filter(
+                                          (val) => typeof val !== "object"
+                                        ) // Remove objects
+                                        .join(" - ")}
+                                    </span>
                                   </li>
                                 ))}
                               </ul>
@@ -683,6 +739,9 @@ function Dashboard({
   changeHowMuch,
   setChangeHowMuch,
   cycleExpenseType,
+  cycleBalanceType,
+  changeBalance,
+  totalBalance,
   chooseInfo,
 }) {
   const allInfo = [
@@ -691,10 +750,10 @@ function Dashboard({
       icon: (
         <MdWallet style={{ color: "#8DE163", width: "22px", height: "22px" }} />
       ),
-      income: stateIncome,
+      income: totalBalance,
       currency: userData.currency,
-      button: cycleIncomeType,
-      buttonText: changeIncome,
+      button: cycleBalanceType,
+      buttonText: changeBalance,
     },
     {
       name: "Total Income",
