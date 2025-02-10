@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import logo from "./assets/tag-svgrepo-com.svg";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import MouseTrap from "mousetrap";
-
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
   MdDashboard,
   MdStore,
@@ -19,15 +19,6 @@ import {
   MdPayments,
   MdOutlineSearch,
 } from "react-icons/md";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
 const Tracker = () => {
   const [userData, setUserData] = useState({
@@ -100,7 +91,7 @@ const Tracker = () => {
 
   /// charts functions .//////
 
-  const [selectedPeriod, setSelectedPeriod] = useState("month"); // Default: Month
+  const [selectedPeriod, setSelectedPeriod] = useState("Monthly"); // Default: Month
   const [chartData, setChartData] = useState([]);
   const [income, setIncome] = useState(0);
 
@@ -111,47 +102,70 @@ const Tracker = () => {
     }
   }, []);
 
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const [changeBalance, setChangeBalance] = useState("Monthly");
+  const [allExpenses, setAllExpenses] = useState(() => {
+    const storedExpenses = localStorage.getItem("allExpenses");
+    return storedExpenses ? JSON.parse(storedExpenses) : [];
+  });
+
+  const getTotalExpensesByPeriod = (expenses, targetPeriod) => {
+    return expenses.reduce((acc, expense) => {
+      const amt = Number(expense.howMuch);
+      const expensePeriod = expense.period || expense.daily; // Ensure correct key
+
+      console.log(
+        `Checking conversion: Amount ${amt}, Period ${expensePeriod}, Target ${targetPeriod}`
+      );
+
+      // ✅ Fix: Ensure `converted` is always assigned a value
+      let converted = convertExpense
+        ? convertExpense(amt, expensePeriod, targetPeriod)
+        : 0;
+
+      console.log(
+        `Expense: ${expense.nameExpense}, Amount: ${amt}, Period: ${expensePeriod}, Converted: ${converted}`
+      );
+
+      return acc + converted;
+    }, 0);
+  };
+
+  const COLORS = ["#8DE163", "#FF6363"];
+
+  const data = [
+    { name: "Remaining Balance", value: Number(totalBalance.toFixed(2)) },
+    { name: "Total Expenses", value: Number(totalExpenses.toFixed(2)) },
+  ];
+
   useEffect(() => {
-    const generateData = () => {
-      let data = [];
+    // Ensure expenses are converted properly
+    let convertedExpenses = getTotalExpensesByPeriod(
+      allExpenses,
+      selectedPeriod
+    );
 
-      if (selectedPeriod === "day") {
-        data = Array.from({ length: 7 }, (_, i) => ({
-          name: `Day ${i + 1}`,
-          value: Math.floor(Math.random() * income),
-        }));
-      } else if (selectedPeriod === "week") {
-        data = Array.from({ length: 4 }, (_, i) => ({
-          name: `Week ${i + 1}`,
-          value: Math.floor(Math.random() * income),
-        }));
-      } else if (selectedPeriod === "month") {
-        data = Array.from({ length: 12 }, (_, i) => ({
-          name: `Month ${i + 1}`,
-          value: Math.floor(Math.random() * income),
-        }));
-      } else if (selectedPeriod === "year") {
-        data = Array.from({ length: 5 }, (_, i) => ({
-          name: `Year ${new Date().getFullYear() - i}`,
-          value: Math.floor(Math.random() * income),
-        }));
-      }
+    let calculatedBalance = income; // Start with base income
 
-      setChartData(data);
-    };
+    if (selectedPeriod === "Yearly") {
+      calculatedBalance = income * 12; // Convert Monthly Income → Yearly
+    } else if (selectedPeriod === "Daily") {
+      calculatedBalance = income / 30; // Convert Monthly Income → Daily
+    }
 
-    generateData();
-  }, [selectedPeriod, income]);
+    // Subtract expenses (already converted)
+    calculatedBalance -= convertedExpenses;
+
+    setTotalBalance(calculatedBalance);
+  }, [income, selectedPeriod, allExpenses]);
 
   ///// expenses functions //// /
 
   const [nameExpense, setNameExpense] = useState(""); ///// name of the expense
   const [category, setCategory] = useState(""); ///// category of expense
   const [howMuch, setHowMuch] = useState(0); //// value for the money of the expense
-  const [allExpenses, setAllExpenses] = useState(() => {
-    const storedExpenses = localStorage.getItem("allExpenses");
-    return storedExpenses ? JSON.parse(storedExpenses) : [];
-  }); ///// the stored expenses in the local storage
+  ///// the stored expenses in the local storage
 
   const [daily, setDaily] = useState("Daily"); //// state that will work with expenses
 
@@ -220,13 +234,10 @@ const Tracker = () => {
   const [changeIncome, setChangeIncome] = useState("Monthly");
 
   // Expense conversion states
-  const [totalExpenses, setTotalExpenses] = useState(0);
+
   const [changeHowMuch, setChangeHowMuch] = useState("Monthly");
 
   ///// balance conversion states
-
-  const [totalBalance, setTotalBalance] = useState(0);
-  const [changeBalance, setChangeBalance] = useState("Monthly");
 
   const convertExpense = (amount, fromPeriod, toPeriod) => {
     const periodDays = {
@@ -250,28 +261,6 @@ const Tracker = () => {
     localStorage.setItem("lastUpdated", updated);
 
     return convertedAmount;
-  };
-
-  const getTotalExpensesByPeriod = (expenses, targetPeriod) => {
-    return expenses.reduce((acc, expense) => {
-      const amt = Number(expense.howMuch);
-      const expensePeriod = expense.period || expense.daily; // Ensure correct key
-
-      console.log(
-        `Checking conversion: Amount ${amt}, Period ${expensePeriod}, Target ${targetPeriod}`
-      );
-
-      // ✅ Fix: Ensure `converted` is always assigned a value
-      let converted = convertExpense
-        ? convertExpense(amt, expensePeriod, targetPeriod)
-        : 0;
-
-      console.log(
-        `Expense: ${expense.nameExpense}, Amount: ${amt}, Period: ${expensePeriod}, Converted: ${converted}`
-      );
-
-      return acc + converted;
-    }, 0);
   };
 
   useEffect(() => {
@@ -308,16 +297,25 @@ const Tracker = () => {
   };
 
   useEffect(() => {
-    let calculatedBalance = income - totalExpenses; // Default is Monthly
+    // Ensure expenses are converted properly
+    let convertedExpenses = getTotalExpensesByPeriod(
+      allExpenses,
+      changeBalance
+    );
+
+    let calculatedBalance = income; // Start with base income
 
     if (changeBalance === "Yearly") {
-      calculatedBalance *= 12; // Convert Monthly → Yearly
+      calculatedBalance = income * 12; // Convert Monthly Income → Yearly
     } else if (changeBalance === "Daily") {
-      calculatedBalance /= 30; // Convert Monthly → Daily
+      calculatedBalance = income / 30; // Convert Monthly Income → Daily
     }
 
-    setTotalBalance(calculatedBalance); // Format to 2 decimals
-  }, [income, totalExpenses, changeBalance]); // ✅ Include `changeBalance` so it updates
+    // Subtract expenses (already converted)
+    calculatedBalance -= convertedExpenses;
+
+    setTotalBalance(calculatedBalance);
+  }, [income, changeBalance, allExpenses]);
 
   // Cycle expense period: Monthly -> Yearly -> Daily -> Monthly
   const cycleExpenseType = () => {
@@ -570,6 +568,8 @@ const Tracker = () => {
                   changeBalance={changeBalance}
                   totalBalance={totalBalance}
                   chooseInfo={chooseInfo}
+                  data={data}
+                  COLORS={COLORS}
                 />
               )}
               {showInfo === "store" && (
@@ -743,6 +743,8 @@ function Dashboard({
   changeBalance,
   totalBalance,
   chooseInfo,
+  data,
+  COLORS,
 }) {
   const allInfo = [
     {
@@ -829,7 +831,7 @@ function Dashboard({
 
             <div className="flex items-end gap-4 ml-12">
               <div className="flex gap-2">
-                {["day", "week", "month", "year"].map((period) => (
+                {["Daily", "Monthly", "Yearly"].map((period) => (
                   <button
                     key={period}
                     onClick={() => setSelectedPeriod(period)}
@@ -843,27 +845,27 @@ function Dashboard({
 
             <div className="flex items-start justify-center">
               <ResponsiveContainer width="100%" height={330}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="1 1" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip
-                    style={{
-                      backgroundColor: "#000",
-                    }}
-                  />
-                  <Line
-                    type="monotone"
+                <PieChart>
+                  <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={120}
+                    fill="#8884d8"
                     dataKey="value"
-                    stroke="#8DE163"
-                    strokeWidth={3}
-                  />
-                </LineChart>
+                    label
+                  >
+                    {data.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
           <div>
-            <div className="cardTask bg-[#]   rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
+            <div className="cardTask bg-[#] max-w-[650px]  rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
               {allExpenses.length > 0 ? (
                 allExpenses.map((info) => (
                   <div
@@ -911,7 +913,7 @@ function Dashboard({
                   </div>
                 ))
               ) : (
-                <div className="expen text-3xl font-semibold flex flex-col gap-4 w-full items-center justify-center">
+                <div className="expen  text-3xl font-semibold flex flex-col gap-4 w-full items-center justify-center">
                   No Expenses Yet
                   <button
                     onClick={() => chooseInfo("store")}
@@ -967,7 +969,7 @@ function Expenses({
           Let's see what we've got to do today.
         </p>
       </div>
-      <div className="flex flex-col items-center justify-center w-full mt-20 gap-5 ml-20 overflow-y-auto h-[500px]">
+      <div className="flex flex-col items-center justify-center w-full -mt-5 gap-5 ml-20 overflow-y-auto h-[500px]">
         {expenses.length > 0 ? (
           expenses.map((info) => (
             <div
@@ -1091,7 +1093,6 @@ function Expenses({
           </button>
         </div>
       </div>
-      <div className="empty h-36"></div>
     </div>
   );
 }
