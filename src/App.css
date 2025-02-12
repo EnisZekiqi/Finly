@@ -148,7 +148,14 @@ body {
 .search::-webkit-scrollbar-track {
   background: transparent;
 }
-
+.drawerNotifaction {
+  border: 1px solid #dedede;
+  background: #141718;
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.5),
+    0 6px 20px rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+}
 .search::-webkit-scrollbar-thumb {
   background-color: rgba(141, 225, 99, 0.6);
   border-radius: 20px;
@@ -168,6 +175,20 @@ body {
 }
 
 .cardTask::-webkit-scrollbar-thumb {
+  background-color: rgba(141, 225, 99, 0.6);
+  border-radius: 20px;
+  border: 3px solid rgba(141, 225, 99, 0.6);
+}
+
+.expensess::-webkit-scrollbar {
+  width: 8px;
+}
+
+.expensess::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.expensess::-webkit-scrollbar-thumb {
   background-color: rgba(141, 225, 99, 0.6);
   border-radius: 20px;
   border: 3px solid rgba(141, 225, 99, 0.6);

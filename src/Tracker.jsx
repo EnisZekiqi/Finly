@@ -12,12 +12,13 @@ import {
   MdWallet,
   MdCategory,
   MdSettings,
-  MdNotifications,
+  MdOutlineNotifications,
   MdOutlineClose,
   MdDelete,
   MdEdit,
   MdPayments,
   MdOutlineSearch,
+  MdCheck,
 } from "react-icons/md";
 
 const Tracker = () => {
@@ -79,6 +80,7 @@ const Tracker = () => {
     setShowInfo(info);
     setOpenSearch(false);
     setSearchQuery("");
+    setNotificationDrawer(false);
   };
 
   const checkExpenses = () => {
@@ -165,6 +167,9 @@ const Tracker = () => {
   const [nameExpense, setNameExpense] = useState(""); ///// name of the expense
   const [category, setCategory] = useState(""); ///// category of expense
   const [howMuch, setHowMuch] = useState(0); //// value for the money of the expense
+  const [notification, setNotification] = useState(0); /// state for the notification
+  const [notify, setNotify] = useState("");
+  const [notificationDrawer, setNotificationDrawer] = useState(false);
   ///// the stored expenses in the local storage
 
   const [daily, setDaily] = useState("Daily"); //// state that will work with expenses
@@ -193,6 +198,24 @@ const Tracker = () => {
     setAllExpenses(updatedExpenses);
     localStorage.setItem("allExpenses", JSON.stringify(updatedExpenses));
 
+    const previousNotification =
+      Number(localStorage.getItem("notification")) || 0;
+
+    const updatedNotification = previousNotification + 1;
+
+    localStorage.setItem("notification", updatedNotification);
+
+    setNotification(updatedNotification);
+
+    const message = "Expense added successfully";
+
+    const newNotification = localStorage.setItem("message", message);
+
+    if (newNotification) {
+      setNotify(newNotification);
+    }
+
+    setNotify(message);
     // Clear input fields
     setNameExpense("");
     setCategory("");
@@ -200,6 +223,15 @@ const Tracker = () => {
     setDaily("Daily");
     setOpenExpense(false);
   };
+
+  useEffect(() => {
+    const savedNotifications =
+      Number(localStorage.getItem("notification")) || 0;
+    setNotification(savedNotifications);
+
+    const storedMessage = localStorage.getItem("message");
+    setNotify(storedMessage || "");
+  }, []);
 
   const [shortTime, setShortTime] = useState("");
 
@@ -214,11 +246,18 @@ const Tracker = () => {
     setAllExpenses(updatedExpenses);
   }, []);
 
+  const openNotification = () => [
+    setNotificationDrawer((prev) => !prev),
+    setNotification(0),
+  ];
+
   const removeExpense = (id) => {
     ///// remove and update the specific expense you choose on the dashboard and the expenses component
     const updateExpenses = allExpenses.filter((expense) => expense.id !== id);
     setAllExpenses(updateExpenses);
     localStorage.setItem("allExpenses", JSON.stringify(updateExpenses));
+
+    (localStorage.getItem("notification") || 0) - 1;
   };
 
   const removeAllExpense = () => {
@@ -529,7 +568,59 @@ const Tracker = () => {
                 </p>
               </label>
             </button>
-            <MdNotifications style={{ width: "25px", height: "25px" }} />
+            <div onClick={openNotification} className="relative cursor-pointer">
+              <MdOutlineNotifications
+                style={{ width: "25px", height: "25px" }}
+              />
+              {notification > 0 ? (
+                <div className="absolute top-0 right-0 w-3 h-3 bg-red-600 rounded-full border border-[#dedede]"></div>
+              ) : (
+                ""
+              )}
+            </div>
+            <AnimatePresence>
+              {notificationDrawer && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0, transtion: { duration: 0.5 } }}
+                  exit={{ opacity: 0, y: -10, transtion: { duration: 0.5 } }}
+                  className="drawerNotifaction fixed mt-24 mr-16 p-2"
+                >
+                  <div className="flex flex-col items-start">
+                    <h2 className="text-[#fff] font-medium text-lg">
+                      Notifications
+                    </h2>
+                    {notify && notify.length > 0 ? (
+                      <div className="flex items-center gap-2">
+                        {" "}
+                        <MdCheck
+                          style={{
+                            backgroundColor: "#212C24",
+                            color: "rgb(140, 225, 99)",
+                            borderRadius: "10px",
+                            padding: "3px",
+                            width: "20px",
+                            height: "20px",
+                          }}
+                        />{" "}
+                        <p className="text-sm font-light text-[#dedede] relative">
+                          {notify}
+                          {notify.length > 0 ? (
+                            <div className="absolute h-3 w-3 rounded-full bg-[#212c24] text-[rgb(140,225,99)]">
+                              {notification}
+                            </div>
+                          ) : (
+                            ""
+                          )}
+                        </p>
+                      </div>
+                    ) : (
+                      "No Notifications Yet"
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             <h1 className="text-base font-light text-[#fff]">
               {userData.name}
             </h1>
@@ -969,7 +1060,7 @@ function Expenses({
           Let's see what we've got to do today.
         </p>
       </div>
-      <div className="flex flex-col items-center justify-center w-full -mt-5 gap-5 ml-20 overflow-y-auto h-[500px]">
+      <div className="expensess flex flex-col items-center justify-center  mt-5 gap-5 ml-28 overflow-y-auto h-[400px] py-6 w-fit">
         {expenses.length > 0 ? (
           expenses.map((info) => (
             <div
@@ -1014,7 +1105,7 @@ function Expenses({
           <div className="expen text-3xl font-semibold">No Expenses Yet</div>
         )}
 
-        <div className="fixed bottom-6 left-1/2 w-full max-w-xl -translate-x-1/2 px-4">
+        <div className="fixed bottom-2 left-1/2 w-full max-w-xl -translate-x-1/2 px-4">
           <AnimatePresence>
             {openExpense && (
               <motion.form
@@ -1093,6 +1184,7 @@ function Expenses({
           </button>
         </div>
       </div>
+      <div className="empty h-12"></div>
     </div>
   );
 }
