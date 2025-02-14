@@ -4,7 +4,14 @@ import { AnimatePresence, motion } from "motion/react";
 import logo from "./assets/tag-svgrepo-com.svg";
 import { formatDistanceToNow, parseISO } from "date-fns";
 import MouseTrap from "mousetrap";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  Sector,
+} from "recharts";
 import {
   MdDashboard,
   MdStore,
@@ -19,6 +26,8 @@ import {
   MdPayments,
   MdOutlineSearch,
   MdCheck,
+  MdEmojiEvents,
+  MdOutlineQuestionMark,
 } from "react-icons/md";
 
 const Tracker = () => {
@@ -41,34 +50,61 @@ const Tracker = () => {
 
   const menuItems = [
     {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: <MdDashboard style={{ width: "30px", height: "30px" }} />,
+      title: "Utilities",
+      items: [
+        {
+          id: "dashboard",
+          label: "Dashboard",
+          icon: <MdDashboard style={{ width: "30px", height: "30px" }} />,
+        },
+        {
+          id: "store",
+          label: "Expenses",
+          icon: <MdStore style={{ width: "30px", height: "30px" }} />,
+        },
+        {
+          id: "analytic",
+          label: "Analytic",
+          icon: <MdPieChart style={{ width: "30px", height: "30px" }} />,
+        },
+      ],
     },
     {
-      id: "store",
-      label: "Expenses",
-      icon: <MdStore style={{ width: "30px", height: "30px" }} />,
+      title: "Customization",
+      items: [
+        {
+          id: "goal",
+          label: "Goal",
+          icon: <MdEmojiEvents style={{ width: "30px", height: "30px" }} />,
+        },
+        {
+          id: "wallet",
+          label: "Wallet",
+          icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
+        },
+        {
+          id: "category",
+          label: "Category",
+          icon: <MdCategory style={{ width: "30px", height: "30px" }} />,
+        },
+      ],
     },
     {
-      id: "analytic",
-      label: "Analytic",
-      icon: <MdPieChart style={{ width: "30px", height: "30px" }} />,
-    },
-    {
-      id: "wallet",
-      label: "Wallet",
-      icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
-    },
-    {
-      id: "category",
-      label: "Category",
-      icon: <MdCategory style={{ width: "30px", height: "30px" }} />,
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: <MdSettings style={{ width: "30px", height: "30px" }} />,
+      title: "Other",
+      items: [
+        {
+          id: "settings",
+          label: "Settings",
+          icon: <MdSettings style={{ width: "30px", height: "30px" }} />,
+        },
+        {
+          id: "help",
+          label: "Help",
+          icon: (
+            <MdOutlineQuestionMark style={{ width: "30px", height: "30px" }} />
+          ),
+        },
+      ],
     },
   ];
 
@@ -137,10 +173,25 @@ const Tracker = () => {
   const COLORS = ["#8DE163", "#FF6363"];
 
   const data = [
+    /// this is for the dashboard pie
     { name: "Remaining Balance", value: Number(totalBalance.toFixed(2)) },
     { name: "Total Expenses", value: Number(totalExpenses.toFixed(2)) },
   ];
 
+  const categoryTotals = allExpenses.reduce((acc, expense) => {
+    if (acc[expense.category]) {
+      acc[expense.category] += Number(expense.howMuch);
+    } else {
+      acc[expense.category] = Number(expense.howMuch);
+    }
+    return acc;
+  }, {});
+
+  // 🔹 Convert grouped data into Pie Chart format
+  const data2 = Object.entries(categoryTotals).map(([category, value]) => ({
+    name: category,
+    value: value, // No need to use `.toFixed(2)` here, Recharts handles it
+  }));
   useEffect(() => {
     // Ensure expenses are converted properly
     let convertedExpenses = getTotalExpensesByPeriod(
@@ -170,6 +221,7 @@ const Tracker = () => {
   const [notification, setNotification] = useState(0); /// state for the notification
   const [notify, setNotify] = useState("");
   const [notificationDrawer, setNotificationDrawer] = useState(false);
+  const [notifyRemove, setNotifyRemove] = useState("");
   ///// the stored expenses in the local storage
 
   const [daily, setDaily] = useState("Daily"); //// state that will work with expenses
@@ -177,7 +229,7 @@ const Tracker = () => {
   const dateDaily = [{ date: "Daily" }, { date: "Monthly" }, { date: "Year" }];
 
   const handleSubmitExpenses = () => {
-    if (!nameExpense.length || !category.length || howMuch.trim() === 0) {
+    if (!nameExpense.length || !category.length || howMuch.trim() === "0") {
       return;
     }
 
@@ -185,12 +237,13 @@ const Tracker = () => {
     const relativeTime = formatDistanceToNow(new Date(now), {
       addSuffix: true,
     });
+
     const newExpense = {
       id: now,
-      nameExpense, // 🛑 Should be "name" (to match your existing structure)
+      nameExpense,
       category,
       howMuch,
-      daily, // 🛑 This should be "period" instead of "daily"
+      daily,
       addedTime: relativeTime,
     };
 
@@ -198,24 +251,22 @@ const Tracker = () => {
     setAllExpenses(updatedExpenses);
     localStorage.setItem("allExpenses", JSON.stringify(updatedExpenses));
 
+    // 🔹 Retrieve previous count correctly
     const previousNotification =
       Number(localStorage.getItem("notification")) || 0;
-
     const updatedNotification = previousNotification + 1;
 
+    // 🔹 Update localStorage and state
     localStorage.setItem("notification", updatedNotification);
-
     setNotification(updatedNotification);
 
-    const message = "Expense added successfully";
+    // 🔹 Store multiple messages in localStorage
+    const existingMessages = JSON.parse(localStorage.getItem("messages")) || [];
+    const updatedMessages = [...existingMessages, "Expense added successfully"];
 
-    const newNotification = localStorage.setItem("message", message);
+    localStorage.setItem("messages", JSON.stringify(updatedMessages));
+    setNotify(updatedMessages);
 
-    if (newNotification) {
-      setNotify(newNotification);
-    }
-
-    setNotify(message);
     // Clear input fields
     setNameExpense("");
     setCategory("");
@@ -229,8 +280,8 @@ const Tracker = () => {
       Number(localStorage.getItem("notification")) || 0;
     setNotification(savedNotifications);
 
-    const storedMessage = localStorage.getItem("message");
-    setNotify(storedMessage || "");
+    const storedMessages = JSON.parse(localStorage.getItem("messages")) || [];
+    setNotify(storedMessages);
   }, []);
 
   const [shortTime, setShortTime] = useState("");
@@ -249,7 +300,27 @@ const Tracker = () => {
   const openNotification = () => [
     setNotificationDrawer((prev) => !prev),
     setNotification(0),
+    localStorage.setItem("notification", 0),
   ];
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationDrawer) {
+        const drawer = document.getElementById("bg-tracker");
+        if (drawer && !drawer.contains(event.target)) {
+          setNotificationDrawer(false);
+        }
+      }
+    };
+
+    if (notificationDrawer) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [notificationDrawer]);
 
   const removeExpense = (id) => {
     ///// remove and update the specific expense you choose on the dashboard and the expenses component
@@ -258,6 +329,24 @@ const Tracker = () => {
     localStorage.setItem("allExpenses", JSON.stringify(updateExpenses));
 
     (localStorage.getItem("notification") || 0) - 1;
+
+    const previousNotification =
+      Number(localStorage.getItem("notification")) || 0;
+    const updatedNotification = previousNotification + 1;
+
+    // 🔹 Update localStorage and state
+    localStorage.setItem("notification", updatedNotification);
+    setNotification(updatedNotification);
+
+    // 🔹 Store multiple messages in localStorage
+    const existingMessages = JSON.parse(localStorage.getItem("messages")) || [];
+    const updatedMessages = [
+      ...existingMessages,
+      "Expense removed successfully",
+    ];
+
+    localStorage.setItem("messages", JSON.stringify(updatedMessages));
+    setNotifyRemove(updatedMessages);
   };
 
   const removeAllExpense = () => {
@@ -522,28 +611,41 @@ const Tracker = () => {
               Finly <img src={logo} alt="" />
             </h1>
 
-            {menuItems.map((item, index) => (
-              <div
-                key={item.id}
-                onClick={() => chooseInfo(item.id)}
-                className={`dash w-full px-10 ${index === 0 ? "mt-20" : "mt-10"}`}
-              >
-                <div
-                  style={{
-                    color: showInfo === item.id ? "#8DE163" : "#fff",
-                    transition: "color 0.5s ease",
-                  }}
-                  className="flex items-center cursor-pointer gap-3 text-[#fff] hover:text-[#8DE163] transition-colors font-medium"
-                >
-                  {item.icon} {item.label}
-                </div>
+            {menuItems.map((section, sectionIndex) => (
+              <div key={sectionIndex} className="w-full">
+                {/* Section Title */}
+                <p className="text-sm font-semibold text-[#8DE163] uppercase mt-10 px-10">
+                  {section.title}
+                </p>
+
+                {/* Section Items */}
+                {section.items.map((item, index) => (
+                  <div
+                    key={item.id}
+                    onClick={() => chooseInfo(item.id)}
+                    className={`dash w-full px-10 ${index === 0 ? "mt-5" : "mt-3"}`}
+                  >
+                    <div
+                      style={{
+                        color: showInfo === item.id ? "#8DE163" : "#fff",
+                        transition: "color 0.5s ease",
+                      }}
+                      className="flex items-center cursor-pointer gap-3 text-[#fff] hover:text-[#8DE163] transition-colors font-medium"
+                    >
+                      {item.icon} {item.label}
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
         </motion.div>
 
         {/* Main Content */}
-        <div className="bg-tracker   text-[#fff] items-center pr-10 pt-5">
+        <div
+          id="bg-tracker"
+          className="bg-tracker   text-[#fff] items-center pr-10 pt-5"
+        >
           {/* Top-right userData.name */}
           <div
             className=" flex items-center justify-end w-full gap-3"
@@ -584,15 +686,14 @@ const Tracker = () => {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0, transtion: { duration: 0.5 } }}
                   exit={{ opacity: 0, y: -10, transtion: { duration: 0.5 } }}
-                  className="drawerNotifaction fixed mt-24 mr-16 p-2"
+                  className="drawerNotifaction absolute mt-36 mr-16 p-2"
                 >
-                  <div className="flex flex-col items-start">
+                  <div className="flex flex-col items-start gap-3">
                     <h2 className="text-[#fff] font-medium text-lg">
                       Notifications
                     </h2>
                     {notify && notify.length > 0 ? (
                       <div className="flex items-center gap-2">
-                        {" "}
                         <MdCheck
                           style={{
                             backgroundColor: "#212C24",
@@ -602,20 +703,36 @@ const Tracker = () => {
                             width: "20px",
                             height: "20px",
                           }}
-                        />{" "}
+                        />
                         <p className="text-sm font-light text-[#dedede] relative">
-                          {notify}
-                          {notify.length > 0 ? (
-                            <div className="absolute h-3 w-3 rounded-full bg-[#212c24] text-[rgb(140,225,99)]">
-                              {notification}
-                            </div>
-                          ) : (
-                            ""
-                          )}
+                          {notify[notify.length - 1]}{" "}
+                          {/* Latest notification message */}
                         </p>
                       </div>
-                    ) : (
-                      "No Notifications Yet"
+                    ) : null}
+
+                    {notifyRemove && notifyRemove.length > 0 ? (
+                      <div className="flex items-center gap-2">
+                        <MdCheck
+                          style={{
+                            backgroundColor: "#212C24",
+                            color: "rgb(140, 225, 99)",
+                            borderRadius: "10px",
+                            padding: "3px",
+                            width: "20px",
+                            height: "20px",
+                          }}
+                        />
+                        <p className="text-sm font-light text-[#dedede] relative">
+                          {notifyRemove[notifyRemove.length - 1]}{" "}
+                          {/* Latest removed notification */}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {/* If neither exist, show "No Notifications Yet" */}
+                    {notify.length === 0 && notifyRemove.length === 0 && (
+                      <p>No Notifications Yet</p>
                     )}
                   </div>
                 </motion.div>
@@ -680,6 +797,14 @@ const Tracker = () => {
                   daily={daily}
                   setDaily={setDaily}
                   dateDaily={dateDaily}
+                />
+              )}
+              {showInfo === "analytic" && (
+                <Analytic
+                  data2={data2}
+                  totalBalance={totalBalance}
+                  allExpenses={allExpenses}
+                  userData={userData}
                 />
               )}
             </motion.div>
@@ -1188,3 +1313,60 @@ function Expenses({
     </div>
   );
 }
+
+const Analytic = ({ totalBalance, data2, allExpenses, userData }) => {
+  return (
+    <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
+      {/* Page Title */}
+      <div className="flex flex-col gap-2 w-[50%]">
+        <h1 className="text-4xl font-medium text-[#fff] text-start mt-10">
+          Analytics
+        </h1>
+        <p className="text-start text-[#dedede] font-normal text-md">
+          Check where you can make improvements
+        </p>
+      </div>
+
+      {/* Pie Chart (Shows Expenses by Category) */}
+      {data2.length > 0 ? (
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart width={400} height={400}>
+            <Pie
+              dataKey="value"
+              data={data2}
+              cx="50%"
+              cy="50%"
+              outerRadius={120}
+              fill="#8884d8"
+              label={({ name, percent }) =>
+                `${name} ${(percent * 100).toFixed(1)}%`
+              }
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      ) : (
+        <p className="text-[#dedede]">No expenses recorded yet.</p>
+      )}
+
+      {/* Show Total Expenses */}
+      <div className="flex items-center gap-2 ">
+        <p className="text-xl font-bold text-[#fff]">
+          Total: {userData.currency}
+          {allExpenses
+            .reduce((sum, e) => sum + Number(e.howMuch), 0)
+            .toFixed(2)}
+        </p>
+        /
+        <p className="text-xl font-bold text-[#fff]">
+          Balance: {userData.currency}
+          {Number(totalBalance.toFixed(2))}
+        </p>
+      </div>
+
+      {/* List of Individual Expenses */}
+
+      {/* Empty space */}
+      <div className="empty h-12"></div>
+    </div>
+  );
+};
