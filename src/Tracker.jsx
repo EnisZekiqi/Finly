@@ -226,7 +226,11 @@ const Tracker = () => {
 
   const [daily, setDaily] = useState("Daily"); //// state that will work with expenses
 
-  const dateDaily = [{ date: "Daily" }, { date: "Monthly" }, { date: "Year" }];
+  const dateDaily = [
+    { date: "Daily" },
+    { date: "Monthly" },
+    { date: "Yearly" },
+  ];
 
   const handleSubmitExpenses = () => {
     if (!nameExpense.length || !category.length || howMuch.trim() === "0") {
@@ -367,28 +371,25 @@ const Tracker = () => {
 
   ///// balance conversion states
 
-  const convertExpense = (amount, fromPeriod, toPeriod) => {
-    const periodDays = {
-      Daily: 1,
-      Weekly: 7,
-      Monthly: 30,
-      Year: 365,
-    };
+  const convertExpense = (amount, expensePeriod, targetPeriod) => {
+    if (expensePeriod === targetPeriod) return amount; // No conversion needed
 
-    // Check if both periods exist in the conversion table
-    if (!(fromPeriod in periodDays) || !(toPeriod in periodDays)) {
-      console.error(`Invalid period: ${fromPeriod} or ${toPeriod}`);
-      return amount; // Return as is if invalid
+    if (targetPeriod === "Monthly") {
+      if (expensePeriod === "Yearly") return amount / 12; // ✅ Yearly → Monthly
+      if (expensePeriod === "Daily") return amount * 30.4; // ✅ Daily → Monthly (approximate)
     }
 
-    // Convert from original period to daily, then to target period
-    const dailyValue = amount / periodDays[fromPeriod];
-    const convertedAmount = dailyValue * periodDays[toPeriod];
+    if (targetPeriod === "Daily") {
+      if (expensePeriod === "Yearly") return amount / 365; // ✅ Yearly → Daily (should be smaller)
+      if (expensePeriod === "Monthly") return amount / 30.4; // ✅ Monthly → Daily
+    }
 
-    const updated = new Date().toISOString();
-    localStorage.setItem("lastUpdated", updated);
+    if (targetPeriod === "Yearly") {
+      if (expensePeriod === "Monthly") return amount * 12; // ✅ Monthly → Yearly
+      if (expensePeriod === "Daily") return amount * 365; // ✅ Daily → Yearly
+    }
 
-    return convertedAmount;
+    return amount; // Fallback case
   };
 
   useEffect(() => {
@@ -447,13 +448,14 @@ const Tracker = () => {
 
   // Cycle expense period: Monthly -> Yearly -> Daily -> Monthly
   const cycleExpenseType = () => {
-    if (changeHowMuch === "Monthly") {
-      setChangeHowMuch("Yearly");
-    } else if (changeHowMuch === "Yearly") {
-      setChangeHowMuch("Daily");
-    } else if (changeHowMuch === "Daily") {
-      setChangeHowMuch("Monthly");
-    }
+    const periodOrder = ["Monthly", "Yearly", "Daily"];
+    const currentIndex = periodOrder.indexOf(changeHowMuch);
+    const nextIndex = (currentIndex + 1) % periodOrder.length;
+    const newPeriod = periodOrder[nextIndex];
+
+    const totalConverted = getTotalExpensesByPeriod(allExpenses, newPeriod);
+    setTotalExpenses(totalConverted);
+    setChangeHowMuch(newPeriod);
   };
 
   ///// cycle balance period : monthly -> yearly -> daily -> monthly
@@ -614,7 +616,7 @@ const Tracker = () => {
             {menuItems.map((section, sectionIndex) => (
               <div key={sectionIndex} className="w-full">
                 {/* Section Title */}
-                <p className="text-sm font-semibold text-[#8DE163] uppercase mt-10 px-10">
+                <p className="text-sm font-light text-[rgba(222,222,222,0.6)] uppercase mt-10 text-start pl-4">
                   {section.title}
                 </p>
 
@@ -805,6 +807,7 @@ const Tracker = () => {
                   totalBalance={totalBalance}
                   allExpenses={allExpenses}
                   userData={userData}
+                  totalExpenses={totalExpenses}
                 />
               )}
             </motion.div>
@@ -998,7 +1001,7 @@ function Dashboard({
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5">
+    <div className="flex flex-col items-center justify-center gap-5 h-screen">
       <div className="flex flex-col items-center w-full mt-10 gap-5">
         <div className="flex items-center gap-20 justify-end w-full">
           {allInfo.map((info, index) => (
@@ -1045,17 +1048,20 @@ function Dashboard({
               </p>
             </div>
 
-            <div className="flex items-end gap-4 ml-12">
+            <div className="flex items-end gap-4 ">
               <div className="flex gap-2">
-                {["Daily", "Monthly", "Yearly"].map((period) => (
-                  <button
-                    key={period}
-                    onClick={() => setSelectedPeriod(period)}
-                    className={`px-4 py-2 rounded-md text-sm font-medium hover:border-[#8DE163] ${selectedPeriod === period ? "bg-transparent text-[#8DE163]" : "bg-transparent"}`}
-                  >
-                    {period.charAt(0).toUpperCase() + period.slice(1)}
-                  </button>
-                ))}
+                <p className="text-sm font-light text-[#dedede] text-start">
+                  To check your chart press Both
+                  <b className="text-[#8CE163]"> Balance</b> and{" "}
+                  <b className="text-[#8CE163]">Expenses</b> dates for the chart
+                  to calculate.Check{" "}
+                  <a href="">
+                    <em className="text-[#dedede] font-extralight text-sm underline decoration-solid">
+                      Help
+                    </em>
+                  </a>{" "}
+                  for more details
+                </p>
               </div>
             </div>
 
@@ -1176,7 +1182,7 @@ function Expenses({
   setDaily,
 }) {
   return (
-    <div className="exp flex flex-col items-center justify-center gap-5">
+    <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
       <div className="flex flex-col gap-2 w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
           Expenses
@@ -1314,7 +1320,13 @@ function Expenses({
   );
 }
 
-const Analytic = ({ totalBalance, data2, allExpenses, userData }) => {
+const Analytic = ({
+  totalBalance,
+  data2,
+  allExpenses,
+  userData,
+  totalExpenses,
+}) => {
   return (
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
       {/* Page Title */}
@@ -1337,7 +1349,7 @@ const Analytic = ({ totalBalance, data2, allExpenses, userData }) => {
               cx="50%"
               cy="50%"
               outerRadius={120}
-              fill="#8884d8"
+              fill="#8CE163"
               label={({ name, percent }) =>
                 `${name} ${(percent * 100).toFixed(1)}%`
               }
@@ -1352,14 +1364,14 @@ const Analytic = ({ totalBalance, data2, allExpenses, userData }) => {
       <div className="flex items-center gap-2 ">
         <p className="text-xl font-bold text-[#fff]">
           Total: {userData.currency}
-          {allExpenses
-            .reduce((sum, e) => sum + Number(e.howMuch), 0)
-            .toFixed(2)}
+          {Number(totalExpenses.toFixed(2))}
+          Monthly
         </p>
         /
         <p className="text-xl font-bold text-[#fff]">
           Balance: {userData.currency}
           {Number(totalBalance.toFixed(2))}
+          Monthly
         </p>
       </div>
 
