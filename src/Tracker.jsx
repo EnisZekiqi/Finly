@@ -187,11 +187,16 @@ const Tracker = () => {
     return acc;
   }, {});
 
+  const COLORS2 = ["#8CE163", "#75C14D", "#5FA038", "#497F25", "#325E14"]; // Light → Dark
+
   // 🔹 Convert grouped data into Pie Chart format
   const data2 = Object.entries(categoryTotals).map(([category, value]) => ({
     name: category,
     value: value, // No need to use `.toFixed(2)` here, Recharts handles it
   }));
+
+  const sortedData = [...data2].sort((a, b) => b.value - a.value);
+
   useEffect(() => {
     // Ensure expenses are converted properly
     let convertedExpenses = getTotalExpensesByPeriod(
@@ -808,6 +813,10 @@ const Tracker = () => {
                   allExpenses={allExpenses}
                   userData={userData}
                   totalExpenses={totalExpenses}
+                  changeBalance={changeBalance}
+                  changeHowMuch={changeHowMuch}
+                  COLORS2={COLORS2}
+                  sortedData={sortedData}
                 />
               )}
             </motion.div>
@@ -1121,9 +1130,7 @@ function Dashboard({
                       <p className="text-[rgba(222,222,222,0.7)]">/</p>
                       <p className="text-[#dedede] font-light text-sm flex items-center">
                         Amount:{" "}
-                        <b className="text-[#fff] font-medium">
-                          {info.howMuch}
-                        </b>
+                        <b className="text-[#fff] font-medium">{info.howMuch}</b>
                         {userData.currency}
                       </p>
                       <p className="text-[rgba(222,222,222,0.7)]">/</p>
@@ -1321,12 +1328,29 @@ function Expenses({
 }
 
 const Analytic = ({
-  totalBalance,
   data2,
   allExpenses,
   userData,
   totalExpenses,
+  changeBalance,
+  changeHowMuch,
+  COLORS2,
+  sortedData,
 }) => {
+  // functions are here because they dont need to be passed to another components
+
+  const [analyze, setAnalyze] = useState(false);
+  const [goalChecker, setGoalChecker] = useState(false);
+
+  const letsAnalyze = () => {
+    setAnalyze(true);
+
+    setTimeout(() => {
+      setAnalyze(false);
+      setGoalChecker(true);
+    }, 12000);
+  };
+
   return (
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
       {/* Page Title */}
@@ -1338,45 +1362,75 @@ const Analytic = ({
           Check where you can make improvements
         </p>
       </div>
+      {/* Content Container */}
+      <div className="flex items-start justify-center w-full">
+        {/* Pie Chart (Shows Expenses by Category) */}
+        <div className="flex flex-col items-center w-[70%]">
+          {data2.length > 0 ? (
+            <ResponsiveContainer width="80%" height={300}>
+              <PieChart>
+                <Pie
+                  dataKey="value"
+                  data={sortedData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={110}
+                  fill="#8CE163"
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(1)}%`
+                  }
+                >
+                  {sortedData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS2[index % COLORS2.length]} // Cycle through colors
+                    />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-[#dedede]">No expenses recorded yet.</p>
+          )}
 
-      {/* Pie Chart (Shows Expenses by Category) */}
-      {data2.length > 0 ? (
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart width={400} height={400}>
-            <Pie
-              dataKey="value"
-              data={data2}
-              cx="50%"
-              cy="50%"
-              outerRadius={120}
-              fill="#8CE163"
-              label={({ name, percent }) =>
-                `${name} ${(percent * 100).toFixed(1)}%`
-              }
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      ) : (
-        <p className="text-[#dedede]">No expenses recorded yet.</p>
-      )}
-
-      {/* Show Total Expenses */}
-      <div className="flex items-center gap-2 ">
-        <p className="text-xl font-bold text-[#fff]">
-          Total: {userData.currency}
-          {Number(totalExpenses.toFixed(2))}
-          Monthly
-        </p>
-        /
-        <p className="text-xl font-bold text-[#fff]">
-          Balance: {userData.currency}
-          {Number(totalBalance.toFixed(2))}
-          Monthly
-        </p>
+          {/* Show Total Expenses */}
+          <div className="flex items-center gap-2 ">
+            <p className="text-xl flex items-center gap-2 font-semibold text-[#fff]">
+              Total: {userData.currency}
+              {Number(totalExpenses.toFixed(2))}
+              <p className="text-md text-[#dedede] font-light">
+                {changeHowMuch}
+              </p>
+            </p>
+          </div>
+          <button
+            onClick={letsAnalyze}
+            className="bg-button mt-4 text-[#000] w-[200px] flex items-center justify-center"
+          >
+            {analyze === true ? (
+              <div className="loader "></div>
+            ) : (
+              <p>Let's Analyze</p>
+            )}
+          </button>
+        </div>
+        <hr className="h-full w-0.5 bg-[rgba(222,222,222,0.3)] ml-3"></hr>
+        {/* Analyze Content */}
+        <div className="analyzerContent overflow-y-auto overflow-x-hidden h-[500px] pl-2 text-start w-[20%]">
+        {analyze === true ? (
+            <p className="analyzing-text text-md font-medium">Analyzing..</p>
+          ) : (
+            goalChecker && "Proceed.."
+          )}
+          {goalChecker && (
+            <p className="w-full text-sm font-light mt-2.5">
+              Do you want to apply your goal to the analytics? If yes, please
+              proceed or you can analyze otherwise.
+            </p>
+          )}
+        </div>
       </div>
-
-      {/* List of Individual Expenses */}
-
       {/* Empty space */}
       <div className="empty h-12"></div>
     </div>
