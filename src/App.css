@@ -329,6 +329,7 @@ body {
   }
 }
 
+
 /* Show the checkmark when checkbox is checked */
 .input[type="checkbox"]:checked + .custom-checkbox::after {
   opacity: 1;

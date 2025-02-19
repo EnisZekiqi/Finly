@@ -27,7 +27,7 @@ import {
   MdOutlineSearch,
   MdCheck,
   MdEmojiEvents,
-  MdOutlineQuestionMark,
+  MdOutlineQuestionMark,MdBubbleChart 
 } from "react-icons/md";
 
 const Tracker = () => {
@@ -817,6 +817,9 @@ const Tracker = () => {
                   changeHowMuch={changeHowMuch}
                   COLORS2={COLORS2}
                   sortedData={sortedData}
+                  chooseInfo={chooseInfo}
+                  setNotify={setNotify}
+                  setNotification={setNotification}
                 />
               )}
             </motion.div>
@@ -1336,11 +1339,15 @@ const Analytic = ({
   changeHowMuch,
   COLORS2,
   sortedData,
+  chooseInfo,
+  setNotify,
+  setNotification
 }) => {
   // functions are here because they dont need to be passed to another components
 
-  const [analyze, setAnalyze] = useState(false);
-  const [goalChecker, setGoalChecker] = useState(false);
+  const [analyze, setAnalyze] = useState(false); //// start the analyze 
+  const [goalChecker, setGoalChecker] = useState(false); //// checker if you want the goal or if you want the proceed
+  const [analyzeExpense,setAnalyzeExpense]=useState(false)
 
   const letsAnalyze = () => {
     setAnalyze(true);
@@ -1350,6 +1357,57 @@ const Analytic = ({
       setGoalChecker(true);
     }, 12000);
   };
+
+
+  const letsProceed = () => {
+    if (allExpenses.length === 0) {
+      setAnalyzeExpense(true);
+    } else {
+      setAnalyzeExpense(false);
+    }
+  };
+  
+  useEffect(() => {
+    if (analyzeExpense) {
+
+      const previousNotification =
+      Number(localStorage.getItem("notification")) || 0;
+    const updatedNotification = previousNotification + 1;
+
+    // 🔹 Update localStorage and state
+    localStorage.setItem("notification", updatedNotification);
+    setNotification(updatedNotification);
+
+      const existingMessages = JSON.parse(localStorage.getItem("messages")) || [];
+      const updatedMessages = [...existingMessages, "Analyze was unsuccessful"];
+      localStorage.setItem("messages", JSON.stringify(updatedMessages));
+      setNotify(updatedMessages);
+    }
+  }, [analyzeExpense]);
+
+  const resetAll=()=>{
+    setAnalyze(false)
+    setGoalChecker(false)
+    setAnalyzeExpense(false)
+  }
+
+  const text = "Do you want to apply your goal to the analytics? If yes, please proceed or you can analyze otherwise.";
+
+  const text2 ="There is not expense to analyze your finance , please create some expense to start anaylzing"
+  
+  const containerVariants = {
+    hidden: { opacity: 1 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.02, delayChildren: 0.5 * i },
+    }),
+  };
+
+  const letterVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
+  
 
   return (
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
@@ -1391,7 +1449,7 @@ const Analytic = ({
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-[#dedede]">No expenses recorded yet.</p>
+            <p className="text-[#dedede] font-bold text-3xl text-center h-[50vh] flex flex-col items-center justify-center">No expenses recorded yet <em onClick={() => chooseInfo('store')} className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer">Create Expenses to continue analyze</em></p>
           )}
 
           {/* Show Total Expenses */}
@@ -1418,17 +1476,60 @@ const Analytic = ({
         <hr className="h-full w-0.5 bg-[rgba(222,222,222,0.3)] ml-3"></hr>
         {/* Analyze Content */}
         <div className="analyzerContent overflow-y-auto overflow-x-hidden h-[500px] pl-2 text-start w-[20%]">
+        {(!analyze && goalChecker === false) ? ( 
+  <div className="flex flex-col items-center justify-center gap-4">
+    <MdBubbleChart style={{ color: "#8CE163", width: "50px", height: "50px" }} />
+    <h1 className="text-lg font-semibold text-[#fff]">Nothing Analyzed Yet</h1>
+    <p className="text-sm font-light text-[#dedede] text-center">
+      Click the button to start analyzing your finances
+    </p>
+  </div>
+) : null}
+
         {analyze === true ? (
             <p className="analyzing-text text-md font-medium">Analyzing..</p>
           ) : (
             goalChecker && "Proceed.."
           )}
           {goalChecker && (
-            <p className="w-full text-sm font-light mt-2.5">
-              Do you want to apply your goal to the analytics? If yes, please
-              proceed or you can analyze otherwise.
-            </p>
+            <motion.p
+            className="text-sm font-light mt-2.5"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            
+            {text.split("").map((char, index) => (
+              <motion.span key={index} variants={letterVariants}>
+                {char}
+              </motion.span>
+            ))}
+            <p className="mt-1">
+              <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer">Add Goal </em> 
+              or <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+              onClick={letsProceed}
+              >Proceed</em></p>
+          </motion.p>
+          
           )}
+          {analyzeExpense && 
+           <motion.p
+           className="text-sm font-light mt-2.5"
+           variants={containerVariants}
+           initial="hidden"
+           animate="visible"
+         >
+           {text2.split("").map((char, index) => (
+             <motion.span key={index} variants={letterVariants}>
+               {char}
+             </motion.span>
+           ))}
+
+          <em className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+              onClick={resetAll}
+              > Reset</em>
+         </motion.p>
+          }
         </div>
       </div>
       {/* Empty space */}
