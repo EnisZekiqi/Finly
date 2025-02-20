@@ -27,9 +27,9 @@ import {
   MdOutlineSearch,
   MdCheck,
   MdEmojiEvents,
-  MdOutlineQuestionMark,MdBubbleChart 
+  MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning  
 } from "react-icons/md";
-
+import { IoMdInformation } from "react-icons/io";
 const Tracker = () => {
   const [userData, setUserData] = useState({
     name: "",
@@ -701,7 +701,14 @@ const Tracker = () => {
                     </h2>
                     {notify && notify.length > 0 ? (
                       <div className="flex items-center gap-2">
-                        <MdCheck
+                        {notify[notify.length === 0] ? <MdOutlineWarning  style={{
+                            backgroundColor: "#3a3a0b",
+                            color: "#e1e163",
+                            borderRadius: "10px",
+                            padding: "3px",
+                            width: "20px",
+                            height: "20px",scale:'1.2'
+                          }}/> :  <MdCheck 
                           style={{
                             backgroundColor: "#212C24",
                             color: "rgb(140, 225, 99)",
@@ -710,7 +717,7 @@ const Tracker = () => {
                             width: "20px",
                             height: "20px",
                           }}
-                        />
+                        />}
                         <p className="text-sm font-light text-[#dedede] relative">
                           {notify[notify.length - 1]}{" "}
                           {/* Latest notification message */}
@@ -1336,6 +1343,7 @@ const Analytic = ({
   userData,
   totalExpenses,
   changeBalance,
+  totalBalance,
   changeHowMuch,
   COLORS2,
   sortedData,
@@ -1348,6 +1356,10 @@ const Analytic = ({
   const [analyze, setAnalyze] = useState(false); //// start the analyze 
   const [goalChecker, setGoalChecker] = useState(false); //// checker if you want the goal or if you want the proceed
   const [analyzeExpense,setAnalyzeExpense]=useState(false)
+  const [analyzeExpense2 ,setAnalyzeExpense2]=useState(false)
+  const [continueAnalyze,setContinueAnalyze]=useState(false)
+  const [continueMessage,setContinueMessage]=useState("")
+  const [goal,setGoal]=useState(false)/// state for the goal to check if there is any goal or not 
 
   const letsAnalyze = () => {
     setAnalyze(true);
@@ -1355,20 +1367,29 @@ const Analytic = ({
     setTimeout(() => {
       setAnalyze(false);
       setGoalChecker(true);
+      setAnalyzeExpense(false)
+      setGoal(false)
     }, 12000);
   };
 
 
   const letsProceed = () => {
+    // Only set `analyzeExpense` if no expenses exist.
     if (allExpenses.length === 0) {
-      setAnalyzeExpense(true);
+      setAnalyzeExpense(true);  // Show no expenses message
+      setAnalyzeExpense2(false); // Hide category analysis message
+      console.log(analyzeExpense)
     } else {
+      setAnalyzeExpense2(true);  // Show category analysis message
       setAnalyzeExpense(false);
+      console.log(analyzeExpense2)  // Hide "no expense" message
     }
   };
   
-  useEffect(() => {
-    if (analyzeExpense) {
+
+  
+  useEffect(() => {   ///analyzing if there is no expense notification is sent 
+    if (analyzeExpense === true && allExpenses.length === 0) {
 
       const previousNotification =
       Number(localStorage.getItem("notification")) || 0;
@@ -1379,11 +1400,54 @@ const Analytic = ({
     setNotification(updatedNotification);
 
       const existingMessages = JSON.parse(localStorage.getItem("messages")) || [];
-      const updatedMessages = [...existingMessages, "Analyze was unsuccessful"];
+      const updatedMessages = [...existingMessages, "Analyze was unsuccessfull"];
       localStorage.setItem("messages", JSON.stringify(updatedMessages));
       setNotify(updatedMessages);
+      
     }
   }, [analyzeExpense]);
+
+ 
+
+
+  useEffect(() => {
+    if (analyzeExpense2  === true && allExpenses.length > 0) {
+      const totalExpenses = allExpenses.reduce((acc, expense) => acc + Number(expense.howMuch), 0);
+      const categoryTotals = allExpenses.reduce((acc, expense) => {
+        if (acc[expense.category]) {
+          acc[expense.category] += Number(expense.howMuch);
+        } else {
+          acc[expense.category] = Number(expense.howMuch);
+        }
+        return acc;
+      }, {});
+  
+      const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+      const highestCategory = sortedCategories[0];
+  
+      if (highestCategory) {
+        const highestCategoryPercentage = (highestCategory[1] / totalExpenses) * 100;
+        setHighestCategoryMessage(`You can try to lower your expenses in the ${highestCategory[0]} category, which accounts for ${highestCategoryPercentage.toFixed(1)}% of your total expenses.`);
+      }
+    }
+  }, [analyzeExpense2 , allExpenses]);
+
+  const [highestCategoryMessage, setHighestCategoryMessage] = useState("");
+
+  useEffect(()=>{
+
+    if(continueAnalyze){
+      const expenses = totalExpenses
+      const balance = totalBalance
+      const dayForExpense = changeHowMuch
+      const dayForBalance = changeBalance
+      if(balance > expenses){
+        setContinueMessage(`Your Balance which is ${balance} per ${dayForBalance} is much higher than your Expenses which is ${expenses} per ${dayForExpense}`)
+      }
+    }
+
+  },[continueAnalyze])
+
 
   const resetAll=()=>{
     setAnalyze(false)
@@ -1395,6 +1459,8 @@ const Analytic = ({
 
   const text2 ="There is not expense to analyze your finance , please create some expense to start anaylzing"
   
+
+
   const containerVariants = {
     hidden: { opacity: 1 },
     visible: (i = 1) => ({
@@ -1512,7 +1578,7 @@ const Analytic = ({
           </motion.p>
           
           )}
-          {analyzeExpense && 
+{analyzeExpense && 
            <motion.p
            className="text-sm font-light mt-2.5"
            variants={containerVariants}
@@ -1530,6 +1596,27 @@ const Analytic = ({
               > Reset</em>
          </motion.p>
           }
+          {analyzeExpense2  && 
+           <motion.p
+           className="text-sm font-light mt-2.5"
+           variants={containerVariants}
+           initial="hidden"
+           animate="visible"
+         >
+          {highestCategoryMessage && highestCategoryMessage.split("").map((char, index) => (
+  <motion.span key={index} variants={letterVariants}>
+    {char}
+  </motion.span>
+))}
+<em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+              onClick={()=>setContinueAnalyze(true)}
+              >Proceed</em>
+          </motion.p>
+          }
+
+{continueAnalyze && 
+<p>{continueMessage}</p>
+}
         </div>
       </div>
       {/* Empty space */}
