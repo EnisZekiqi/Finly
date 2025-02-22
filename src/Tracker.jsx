@@ -27,7 +27,7 @@ import {
   MdOutlineSearch,
   MdCheck,
   MdEmojiEvents,
-  MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning  
+  MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning ,MdChat 
 } from "react-icons/md";
 import { IoMdInformation } from "react-icons/io";
 const Tracker = () => {
@@ -1541,11 +1541,11 @@ const Analytic = ({
         </div>
         <hr className="h-full w-0.5 bg-[rgba(222,222,222,0.3)] ml-3"></hr>
         {/* Analyze Content */}
-        <div className="analyzerContent overflow-y-auto overflow-x-hidden h-[500px] pl-2 text-start w-[20%]">
+        <div className="analyzerContent overflow-y-auto overflow-x-hidden h-[500px] pl-3 text-start w-[20%]">
         {(!analyze && goalChecker === false) ? ( 
   <div className="flex flex-col items-center justify-center gap-4">
     <MdBubbleChart style={{ color: "#8CE163", width: "50px", height: "50px" }} />
-    <h1 className="text-lg font-semibold text-[#fff]">Nothing Analyzed Yet</h1>
+    <h1 className="text-lg font-semibold text-[#fff]">FinChat Analyzer</h1>
     <p className="text-sm font-light text-[#dedede] text-center">
       Click the button to start analyzing your finances
     </p>
@@ -1555,11 +1555,16 @@ const Analytic = ({
         {analyze === true ? (
             <p className="analyzing-text text-md font-medium">Analyzing..</p>
           ) : (
-            goalChecker && "Proceed.."
+            goalChecker && ""
           )}
           {goalChecker && (
+          <div className="flex flex-col mt-2.5">
+             <div className="flex items-center gap-2" style={{color:'#8CE163'}}>
+            <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1px' ,widht:'20px',height:'20px',scale:1.7}}/>
+            <p className="text-lg font-semibold text-[#fff]">FinChat</p>
+          </div>
             <motion.p
-            className="text-sm font-light mt-2.5"
+            className="text-sm font-light mt-1"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -1570,17 +1575,26 @@ const Analytic = ({
                 {char}
               </motion.span>
             ))}
-            <p className="mt-1">
+            <motion.p
+            initial={{opacity:0}}
+            animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
+            className="mt-1">
               <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer">Add Goal </em> 
               or <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
               onClick={letsProceed}
-              >Proceed</em></p>
+              >Proceed</em></motion.p>
           </motion.p>
+          </div>
           
           )}
-{analyzeExpense && 
+          {analyzeExpense && 
+            <div className="flex flex-col mt-2.5">
+               <div className="flex items-center gap-2" style={{color:'#8CE163'}}>
+            <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px' ,widht:'20px',height:'20px'}}/>
+            <p className="text-lg font-semibold text-[#fff]">FinChat</p>
+          </div>
            <motion.p
-           className="text-sm font-light mt-2.5"
+           className="text-sm font-light mt-1"
            variants={containerVariants}
            initial="hidden"
            animate="visible"
@@ -1595,27 +1609,68 @@ const Analytic = ({
               onClick={resetAll}
               > Reset</em>
          </motion.p>
+            </div>
           }
           {analyzeExpense2  && 
-           <motion.p
-           className="text-sm font-light mt-2.5"
-           variants={containerVariants}
-           initial="hidden"
-           animate="visible"
-         >
-          {highestCategoryMessage && highestCategoryMessage.split("").map((char, index) => (
-  <motion.span key={index} variants={letterVariants}>
-    {char}
-  </motion.span>
-))}
-<em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-              onClick={()=>setContinueAnalyze(true)}
-              >Proceed</em>
-          </motion.p>
+            <div className="flex flex-col mt-2.5">
+            <div className="flex items-center gap-2" style={{color:'#8CE163'}}>
+            <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px',widht:'20px',height:'20px'}}/>
+            <p className="text-lg font-semibold text-[#fff]">FinChat</p>
+          </div>
+          <motion.p
+          className="text-sm font-light mt-1"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          key={highestCategoryMessage} // 🔹 Add this key to trigger re-render on change
+        >
+          {highestCategoryMessage.split("").map((char, index) => (
+            <motion.span key={index} variants={letterVariants}>
+              {char}
+            </motion.span>
+          ))}
+          <motion.em 
+          initial={{opacity:0}}
+          animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
+            className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+            onClick={() => setContinueAnalyze(true)}
+          >
+            Continue Analyzing
+          </motion.em>
+        </motion.p>
+            </div>
+        
           }
 
 {continueAnalyze && 
-<p>{continueMessage}</p>
+<div className="flex flex-col mt-2.5">
+  <div className="flex items-center gap-2" style={{color:'#8CE163'}}>
+    <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px' ,widht:'20px',height:'20px'}}/>
+    <p className="text-lg font-semibold text-[#fff]">FinChat</p>
+  </div>
+<motion.p
+  className="text-sm font-light mt-1"
+  variants={containerVariants}
+  initial="hidden"
+  animate="visible"
+  key={continueMessage} // 🔹 Add this key to trigger re-render on change
+>
+  {continueMessage.split("").map((char, index) => (
+    <motion.span key={index} variants={letterVariants}>
+      {char}
+    </motion.span>
+  ))}
+  <motion.em
+  initial={{opacity:0}}
+  animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
+    className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+    onClick={() => setContinueAnalyze(true)}
+  >
+    Continue Analyzing
+  </motion.em>
+</motion.p>
+</div>
+
 }
         </div>
       </div>
