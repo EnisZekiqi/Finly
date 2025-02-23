@@ -241,6 +241,10 @@ const Tracker = () => {
     if (!nameExpense.length || !category.length || howMuch.trim() === "0") {
       return;
     }
+    
+    if (!nameExpense.length || !category.length || howMuch.trim() >= "11"){
+      return
+    }
 
     const now = new Date().toISOString(); // Store timestamp
     const relativeTime = formatDistanceToNow(new Date(now), {
@@ -827,6 +831,7 @@ const Tracker = () => {
                   chooseInfo={chooseInfo}
                   setNotify={setNotify}
                   setNotification={setNotification}
+                
                 />
               )}
             </motion.div>
@@ -1134,7 +1139,7 @@ function Dashboard({
                         Category:
                         <b className="text-[#fff] font-medium">
                           {" "}
-                          {info.category}
+                          {info.category.slice(0.10)}...
                         </b>
                       </p>{" "}
                       <p className="text-[rgba(222,222,222,0.7)]">/</p>
@@ -1349,7 +1354,7 @@ const Analytic = ({
   sortedData,
   chooseInfo,
   setNotify,
-  setNotification
+  setNotification,
 }) => {
   // functions are here because they dont need to be passed to another components
 
@@ -1357,9 +1362,11 @@ const Analytic = ({
   const [goalChecker, setGoalChecker] = useState(false); //// checker if you want the goal or if you want the proceed
   const [analyzeExpense,setAnalyzeExpense]=useState(false)
   const [analyzeExpense2 ,setAnalyzeExpense2]=useState(false)
-  const [continueAnalyze,setContinueAnalyze]=useState(false)
-  const [continueMessage,setContinueMessage]=useState("")
+  const [continueAnalyze,setContinueAnalyze]=useState(false) //// state for the response of the analyzer number 2
+  const [continueMessage,setContinueMessage]=useState("") //// message for the response of the analyzer number 2
   const [goal,setGoal]=useState(false)/// state for the goal to check if there is any goal or not 
+  const [continueLess,setContinueLess]=useState(false)
+  const [lessMessage,setLessMessage]=useState("")
 
   const letsAnalyze = () => {
     setAnalyze(true);
@@ -1441,13 +1448,90 @@ const Analytic = ({
       const balance = totalBalance
       const dayForExpense = changeHowMuch
       const dayForBalance = changeBalance
+     const currency =userData.currency
       if(balance > expenses){
-        setContinueMessage(`Your Balance which is ${balance} per ${dayForBalance} is much higher than your Expenses which is ${expenses} per ${dayForExpense}`)
+        setContinueMessage(`Your Balance which is ${balance}${currency} per ${dayForBalance} is much higher than your Expenses which is ${expenses}${currency} per ${dayForExpense}`)
+      }else{
+        setContinueMessage(`Your Balance which is ${balance} per ${dayForBalance} is much lower than your Expenses which is ${expenses} per ${dayForExpense}.Do you want me to help you constructing so you can have less expenses.`)
       }
     }
 
   },[continueAnalyze])
 
+  const [changeFunction,setChangeFunction]=useState(false)
+
+  useEffect(()=>{ //// useEffect that changes the function of the button 
+
+    const expenses = totalExpenses
+    const balance = totalBalance
+    
+  if(balance < expenses){
+    setChangeFunction(true)
+  }else{
+    setChangeFunction(false)
+  }    
+
+  },[continueAnalyze,continueMessage])
+
+  const [sortedCategories, setSortedCategories] = useState([]);
+  const [adjustedCategories, setAdjustedCategories] = useState([]);
+  
+
+  useEffect(() => {
+    if (continueLess === true && allExpenses.length > 0) {
+      const totalExpenses = allExpenses.reduce((acc, expense) => acc + Number(expense.howMuch), 0);
+      const categoryTotals = allExpenses.reduce((acc, expense) => {
+        acc[expense.category] = (acc[expense.category] || 0) + Number(expense.howMuch);
+        return acc;
+      }, {});
+  
+      // Sort categories from highest to lowest expense
+      const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+  
+      // Calculate the initial percentages
+      const sortedWithPercentages = sortedCategories.map(([category, amount]) => {
+        return {
+          category,
+          amount,
+          percentage: (amount / totalExpenses) * 100
+        };
+      });
+  
+      setSortedCategories(sortedWithPercentages);
+  
+      // Calculate the adjusted expenses
+      let adjustedExpenses = [...sortedWithPercentages];
+      let adjustedTotal = totalExpenses;
+      
+      while (adjustedTotal > totalBalance) {
+        adjustedExpenses = adjustedExpenses.map(exp => ({
+          ...exp,
+          amount: exp.amount * 0.92,  // Reduce each by 8%
+          percentage: (exp.amount * 0.92 / totalExpenses) * 100
+        }));
+        adjustedTotal = adjustedExpenses.reduce((acc, exp) => acc + exp.amount, 0);
+      }
+  
+      setAdjustedCategories(adjustedExpenses);
+  
+      // Set the highest category message
+      const highestCategory = sortedCategories[0];
+      if (highestCategory) {
+        const highestCategoryPercentage = (highestCategory[1] / totalExpenses) * 100;
+        setHighestCategoryMessage(`You can try to lower your expenses in the ${highestCategory[0]} category, which accounts for ${highestCategoryPercentage.toFixed(1)}% of your total expenses.`);
+      }
+    }
+  }, [continueLess, allExpenses, totalBalance]);
+  
+
+  useEffect (()=>{
+
+    const text = "Let's try by listing on order the expenses and make some changes untill the Expenses are lower to Balance"
+  
+    if(continueLess){
+      setLessMessage(text)
+    }
+  },[continueLess,allExpenses])
 
   const resetAll=()=>{
     setAnalyze(false)
@@ -1457,9 +1541,9 @@ const Analytic = ({
 
   const text = "Do you want to apply your goal to the analytics? If yes, please proceed or you can analyze otherwise.";
 
-  const text2 ="There is not expense to analyze your finance , please create some expense to start anaylzing"
+  const text2 ="There is not expense to analyze your finance , please create some expense to start anaylzing."
   
-
+const text3 ="Give this a go and your Balance will stay higher than the Expenses thus making your Finances Better.Do you want to"
 
   const containerVariants = {
     hidden: { opacity: 1 },
@@ -1474,6 +1558,33 @@ const Analytic = ({
     visible: { opacity: 1 },
   };
   
+  const listContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,  // Delay between each list item
+      },
+    },
+  };
+  
+  const listItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+  
+  const charVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.05 },
+    },
+  };
 
   return (
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
@@ -1489,9 +1600,9 @@ const Analytic = ({
       {/* Content Container */}
       <div className="flex items-start justify-center w-full">
         {/* Pie Chart (Shows Expenses by Category) */}
-        <div className="flex flex-col items-center w-[70%]">
+        <div className="flex flex-col items-center justify-end ml-[10%] w-[65%]">
           {data2.length > 0 ? (
-            <ResponsiveContainer width="80%" height={300}>
+            <ResponsiveContainer width="70%" height={300}>
               <PieChart>
                 <Pie
                   dataKey="value"
@@ -1541,15 +1652,18 @@ const Analytic = ({
         </div>
         <hr className="h-full w-0.5 bg-[rgba(222,222,222,0.3)] ml-3"></hr>
         {/* Analyze Content */}
-        <div className="analyzerContent overflow-y-auto overflow-x-hidden h-[500px] pl-3 text-start w-[20%]">
+        <div className="analyzerContent overflow-y-auto overflow-x-hidden h-[500px] pl-3 text-start w-[20%] flex-grow">
         {(!analyze && goalChecker === false) ? ( 
-  <div className="flex flex-col items-center justify-center gap-4">
+  <motion.div
+  initial={{opacity:0}}
+  animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
+  className="flex flex-col items-center justify-center gap-4 h-full">
     <MdBubbleChart style={{ color: "#8CE163", width: "50px", height: "50px" }} />
     <h1 className="text-lg font-semibold text-[#fff]">FinChat Analyzer</h1>
     <p className="text-sm font-light text-[#dedede] text-center">
       Click the button to start analyzing your finances
     </p>
-  </div>
+  </motion.div>
 ) : null}
 
         {analyze === true ? (
@@ -1559,10 +1673,13 @@ const Analytic = ({
           )}
           {goalChecker && (
           <div className="flex flex-col mt-2.5">
-             <div className="flex items-center gap-2" style={{color:'#8CE163'}}>
+             <motion.div
+             initial={{opacity:0}}
+             animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
+             className="flex items-center gap-2" style={{color:'#8CE163'}}>
             <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1px' ,widht:'20px',height:'20px',scale:1.7}}/>
             <p className="text-lg font-semibold text-[#fff]">FinChat</p>
-          </div>
+          </motion.div>
             <motion.p
             className="text-sm font-light mt-1"
             variants={containerVariants}
@@ -1589,10 +1706,13 @@ const Analytic = ({
           )}
           {analyzeExpense && 
             <div className="flex flex-col mt-2.5">
-               <div className="flex items-center gap-2" style={{color:'#8CE163'}}>
+               <motion.div
+               initial={{opacity:0}}
+               animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
+               className="flex items-center gap-2" style={{color:'#8CE163'}}>
             <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px' ,widht:'20px',height:'20px'}}/>
             <p className="text-lg font-semibold text-[#fff]">FinChat</p>
-          </div>
+          </motion.div>
            <motion.p
            className="text-sm font-light mt-1"
            variants={containerVariants}
@@ -1613,10 +1733,13 @@ const Analytic = ({
           }
           {analyzeExpense2  && 
             <div className="flex flex-col mt-2.5">
-            <div className="flex items-center gap-2" style={{color:'#8CE163'}}>
+            <motion.div
+            initial={{opacity:0}}
+            animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
+            className="flex items-center gap-2" style={{color:'#8CE163'}}>
             <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px',widht:'20px',height:'20px'}}/>
             <p className="text-lg font-semibold text-[#fff]">FinChat</p>
-          </div>
+          </motion.div>
           <motion.p
           className="text-sm font-light mt-1"
           variants={containerVariants}
@@ -1644,10 +1767,13 @@ const Analytic = ({
 
 {continueAnalyze && 
 <div className="flex flex-col mt-2.5">
-  <div className="flex items-center gap-2" style={{color:'#8CE163'}}>
+  <motion.div
+  initial={{opacity:0}}
+  animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
+  className="flex items-center gap-2" style={{color:'#8CE163'}}>
     <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px' ,widht:'20px',height:'20px'}}/>
     <p className="text-lg font-semibold text-[#fff]">FinChat</p>
-  </div>
+  </motion.div>
 <motion.p
   className="text-sm font-light mt-1"
   variants={containerVariants}
@@ -1664,13 +1790,123 @@ const Analytic = ({
   initial={{opacity:0}}
   animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
     className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-    onClick={() => setContinueAnalyze(true)}
+    onClick={changeFunction ? () => setContinueLess(true) : () => setContinueAnalyze(true)}
   >
-    Continue Analyzing
+    {changeFunction ? 'Improve Expenses':'Continue Analyzing'}
   </motion.em>
 </motion.p>
 </div>
 
+}
+{continueLess && 
+<div className="flex flex-col mt-2.5">
+  <motion.div
+  initial={{opacity:0}}
+  animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
+  className="flex items-center gap-2" style={{color:'#8CE163'}}>
+    <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px' ,widht:'20px',height:'20px'}}/>
+    <p className="text-lg font-semibold text-[#fff]">FinChat</p>
+  </motion.div>
+<motion.p
+  className="text-sm font-light mt-1"
+  variants={containerVariants}
+  initial="hidden"
+  animate="visible"
+  key={continueMessage} // 🔹 Add this key to trigger re-render on change
+>
+  {lessMessage.split("").map((char, index) => (
+    <motion.span key={index} variants={letterVariants}>
+      {char}
+    </motion.span>
+  ))}
+  <motion.em
+  initial={{opacity:0}}
+  animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
+    className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+    onClick={changeFunction ? () => setContinueLess(true) : () => setContinueAnalyze(true)}
+  >
+    
+  </motion.em>
+</motion.p>
+<div className="expense-analysis flex justify-between gap-8 mt-2">
+  <div>
+    <h3 className="font-medium text-xs mb-2">Expenses Ordered from Highest to Lowest</h3>
+    <motion.ol
+      variants={listContainerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-2"
+    >
+      {sortedCategories.map((item, index) => (
+        <motion.li key={index} variants={listItemVariants} className="text-sm">
+          {item.category
+            .concat(": ", item.amount.toFixed(2), " (", item.percentage.toFixed(1), "%)")
+            .split("")
+            .map((char, charIndex) => (
+              <motion.span
+                key={charIndex}
+                variants={charVariants}
+                style={{ color: "#FF4D4D" }}  // Red for high expenses
+              >
+                {char}
+               
+              </motion.span>
+            ))}
+        </motion.li>
+      ))}
+    </motion.ol>
+  </div>
+
+  <div>
+    <h3 className="font-medium text-xs mb-2">Adjusted Expenses to Match Budget</h3>
+    <motion.ol
+      variants={listContainerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-2"
+    >
+      {adjustedCategories.map((item, index) => (
+        <motion.li key={index} variants={listItemVariants} className="text-sm">
+          {item.category
+            .concat(": ", item.amount.toFixed(2), " (", item.percentage.toFixed(1), "%)")
+            .split("")
+            .map((char, charIndex) => (
+              <motion.span
+                key={charIndex}
+                variants={charVariants}
+                style={{ color: "#8CE163" }}  // Green for adjusted expenses
+              >
+                {char}
+              </motion.span>
+            ))}
+        </motion.li>
+      ))}
+    </motion.ol>
+  </div>
+</div>
+
+<motion.p
+            className="text-sm font-light mt-1"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            
+            {text3.split("").map((char, index) => (
+              <motion.span key={index} variants={letterVariants}>
+                {char}
+              </motion.span>
+            ))}
+            <motion.p
+            initial={{opacity:0}}
+            animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
+            className="mt-1">
+              <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer">Check your Goal  </em> 
+              or <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+              onClick={letsProceed}
+              >Finish Analyzing</em></motion.p>
+          </motion.p>
+</div>
 }
         </div>
       </div>
