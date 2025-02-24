@@ -126,6 +126,7 @@ const Tracker = () => {
   const [openExpense, setOpenExpense] = useState(false);
 
   const createExpense = useCallback(() => setOpenExpense((prev) => !prev));
+  const createGoal =useCallback(()=>setOpenGoal((prev)=>!prev))
 
   /// charts functions .//////
 
@@ -607,6 +608,73 @@ const Tracker = () => {
     [stateIncome, changeIncome, allExpenses, totalExpenses, changeHowMuch]
   );
 
+  ///// goal functions passed to props to analyze and goal category //// 
+
+
+  const [userGoal,setUserGoal]=useState("") //// name of the goal
+  const [categoryGoal,setCategoryGoal]=useState("") /// name the category of goal 
+  const [priceGoal,setPriceGoal]=useState(0)///  price of the goal 
+  const [allGoal,setAllGoal]=useState([]) //// array of the goals
+  const [notifyGoal,setNotifyGoal]=useState("")//// notificaton for the goal complete
+  const [openGoal,setOpenGoal]=useState(false)/// the form that opens for goal 
+  
+
+  const handleSubmitGoal=()=>{
+    if (!userGoal.length || !categoryGoal.length || priceGoal.trim() === "0") {
+      return;
+    }
+    
+    if (!userGoal || !categoryGoal || priceGoal <= 0) {
+    return;
+  }
+
+
+    const now = new Date().toISOString(); // Store timestamp
+    const relativeTime = formatDistanceToNow(new Date(now), {
+      addSuffix: true,
+    });
+
+    const newGoal = {
+      id: now,
+      userGoal,
+      categoryGoal,
+      priceGoal,
+      addedTime: relativeTime,
+    };
+
+    const updatedGoal = [...allGoal, newGoal];
+    setAllGoal(updatedGoal);
+    localStorage.setItem("allGoal", JSON.stringify(updatedGoal));
+
+    // 🔹 Retrieve previous count correctly
+    const previousNotification =
+      Number(localStorage.getItem("notification")) || 0;
+    const updatedNotification = previousNotification + 1;
+
+    // 🔹 Update localStorage and state
+    localStorage.setItem("notification", updatedNotification);
+    setNotification(updatedNotification);
+
+    // 🔹 Store multiple messages in localStorage
+    const existingMessages = JSON.parse(localStorage.getItem("messages")) || [];
+    const updatedMessages = [...existingMessages, "Expense added successfully"];
+
+    localStorage.setItem("messages", JSON.stringify(updatedMessages));
+    setNotifyGoal(updatedMessages);
+
+    // Clear input fields
+    setUserGoal("");
+    setCategoryGoal("");
+    setPriceGoal("")
+    setOpenGoal(false);
+  }
+
+
+useEffect(() => {
+  const storedGoals = JSON.parse(localStorage.getItem('allGoal')) || [];
+  setAllGoal(storedGoals);
+}, []);
+
   return (
     <div>
       <div className="flex w-full">
@@ -833,6 +901,20 @@ const Tracker = () => {
                   setNotification={setNotification}
                 
                 />
+              )}
+               {showInfo === "goal" && (
+                <Goal 
+                userGoal={userGoal}
+                setUserGoal={setUserGoal}
+                categoryGoal={categoryGoal}
+                setCategoryGoal={setCategoryGoal}
+                priceGoal={priceGoal}
+                setPriceGoal={setPriceGoal}
+                openGoal={openGoal}
+                allGoal={allGoal}
+                handleSubmitGoal={handleSubmitGoal}
+                createGoal={createGoal}
+                userData={userData}/>
               )}
             </motion.div>
           </AnimatePresence>
@@ -1139,7 +1221,7 @@ function Dashboard({
                         Category:
                         <b className="text-[#fff] font-medium">
                           {" "}
-                          {info.category.slice(0.10)}...
+                          {info.category.slice(0,10)}
                         </b>
                       </p>{" "}
                       <p className="text-[rgba(222,222,222,0.7)]">/</p>
@@ -1239,7 +1321,7 @@ function Expenses({
               <div className="flex items-center justify-between">
                 <p className="text-[#dedede] font-normal text-sm flex items-center">
                   Category:
-                  <b className="text-[#fff] font-medium"> {info.category}</b>
+                  <b className="text-[#fff] font-medium"> {info.category.slice(0,10)}</b>
                 </p>{" "}
                 <p className="text-[rgba(222,222,222,0.7)]">/</p>
                 <p className="text-[#dedede] font-light text-sm flex items-center">
@@ -1533,11 +1615,38 @@ const Analytic = ({
     }
   },[continueLess,allExpenses])
 
+  const [isReset, setIsReset] = useState(false);
+
+
   const resetAll=()=>{
     setAnalyze(false)
     setGoalChecker(false)
     setAnalyzeExpense(false)
+    setAnalyzeExpense2(false)
+    setContinueAnalyze(false)
+    setContinueLess(false)
+    setIsReset(true);
   }
+
+  useEffect(() => {
+    if (isReset) {
+      const previousNotification = Number(localStorage.getItem("notification")) || 0;
+      const updatedNotification = previousNotification + 1;
+  
+      // 🔹 Update localStorage and state
+      localStorage.setItem("notification", updatedNotification);
+      setNotification(updatedNotification);
+  
+      const existingMessages = JSON.parse(localStorage.getItem("messages")) || [];
+      const updatedMessages = [...existingMessages, "Analyze was successfull"];
+      localStorage.setItem("messages", JSON.stringify(updatedMessages));
+      setNotify(updatedMessages);
+  
+      // 🔹 Reset the state to prevent continuous triggering
+      setIsReset(false);
+    }
+  }, [isReset]);
+  
 
   const text = "Do you want to apply your goal to the analytics? If yes, please proceed or you can analyze otherwise.";
 
@@ -1903,7 +2012,7 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
             className="mt-1">
               <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer">Check your Goal  </em> 
               or <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-              onClick={letsProceed}
+              onClick={resetAll}
               >Finish Analyzing</em></motion.p>
           </motion.p>
 </div>
@@ -1915,3 +2024,131 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
     </div>
   );
 };
+
+const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
+  setUserGoal,setCategoryGoal,setPriceGoal,createGoal,allGoal,userData
+})=>{
+
+  return(
+    <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
+      <div className="flex flex-col gap-2 w-[50%]">
+        <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
+          Goal
+        </h1>
+        <p className="text-start text-[#dedede] font-normal text-md">
+          Let's see what we can achive today
+        </p>
+      </div>
+      <div className="expensess flex flex-col items-center justify-center  mt-5 gap-5 ml-28 overflow-y-auto h-[400px] py-6 w-fit">
+       {allGoal && allGoal.length > 0 ? (
+          allGoal.map((info) => (
+            <div
+              key={info.id || `${info.userGoal}-${info.priceGoal}`}
+              className="flex flex-col rounded-xl px-2 border border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900 "
+            >
+              <div className="flex items-center justify-between w-[400px]">
+                <h1 className="text-[#fff] font-medium text-lg">
+                  {info.userGoal}
+                </h1>{" "}
+                <div className="flex items-center gap-3">
+                  
+                  <button
+                    onClick={() => removeExpense(info.id)}
+                    className="rounded bg-red-300/20 px-1.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
+                  >
+                    <MdDelete />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-[#dedede] font-normal text-sm flex items-center">
+                  Category:
+                  <b className="text-[#fff] font-medium"> {info.categoryGoal.slice(0,10)}</b>
+                </p>{" "}
+                <p className="text-[rgba(222,222,222,0.7)]">/</p>
+                <p className="text-[#dedede] font-light text-sm flex items-center">
+                  Amount:{" "}
+                  <b className="text-[#fff] font-medium">{info.priceGoal}</b>
+                  {userData.currency}
+                </p>
+                <p className="text-[rgba(222,222,222,0.7)]">/</p>
+                <p className="text-xs text-gray-500">
+                  Added: {new Date(info.id).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="expen text-3xl font-semibold">No Goals Yet</div>
+        )}
+
+        <div className="fixed bottom-2 left-1/2 w-full max-w-xl -translate-x-1/2 px-4">
+          <AnimatePresence>
+            {openGoal && (
+              <motion.form
+                initial={{
+                  opacity: 0,
+                  y: 25,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  y: 25,
+                }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmitGoal();
+                }}
+                className="mb-6 w-full rounded border border-zinc-700 bg-[#141718] p-3"
+              >
+                <textarea
+                  placeholder="What is you goal ?"
+                  value={userGoal}
+                  onChange={(e) => setUserGoal(e.target.value)}
+                  className="h-20 w-full resize-none rounded bg-[#141718] p-3 text-sm text-zinc-50 placeholder-zinc-500 caret-zinc-50 focus:outline-0"
+                />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      placeholder="Categorize as ..."
+                      value={categoryGoal}
+                      onChange={(e) => setCategoryGoal(e.target.value)}
+                      type="text"
+                      className="w-36 rounded bg-zinc-700 px-1.5 py-1 text-sm text-zinc-50 focus:outline-0"
+                    />
+                    <input
+                      value={priceGoal}
+                      onChange={(e) => setPriceGoal(e.target.value)}
+                      placeholder={userData.currency}
+                      type="number"
+                      className="w-24 px-1.5 py-1 text-sm text-zinc-500 bg-zinc-700  rounded focus:outline-0"
+                    />
+                    
+                  </div>
+                  <button
+                    type="submit"
+                    className="rounded bg-[#8DE163] px-1.5 py-1 text-xs text-[#000] transition-colors hover:bg-[rgba(141,225,99,0.7)]"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </motion.form>
+            )}
+          </AnimatePresence>
+          <button
+            onClick={createGoal}
+            className="grid w-full place-content-center rounded-full border border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors hover:bg-zinc-800 active:bg-zinc-900"
+          >
+            <MdOutlineClose
+              className={`transition-transform ${openGoal ? "rotate-0" : "rotate-45"}`}
+            />
+          </button>
+        </div>
+      </div>
+      <div className="empty h-12"></div>
+    </div>
+  )
+}
