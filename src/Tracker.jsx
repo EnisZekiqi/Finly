@@ -171,9 +171,19 @@ const Tracker = () => {
     }, 0);
   };
 
-  const COLORS = ["#8DE163", "#FF6363"];
+    const COLORS = ["#8CE163", "#75C14D", "#5FA038", "#497F25", "#325E14"]; // Light → Dark
 
-  const data = [
+ 
+
+ const convertAmount = (amount, targetPeriod) => {
+  if (targetPeriod === "Monthly") return amount;
+  if (targetPeriod === "Yearly") return amount * 12;
+  if (targetPeriod === "Daily") return amount / 30;
+  return amount;
+};
+const totalSavings = userData.income - totalExpenses
+
+const data = [
     /// this is for the dashboard pie
     { name: "Remaining Balance", value: Number(totalBalance.toFixed(2)) },
     { name: "Total Expenses", value: Number(totalExpenses.toFixed(2)) },
@@ -721,6 +731,7 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
     setNotifyRemove(updatedMessages);
   };
 
+  const [activeTab,setActiveTab]=useState("")
 
   return (
     <div>
@@ -906,11 +917,18 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
                   setChangeHowMuch={setChangeHowMuch}
                   cycleExpenseType={cycleExpenseType}
                   cycleBalanceType={cycleBalanceType}
+                  setChangeBalance={setChangeBalance}
                   changeBalance={changeBalance}
                   totalBalance={totalBalance}
                   chooseInfo={chooseInfo}
                   data={data}
                   COLORS={COLORS}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  allGoal={allGoal}
+                  convertAmount={convertAmount}
+                  totalSavings={totalSavings}
+                  convertExpense={convertExpense}
                 />
               )}
               {showInfo === "store" && (
@@ -1117,10 +1135,14 @@ function Dashboard({
   cycleExpenseType,
   cycleBalanceType,
   changeBalance,
+  setChangeBalance,
   totalBalance,
   chooseInfo,
   data,
   COLORS,
+  activeTab,
+  setActiveTab,
+  allGoal,convertAmount,convertExpense
 }) {
   const allInfo = [
     {
@@ -1157,8 +1179,111 @@ function Dashboard({
     },
   ];
 
+  
+const totalGoals = allGoal.reduce((sum, goal) => sum + Number(goal.priceGoal || 0), 0);
+
+const totalSavings = userData.income - totalExpenses
+const totalSaving = userData.income - totalExpenses
+
+const totalSavedForGoals = totalSavings > 0 ? totalSavings : 0;
+
+
+const [progressView, setProgressView] = useState('Monthly');
+    const [chartView, setChartView] = useState('Expenses vs Goals');
+  const [previousView, setPreviousView] = useState('Monthly');
+  const [pieData, setPieData] = useState([]);
+  const [expenseProgress, setExpenseProgress] = useState(0);
+  const [goalProgress, setGoalProgress] = useState(0);
+
+
+
+const updatePieData = (view) => {
+    let data = [];
+
+    switch (view) {
+      case 'Expenses vs Goals':
+        data = [
+          { name: 'Total Expenses', value: Number(totalExpenses) },
+          { name: 'Total Goals', value: Number(totalGoals) }
+        ];
+        break;
+
+      case 'Balance (Daily/Monthly/Yearly)':
+        data = [
+          { name: 'Daily Balance', value: Number(convertAmount(totalBalance, 'Daily')) },
+          { name: 'Monthly Balance', value: Number(convertAmount(totalBalance, 'Monthly')) },
+          { name: 'Yearly Balance', value: Number(convertAmount(totalBalance, 'Yearly')) }
+        ];
+        break;
+
+      case 'Balance vs Goals':
+        data = [
+          { name: 'Total Balance', value: Number(totalBalance) },
+          { name: 'Total Goals', value: Number(totalGoals) }
+        ];
+        break;
+
+      case 'Balance vs Expenses':
+        data = [
+          { name: 'Total Balance', value: Number(totalBalance) },
+          { name: 'Total Expenses', value: Number(totalExpenses) }
+        ];
+        break;
+
+      default:
+        data = [];
+    }
+
+    setPieData(data);
+  };
+
+  // Update Pie Data on Initial Load and When View Changes
+  useEffect(() => {
+    updatePieData(chartView);
+  }, [chartView, totalBalance, totalExpenses, totalGoals]);
+
+
+
+
+const updateProgressData = (view) => {
+  const adjustedExpenses = convertAmount(totalExpenses, view);
+  const adjustedGoals = convertAmount(totalGoals, view);
+
+  const newExpenseProgress = Math.min((adjustedExpenses / userData.income) * 100, 100);
+  const newGoalProgress = totalGoals > 0
+    ? Math.min((adjustedSavings / adjustedGoals) * 100, 100)
+    : 0;
+
+  setExpenseProgress(newExpenseProgress);
+  setGoalProgress(newGoalProgress);
+};
+
+
+const handleProgressViewChange = (view) => {
+  setProgressView(view);
+  updateProgressData(view);
+  setIncomeUsed(view)
+};
+
+
+const adjustedSavings = convertAmount(totalSavings, progressView);
+const adjustedGoals = convertAmount(totalGoals, progressView);
+
+const [incomeUsed,setIncomeUsed]=useState('')
+
+useEffect(()=>{
+    if(changeHowMuch === "Monthly"){
+      setIncomeUsed("Month")
+    }else if (changeHowMuch === "Daily"){
+      setIncomeUsed("Day")
+    }else if (changeHowMuch === "Yearly"){
+      setIncomeUsed("Year")
+    }
+},[changeHowMuch])
+
+
   return (
-    <div className="flex flex-col items-center justify-center gap-5 h-screen">
+    <div className="flex flex-col items-center justify-center gap-5 h-full">
       <div className="flex flex-col items-center w-full mt-10 gap-5">
         <div className="flex items-center gap-20 justify-end w-full">
           {allInfo.map((info, index) => (
@@ -1193,127 +1318,126 @@ function Dashboard({
         </div>
         <div className="flex w-[100%] justify-end items-center gap-4">
           <div
-            className="bg-[#141718] p-6 rounded-xl shadow-lg w-[40%]"
+            className="bg-[#141718] p-6 rounded-xl shadow-lg w-[52%]"
             style={{
               border: "1px solid rgb(222,222,222,0.2)",
             }}
           >
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold"> Overview</h2>
+              <h2 className="text-lg font-semibold mb-4"> Finances Breakdown</h2>
               <p className="text-gray-600">
                 Income: <span className="font-semibold">${income}</span>
               </p>
             </div>
 
-            <div className="flex items-end gap-4 ">
-              <div className="flex gap-2">
-                <p className="text-sm font-light text-[#dedede] text-start">
-                  To check your chart press Both
-                  <b className="text-[#8CE163]"> Balance</b> and{" "}
-                  <b className="text-[#8CE163]">Expenses</b> dates for the chart
-                  to calculate.Check{" "}
-                  <a href="">
-                    <em className="text-[#dedede] font-extralight text-sm underline decoration-solid">
-                      Help
-                    </em>
-                  </a>{" "}
-                  for more details
-                </p>
-              </div>
+            <div className="flex justify-center gap-4  mb-4">
+                <div className="flex justify-center space-x-4 mb-4">
+        <button
+          onClick={() => setChartView('Expenses vs Goals')}
+          className={`py-2 px-2 rounded text-sm font-light  ${chartView === 'Expenses vs Goals' ? 'bg-[#8ce163] text-[#1a3a0b]' : 'bg-gray-200 text-gray-800'}`}
+        >
+          Expenses vs Goals
+        </button>
+        <button
+          onClick={() => setChartView('Balance (Daily/Monthly/Yearly)')}
+          className={`py-2 px-2rounded text-sm font-light   ${chartView === 'Balance (Daily/Monthly/Yearly)' ? 'bg-[#8ce163] text-[#1a3a0b]' : 'bg-gray-200 text-gray-800'}`}
+        >
+          Balance (D/M/Y)
+        </button>
+        <button
+          onClick={() => setChartView('Balance vs Goals')}
+          className={`py-2 px-2 rounded text-sm font-light   ${chartView === 'Balance vs Goals' ? 'bg-[#8ce163] text-[#1a3a0b]' : 'bg-gray-200 text-gray-800'}`}
+        >
+          Balance vs Goals
+        </button>
+        <button
+          onClick={() => setChartView('Balance vs Expenses')}
+          className={`py-2 px-2 rounded text-sm font-light   ${chartView === 'Balance vs Expenses' ? 'bg-[#8ce163] text-[#1a3a0b]' : 'bg-gray-200 text-gray-800'}`}
+        >
+          Balance vs Expenses
+        </button>
+      </div>
             </div>
 
             <div className="flex items-start justify-center">
               <ResponsiveContainer width="100%" height={330}>
-                <PieChart>
-                  <Pie
-                    data={data}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label
-                  >
-                    {data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={130}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label
+                >
+                  {pieData.map((entry, index) => (
+                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+
             </div>
           </div>
           <div>
             <div className="cardTask bg-[#] max-w-[650px]  rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
-              {allExpenses.length > 0 ? (
-                allExpenses.map((info) => (
-                  <div
-                    key={info.id || `${info.nameExpense}-${info.howMuch}`}
-                    className="flex flex-col rounded-xl px-2 border  border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900"
-                  >
-                    <div className="flex items-center justify-between ">
-                      <h1 className="text-[#fff] font-medium text-lg">
-                        {info.nameExpense}
-                      </h1>{" "}
-                      <div className="flex items-center gap-3">
-                        <div className="rounded text-xs font-light text-[#d8dcd6] bg-[#252923] p-1 border border-[#3e453b]">
-                          {info.daily}
-                        </div>
-                        <button
-                          onClick={() => removeExpense(info.id)}
-                          className="rounded bg-red-300/20 px-1.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
-                        >
-                          <MdDelete />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-1.5">
-                      <p className="text-[#dedede] font-normal text-sm flex items-center">
-                        Category:
-                        <b className="text-[#fff] font-medium">
-                          {" "}
-                          {info.category.slice(0,10)}
-                        </b>
-                      </p>{" "}
-                      <p className="text-[rgba(222,222,222,0.7)]">/</p>
-                      <p className="text-[#dedede] font-light text-sm flex items-center">
-                        Amount:{" "}
-                        <b className="text-[#fff] font-medium">{info.howMuch}</b>
-                        {userData.currency}
-                      </p>
-                      <p className="text-[rgba(222,222,222,0.7)]">/</p>
-                      <p className="text-[#aaa] text-xs">
-                        {info.addedTime}
-                      </p>{" "}
-                      {/* Show relative time */}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="expen  text-3xl font-semibold flex flex-col gap-4 w-full items-center justify-center">
-                  No Expenses Yet
-                  <button
-                    onClick={() => chooseInfo("store")}
-                    className="bg-button text-[#000] text-sm font-medium w-[200px]"
-                  >
-                    Create Expenses
-                  </button>
-                </div>
-              )}
+      
+<div className="flex flex-col gap-4">
+   <h2 className="text-lg font-semibold mb-2">Expense Progress</h2>
+            <div className="flex justify-center gap-4 mb-2">
+              <button onClick={() => handleProgressViewChange('Daily')} className="bg-gray-800 text-white py-1 px-3 rounded">Daily</button>
+              <button onClick={() => handleProgressViewChange('Monthly')} className="bg-gray-800 text-white py-1 px-3 rounded">Monthly</button>
+              <button onClick={() => handleProgressViewChange('Yearly')} className="bg-gray-800 text-white py-1 px-3 rounded">Yearly</button>
             </div>
-            {allExpenses.length > 0 ? (
-              <button
-                className="rounded w-full flex items-center justify-center bg-red-300/20 px-2 py-2 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200"
-                onClick={removeAllExpense}
-              >
-                Remove All
-              </button>
-            ) : (
-              ""
-            )}
+    {/* Expense Progress */}
+    <div className="bg-[#1b1f21] rounded-xl p-4 text-white shadow-lg">
+      <h2 className="text-lg font-semibold mb-2">Expense Progress</h2>
+      <p className="text-2xl font-bold text-red-400">
+        {totalExpenses.toFixed(2)} {userData.currency}
+      </p>
+      <div className="w-full bg-gray-800 rounded-full h-3 mt-2">
+            <div
+        className="bg-red-500 h-3 rounded-full transition-all duration-500"
+         style={{
+        width: `${expenseProgress.toFixed(2)}%`,
+      }}
+      ></div>
+      </div>
+      <p className="text-sm text-gray-400 mt-1">
+        {expenseProgress.toFixed(2)}% of income used this {incomeUsed}
+      </p>
+    </div>
+
+    {/* Goal Progress */}
+    <div className="bg-[#1b1f21] rounded-xl p-4 text-white shadow-lg">
+      <h2 className="text-lg font-semibold mb-2">Goal Progress</h2>
+      <p className="text-2xl font-bold text-blue-400">
+        {totalSavedForGoals.toFixed(2)} / {totalGoals} {userData.currency}
+      </p>
+      <div className="w-full bg-gray-800 rounded-full h-3 mt-2">
+        <div
+          className="bg-blue-500 h-3 rounded-full transition-all duration-500"
+          style={{
+            width: `${goalProgress.toFixed(2)}%`,
+          }}
+        ></div>
+      </div>
+      <p className="text-sm text-gray-400 mt-1">
+        {goalProgress.toFixed(2)}% of goals achieved
+      </p>
+    </div>
+  </div>
+
+            </div>
+            
           </div>
         </div>
       </div>
+      <div className="empty h-26"></div>
+       <div className="empty h-26"></div>
     </div>
   );
 }
