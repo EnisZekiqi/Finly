@@ -1183,10 +1183,23 @@ function Dashboard({
 const totalGoals = allGoal.reduce((sum, goal) => sum + Number(goal.priceGoal || 0), 0);
 
 const totalSavings = userData.income - totalExpenses
-const totalSaving = userData.income - totalExpenses
 
 const totalSavedForGoals = totalSavings > 0 ? totalSavings : 0;
 
+const [totalBalanceForGoal,setTotalBalanceForGoal]=useState(0)
+
+useEffect(()=>{
+
+  const balance = totalSavedForGoals
+
+  if(progressView === 'Monthly'){
+setTotalBalanceForGoal(balance)
+  }else if (progressView === 'Daily'){
+    setTotalBalanceForGoal(balance / 30)
+  }else if (progressView === 'Yearly'){
+   setTotalBalanceForGoal(balance * 12)
+  }
+},[])
 
 const [progressView, setProgressView] = useState('Monthly');
     const [chartView, setChartView] = useState('Expenses vs Goals');
@@ -1270,16 +1283,18 @@ const adjustedSavings = convertAmount(totalSavings, progressView);
 const adjustedGoals = convertAmount(totalGoals, progressView);
 
 const [incomeUsed,setIncomeUsed]=useState('')
+const [expenseForProgress,setExpenseForProgress]=useState(0)
 
 useEffect(()=>{
-    if(changeHowMuch === "Monthly"){
-      setIncomeUsed("Month")
-    }else if (changeHowMuch === "Daily"){
-      setIncomeUsed("Day")
-    }else if (changeHowMuch === "Yearly"){
-      setIncomeUsed("Year")
+  const expenseMoney = totalExpenses
+    if(incomeUsed === "Monthly"){
+      setExpenseForProgress(expenseMoney)
+    }else if (incomeUsed === "Daily"){
+      setExpenseForProgress(expenseMoney / 30)
+    }else if (incomeUsed === "Yearly"){
+      setExpenseForProgress(expenseMoney * 12)
     }
-},[changeHowMuch])
+},[incomeUsed])
 
 
   return (
@@ -1325,37 +1340,40 @@ useEffect(()=>{
           >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold mb-4"> Finances Breakdown</h2>
-              <p className="text-gray-600">
-                Income: <span className="font-semibold">${income}</span>
-              </p>
+              <select
+                onChange={(e) => setChartView(e.target.value)}
+                value={chartView}
+                className="border border-[#8CE163] bg-transparent text-[#8CE163] py-2 px-3 rounded text-sm font-light outline-none"
+              >
+                <option value="Expenses vs Goals" className="bg-white text-gray-900">
+                  Expenses vs Goals
+                </option>
+                <option value="Balance (Daily/Monthly/Yearly)" className="bg-white text-gray-900">
+                  Balance (D/M/Y)
+                </option>
+                <option value="Balance vs Goals" className="bg-white text-gray-900">
+                  Balance vs Goals
+                </option>
+                <option value="Balance vs Expenses" className="bg-white text-gray-900">
+                  Balance vs Expenses
+                </option>
+              </select>
             </div>
 
             <div className="flex justify-center gap-4  mb-4">
                 <div className="flex justify-center space-x-4 mb-4">
-        <button
-          onClick={() => setChartView('Expenses vs Goals')}
-          className={`py-2 px-2 rounded text-sm font-light  ${chartView === 'Expenses vs Goals' ? 'bg-[#8ce163] text-[#1a3a0b]' : 'bg-gray-200 text-gray-800'}`}
-        >
-          Expenses vs Goals
-        </button>
-        <button
-          onClick={() => setChartView('Balance (Daily/Monthly/Yearly)')}
-          className={`py-2 px-2rounded text-sm font-light   ${chartView === 'Balance (Daily/Monthly/Yearly)' ? 'bg-[#8ce163] text-[#1a3a0b]' : 'bg-gray-200 text-gray-800'}`}
-        >
-          Balance (D/M/Y)
-        </button>
-        <button
-          onClick={() => setChartView('Balance vs Goals')}
-          className={`py-2 px-2 rounded text-sm font-light   ${chartView === 'Balance vs Goals' ? 'bg-[#8ce163] text-[#1a3a0b]' : 'bg-gray-200 text-gray-800'}`}
-        >
-          Balance vs Goals
-        </button>
-        <button
-          onClick={() => setChartView('Balance vs Expenses')}
-          className={`py-2 px-2 rounded text-sm font-light   ${chartView === 'Balance vs Expenses' ? 'bg-[#8ce163] text-[#1a3a0b]' : 'bg-gray-200 text-gray-800'}`}
-        >
-          Balance vs Expenses
-        </button>
+<p className="text-start px-2 font-light text-sm text-[#dedede]">
+  Select an option on the right to view a detailed financial breakdown.  
+  Changing <em className="font-light text-sm text-[rgb(156,163,175)]">Total Balance -  
+    <b className="text[rgb(216,220,214)] font-light text-sm rounded-md border border-[#3E453B] bg-[#252923] p-0.5 mt-1.5">Monthly</b>
+  </em> and  
+  <em className="font-light text-sm text-[rgb(156,163,175)]">Total Expenses -  
+    <b className="text[rgb(216,220,214)] font-light text-sm rounded-md border border-[#3E453B] bg-[#252923] p-0.5 mt-1.5">Monthly</b>
+  </em> will also update the chart.For more please check <em className="font-light underline decoration-solid text-sm text-[rgb(156,163,175)]"> 
+    Help
+  </em>
+</p>
+
       </div>
             </div>
 
@@ -1370,7 +1388,7 @@ useEffect(()=>{
                   outerRadius={130}
                   fill="#8884d8"
                   dataKey="value"
-                  label
+                  label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
                 >
                   {pieData.map((entry, index) => (
                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -1384,50 +1402,63 @@ useEffect(()=>{
           </div>
           <div>
             <div className="cardTask bg-[#] max-w-[650px]  rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
-      
-<div className="flex flex-col gap-4">
-   <h2 className="text-lg font-semibold mb-2">Expense Progress</h2>
-            <div className="flex justify-center gap-4 mb-2">
-              <button onClick={() => handleProgressViewChange('Daily')} className="bg-gray-800 text-white py-1 px-3 rounded">Daily</button>
-              <button onClick={() => handleProgressViewChange('Monthly')} className="bg-gray-800 text-white py-1 px-3 rounded">Monthly</button>
-              <button onClick={() => handleProgressViewChange('Yearly')} className="bg-gray-800 text-white py-1 px-3 rounded">Yearly</button>
-            </div>
+         <h2 className="text-lg font-semibold mb-2"> Progress Breakdown</h2>
+<div className="flex items-center gap-4">
+            
     {/* Expense Progress */}
     <div className="bg-[#1b1f21] rounded-xl p-4 text-white shadow-lg">
       <h2 className="text-lg font-semibold mb-2">Expense Progress</h2>
-      <p className="text-2xl font-bold text-red-400">
-        {totalExpenses.toFixed(2)} {userData.currency}
+      
+       {["Daily", "Monthly", "Yearly"].map((view) => {
+  const expenseAmount = convertAmount(totalExpenses, view);
+  const incomeAmount = convertAmount(stateIncome, view);
+  const expensePercentage = incomeAmount > 0 ? Math.min((expenseAmount / incomeAmount) * 100, 100).toFixed(1) : 0;
+
+  return (
+    <div key={view} className="mb-3">
+      <p className="text-sm text-gray-400">{view} Expenses</p>
+      <p className="text-lg font-bold text-red-400">
+        {expenseAmount.toFixed(2)} / {incomeAmount.toFixed(2)} {userData.currency}
       </p>
-      <div className="w-full bg-gray-800 rounded-full h-3 mt-2">
-            <div
-        className="bg-red-500 h-3 rounded-full transition-all duration-500"
-         style={{
-        width: `${expenseProgress.toFixed(2)}%`,
-      }}
-      ></div>
+      <div className="w-full bg-gray-800 rounded-full h-3">
+        <div
+          className="bg-red-500 h-3 rounded-full transition-all duration-500"
+          style={{ width: `${expensePercentage}%` }}
+        ></div>
       </div>
-      <p className="text-sm text-gray-400 mt-1">
-        {expenseProgress.toFixed(2)}% of income used this {incomeUsed}
-      </p>
+      <p className="text-xs text-gray-400 mt-1">{expensePercentage}% of income spent</p>
+    </div>
+  );
+})}
+
     </div>
 
     {/* Goal Progress */}
     <div className="bg-[#1b1f21] rounded-xl p-4 text-white shadow-lg">
       <h2 className="text-lg font-semibold mb-2">Goal Progress</h2>
-      <p className="text-2xl font-bold text-blue-400">
-        {totalSavedForGoals.toFixed(2)} / {totalGoals} {userData.currency}
+   {["Daily", "Monthly", "Yearly"].map((view) => {
+  const savingsAmount = convertAmount(totalSavings, view);
+  const goalAmount = convertAmount(totalGoals, view);
+  const goalPercentage = goalAmount > 0 ? Math.min((savingsAmount / goalAmount) * 100, 100).toFixed(1) : 0;
+
+  return (
+    <div key={view} className="mb-3">
+      <p className="text-sm text-gray-400">{view}</p>
+      <p className="text-lg font-bold text-[#63e163]">
+        {savingsAmount.toFixed(2)} / {goalAmount.toFixed(2)} {userData.currency}
       </p>
-      <div className="w-full bg-gray-800 rounded-full h-3 mt-2">
+      <div className="w-full bg-gray-800 rounded-full h-3">
         <div
-          className="bg-blue-500 h-3 rounded-full transition-all duration-500"
-          style={{
-            width: `${goalProgress.toFixed(2)}%`,
-          }}
+          className="bg-[#63e163] h-3 rounded-full transition-all duration-500"
+          style={{ width: `${goalPercentage}%` }}
         ></div>
       </div>
-      <p className="text-sm text-gray-400 mt-1">
-        {goalProgress.toFixed(2)}% of goals achieved
-      </p>
+      {/* Displaying the percentage below the progress bar */}
+      <p className="text-xs text-gray-400 mt-1">{goalPercentage}% of goal achieved</p>
+    </div>
+  );
+})}
+
     </div>
   </div>
 
@@ -1441,6 +1472,7 @@ useEffect(()=>{
     </div>
   );
 }
+
 
 function Expenses({
   allExpenses,
