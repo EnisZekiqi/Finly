@@ -149,24 +149,20 @@ const Tracker = () => {
     return storedExpenses ? JSON.parse(storedExpenses) : [];
   });
 
+
+
   const getTotalExpensesByPeriod = (expenses, targetPeriod) => {
     return expenses.reduce((acc, expense) => {
       const amt = Number(expense.howMuch);
       const expensePeriod = expense.period || expense.daily; // Ensure correct key
 
-      console.log(
-        `Checking conversion: Amount ${amt}, Period ${expensePeriod}, Target ${targetPeriod}`
-      );
-
+     
       // ✅ Fix: Ensure `converted` is always assigned a value
       let converted = convertExpense
         ? convertExpense(amt, expensePeriod, targetPeriod)
         : 0;
 
-      console.log(
-        `Expense: ${expense.nameExpense}, Amount: ${amt}, Period: ${expensePeriod}, Converted: ${converted}`
-      );
-
+   
       return acc + converted;
     }, 0);
   };
@@ -251,56 +247,59 @@ const data = [
     { date: "Yearly" },
   ];
 
-  const handleSubmitExpenses = () => {
-    if (!nameExpense.length || !category.length || howMuch.trim() === "0") {
-      return;
-    }
-    
-    if (!nameExpense.length || !category.length || howMuch.trim() >= "11"){
-      return
-    }
+    const handleSubmitExpenses = () => {
+      if (!nameExpense.length || !category.length || howMuch.trim() === "0") {
+        return;
+      }
+      
+   
 
-    const now = new Date().toISOString(); // Store timestamp
-    const relativeTime = formatDistanceToNow(new Date(now), {
-      addSuffix: true,
-    });
+      const now = new Date().toISOString(); // Store timestamp
+      const relativeTime = formatDistanceToNow(new Date(now), {
+        addSuffix: true,
+      });
 
-    const newExpense = {
-      id: now,
-      nameExpense,
-      category,
-      howMuch,
-      daily,
-      addedTime: relativeTime,
+      const newExpense = {
+        id: now,
+        nameExpense,
+        category,
+        howMuch,
+        daily,
+        addedTime: relativeTime,
+      };
+
+      const updatedExpenses = [...allExpenses, newExpense];
+      setAllExpenses((prevExpenses) => [...prevExpenses, newExpense]); // ✅ Ensures correct state update
+      localStorage.setItem("allExpenses", JSON.stringify(updatedExpenses));
+
+      // 🔹 Retrieve previous count correctly
+      const previousNotification =
+        Number(localStorage.getItem("notification")) || 0;
+      const updatedNotification = previousNotification + 1;
+
+      // 🔹 Update localStorage and state
+      localStorage.setItem("notification", updatedNotification);
+      setNotification(updatedNotification);
+
+      // 🔹 Store multiple messages in localStorage
+      const existingMessages = JSON.parse(localStorage.getItem("messages")) || [];
+      const updatedMessages = [...existingMessages, "Expense added successfully"];
+
+      localStorage.setItem("messages", JSON.stringify(updatedMessages));
+      setNotify(updatedMessages);
+
+      // Clear input fields
+      setNameExpense("");
+      setCategory("");
+      setHowMuch("");
+      setDaily("Daily");
+      setOpenExpense(false);
     };
 
-    const updatedExpenses = [...allExpenses, newExpense];
-    setAllExpenses(updatedExpenses);
-    localStorage.setItem("allExpenses", JSON.stringify(updatedExpenses));
+    useEffect(() => {
+  localStorage.setItem("allExpenses", JSON.stringify(allExpenses));
+}, [allExpenses]); // ✅ Syncs storage every time allExpenses changes
 
-    // 🔹 Retrieve previous count correctly
-    const previousNotification =
-      Number(localStorage.getItem("notification")) || 0;
-    const updatedNotification = previousNotification + 1;
-
-    // 🔹 Update localStorage and state
-    localStorage.setItem("notification", updatedNotification);
-    setNotification(updatedNotification);
-
-    // 🔹 Store multiple messages in localStorage
-    const existingMessages = JSON.parse(localStorage.getItem("messages")) || [];
-    const updatedMessages = [...existingMessages, "Expense added successfully"];
-
-    localStorage.setItem("messages", JSON.stringify(updatedMessages));
-    setNotify(updatedMessages);
-
-    // Clear input fields
-    setNameExpense("");
-    setCategory("");
-    setHowMuch("");
-    setDaily("Daily");
-    setOpenExpense(false);
-  };
 
   useEffect(() => {
     const savedNotifications =
@@ -311,18 +310,10 @@ const data = [
     setNotify(storedMessages);
   }, []);
 
-  const [shortTime, setShortTime] = useState("");
+ 
 
-  useEffect(() => {
-    const expenses = JSON.parse(localStorage.getItem("allExpenses")) || [];
+  
 
-    const updatedExpenses = expenses.map((expense) => ({
-      ...expense,
-      addedTime: formatDistanceToNow(parseISO(expense.id), { addSuffix: true }), // Update each expense's relative time
-    }));
-
-    setAllExpenses(updatedExpenses);
-  }, []);
 
   const openNotification = () => [
     setNotificationDrawer((prev) => !prev),
@@ -376,13 +367,7 @@ const data = [
     setNotifyRemove(updatedMessages);
   };
 
-  const removeAllExpense = () => {
-    ///////////function to remove all the expenses on the dashboard component
-    const updateExpenses = [];
-    setAllExpenses(updateExpenses);
-    localStorage.setItem("allExpenses", JSON.stringify(updateExpenses));
-  };
-
+ 
   ////// change state functions for the total income , monthly ,daily ,yearly of the income that was putted in the beggining :)
 
   const [stateIncome, setStateIncome] = useState(0);
@@ -905,8 +890,6 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
                   checkExpenses={checkExpenses}
                   allExpenses={allExpenses}
                   removeExpense={removeExpense}
-                  shortTime={shortTime}
-                  removeAllExpense={removeAllExpense}
                   daily={daily}
                   stateIncome={stateIncome}
                   changeIncome={changeIncome}
@@ -1297,6 +1280,8 @@ useEffect(()=>{
 },[incomeUsed])
 
 
+const [chooseProgress,setChooseProgress]=useState('goals')
+
   return (
     <div className="flex flex-col items-center justify-center gap-5 h-full">
       <div className="flex flex-col items-center w-full mt-10 gap-5">
@@ -1345,16 +1330,16 @@ useEffect(()=>{
                 value={chartView}
                 className="border border-[#8CE163] bg-transparent text-[#8CE163] py-2 px-3 rounded text-sm font-light outline-none"
               >
-                <option value="Expenses vs Goals" className="bg-white text-gray-900">
+                <option value="Expenses vs Goals" className="bg-[#141718] text-[#8CE163]">
                   Expenses vs Goals
                 </option>
-                <option value="Balance (Daily/Monthly/Yearly)" className="bg-white text-gray-900">
+                <option value="Balance (Daily/Monthly/Yearly)" className="bg-[#141718] text-[#8CE163]">
                   Balance (D/M/Y)
                 </option>
-                <option value="Balance vs Goals" className="bg-white text-gray-900">
+                <option value="Balance vs Goals" className="bg-[#141718] text-[#8CE163]">
                   Balance vs Goals
                 </option>
-                <option value="Balance vs Expenses" className="bg-white text-gray-900">
+                <option value="Balance vs Expenses" className="bg-[#141718] text-[#8CE163]">
                   Balance vs Expenses
                 </option>
               </select>
@@ -1402,10 +1387,20 @@ useEffect(()=>{
           </div>
           <div>
             <div className="cardTask bg-[#] max-w-[650px]  rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
-         <h2 className="text-lg font-semibold mb-2"> Progress Breakdown</h2>
-<div className="flex items-center gap-4">
+         <h2 className="text-lg font-semibold mb-2 flex flex-col items-center"> Progress Breakdown 
+          <select
+           onChange={(e) => setChooseProgress(e.target.value)}
+          value={chooseProgress}
+           className="border border-none bg-transparent text-[#8CE163] py-2 px-3 rounded text-sm font-light outline-none"
+          >
+            <option value="goals" className="bg-[#141718] text-[#8CE163]">Goal Progress</option>
+            <option value="expense" className="bg-[#141718] text-[#8CE163]">Expense Progress</option>
+          </select>
+         </h2>
+<div className="flex flex-col items-center gap-4">
             
     {/* Expense Progress */}
+    {chooseProgress === 'expense' && 
     <div className="bg-[#1b1f21] rounded-xl p-4 text-white shadow-lg">
       <h2 className="text-lg font-semibold mb-2">Expense Progress</h2>
       
@@ -1432,8 +1427,9 @@ useEffect(()=>{
 })}
 
     </div>
-
+}
     {/* Goal Progress */}
+    {chooseProgress === 'goals' && 
     <div className="bg-[#1b1f21] rounded-xl p-4 text-white shadow-lg">
       <h2 className="text-lg font-semibold mb-2">Goal Progress</h2>
    {["Daily", "Monthly", "Yearly"].map((view) => {
@@ -1460,6 +1456,7 @@ useEffect(()=>{
 })}
 
     </div>
+    }
   </div>
 
             </div>
@@ -1491,7 +1488,11 @@ function Expenses({
   daily,
   dateDaily,
   setDaily,
-}) {
+}) 
+
+
+
+{
   return (
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
       <div className="flex flex-col gap-2 w-[50%]">
@@ -1677,11 +1678,11 @@ const Analytic = ({
     if (allExpenses.length === 0) {
       setAnalyzeExpense(true);  // Show no expenses message
       setAnalyzeExpense2(false); // Hide category analysis message
-      console.log(analyzeExpense)
+      
     } else {
       setAnalyzeExpense2(true);  // Show category analysis message
       setAnalyzeExpense(false);
-      console.log(analyzeExpense2)  // Hide "no expense" message
+      
     }
   };
   
@@ -1835,7 +1836,9 @@ const Analytic = ({
     setAnalyzeExpense2(false)
     setContinueAnalyze(false)
     setContinueLess(false)
+            (false)
     setIsReset(true);
+
   }
 
   useEffect(() => {
@@ -1862,6 +1865,7 @@ const Analytic = ({
 
   const [noGoal,setNoGoal]=useState("")
   const [goalAnalyzer,setGoalAnalyzer]=useState(false)
+  const [goalAnalyzer2,setGoalAnalyzer2]=useState(false)
    const [changeMethods,setChangeMethods]=useState("expenses")
 
 
@@ -1923,7 +1927,7 @@ useEffect(() => {
 
   const text = "Do you want to apply your goal to the analytics? If yes, please proceed or you can analyze otherwise.";
 
-  const text2 ="There is not expense to analyze your finance , please create some expense to start anaylzing."
+  const text2 ="There is no expense to analyze your finance , please create some expense to start anaylzing."
   
 const text3 ="Give this a go and your Balance will stay higher than the Expenses thus making your Finances Better.Do you want to"
 
@@ -1968,6 +1972,64 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
     },
   };
 
+
+  const [goalChanged,setGoalChanged]=useState(0)
+
+
+useEffect(() => {
+  const totalGoal = allGoal.reduce((acc, goal) => {
+    const goalPrice = parseFloat(goal.priceGoal);
+
+    return isNaN(goalPrice) || goalPrice <= 0 ? acc : acc + goalPrice;
+  }, 0);
+
+  setGoalChanged(totalGoal);
+}, [allGoal]); // Dependency array ensures it updates when `allGoal` changes
+
+const textGoal = "In order to achieve these goals with your current balance in "
+
+
+const [goalvsExpenses,setGoalvsExpenses]=useState(false)
+const [goalGood,setGoalGood]=useState('')
+const [progress,setProgress]=useState(0)
+
+useEffect(() => {
+  // Ensure totalSpent is a valid number and calculate the total expenses
+ const totalSpent = allExpenses.reduce((sum, expense) => sum + (parseFloat(expense.howMuch) || 0), 0);
+
+  // Ensure the goal price is a valid number
+  const goalPrice = parseFloat(allGoal.priceGoal) || 0;
+
+  // Ensure totalBalance is a valid number
+  const balance = parseFloat(totalBalance) || 0;
+
+  // Remaining balance after expenses
+  const remainingBalanceAfterExpenses = balance - totalSpent;
+
+  // Calculate remaining amount to cover goal
+  const remainingAmountToGoal = goalPrice - remainingBalanceAfterExpenses;
+
+console.log('Remaining Balance After Expenses:', remainingBalanceAfterExpenses);
+console.log('Remaining Amount to Goal:', remainingAmountToGoal);
+  // Check if the balance is enough to cover both expenses and the goal
+ if (remainingBalanceAfterExpenses >= goalPrice) {
+    setGoalGood('Your balance will cover both the expenses and the goal!');
+  } else if (remainingBalanceAfterExpenses >= 0 && remainingBalanceAfterExpenses < goalPrice) {
+    setGoalGood(`Your balance will cover the expenses, but you still need ${remainingAmountToGoal} to reach your goal.`);
+  } else {
+    setGoalGood('Your balance is insufficient to cover expenses and the goal together.');
+  }
+
+  // Safely calculate progress towards goal as a percentage
+  const amountNeededToCover = Math.max(0, goalPrice - remainingBalanceAfterExpenses);
+  const progressPercentage = goalPrice > 0 ? (amountNeededToCover / goalPrice) * 100 : 0;
+  setProgress(progressPercentage);
+
+
+}, [allGoal, allExpenses, totalBalance]);
+
+
+
   return (
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
       {/* Page Title */}
@@ -1998,11 +2060,12 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
                     outline: 'none',
                   }}
                 >
-                  <option value="expenses">Expenses</option>
-                  <option value="goals">Goals</option>
+                  <option value="expenses" className="bg-[#141718] text-[#8CE163]">Expenses</option>
+                  <option value="goals" className="bg-[#141718] text-[#8CE163]">Goals</option>
                 </select>
 
               </div>
+
              {changeMethods === 'expenses' && <PieChart>
                 <Pie
                   dataKey="value"
@@ -2053,11 +2116,24 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
           {/* Show Total Expenses */}
           <div className="flex items-center gap-2 mt-6">
             <p className="text-xl flex items-center gap-2 font-semibold text-[#fff]">
-              Total: {userData.currency}
+              {changeMethods === 'expenses' &&
+             <div className="flex items-center gap-2  ">
+               Total: {userData.currency}
               {Number(totalExpenses.toFixed(2))}
               <p className="text-md text-[#dedede] font-light">
                 {changeHowMuch}
               </p>
+             </div>
+                    }
+                    {changeMethods === 'goals' && 
+                <div className="flex items-center gap-2">
+               Total: {userData.currency}
+               { (goalChanged.toFixed(2))}              
+              <p className="text-md text-[#dedede] font-light">
+
+              </p>
+                    </div>
+                    }
             </p>
           </div>
           <button
@@ -2116,11 +2192,11 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
             <motion.p
             initial={{opacity:0}}
             animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
-            className="mt-1">
+            className="mt-1 flex items-center gap-1">
               <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer" onClick={()=>setGoalAnalyzer(true)}>Add Goal </em> 
-              or <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+               {goalAnalyzer === true ? '' :<div className="flex items-center gap-1">or <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
               onClick={letsProceed}
-              >Proceed</em></motion.p>
+              >Proceed</em></div> }</motion.p>
           </motion.p>
           </div>
           
@@ -2153,10 +2229,16 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
           initial="hidden"
           animate="visible"
         >
-          {"In order to achieve these goals with your current balance in "}
-          <span style={{ color: '#8CE163' }}>
+          {textGoal.split("").map((char, index) => (
+    <motion.span key={index} variants={letterVariants}>
+      {char}
+    </motion.span>
+  ))}
+           <motion.span initial={{opacity:0}}
+           animate={{opacity:1,trainsition:{dalay:0.5,duration:0.5}}}
+           style={{ color: '#8CE163' }}>
             {changeBalance}
-          </span>
+          </motion.span>
           {", you need:"}
         </motion.p>
 
@@ -2176,19 +2258,20 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
 
         <p className="text-sm mt-2">
           Do you want to 
-          <em
+          {analyzeExpense2 === true ? '':<em
             className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-            onClick={() => chooseInfo("goal")}
+            onClick={() => setGoalvsExpenses(true)}
           >
             Check Goals with Expenses 
-          </em>
-          or
-          <em
+          </em>}
+
+          {analyzeExpense2 && goalvsExpenses === true && 'or'}
+          {goalvsExpenses === true ? '' :<em
             className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-            onClick={() => setAnalyzeExpense(true)}
+            onClick={() => setAnalyzeExpense2(true)}
           >
             Proceed Analyzing Expenses
-          </em>
+          </em>}
         </p>
       </>
     ) : (
@@ -2224,7 +2307,33 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
     )}
   </div>
 )}
-
+{goalvsExpenses && 
+            <div className="flex flex-col mt-2.5">
+               <motion.div
+               initial={{opacity:0}}
+               animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
+               className="flex items-center gap-2" style={{color:'#8CE163'}}>
+            <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px' ,widht:'20px',height:'20px'}}/>
+            <p className="text-lg font-semibold text-[#fff]">FinChat</p>
+          </motion.div>
+           <motion.p
+           className="text-sm font-light mt-1"
+           variants={containerVariants}
+           initial="hidden"
+           animate="visible"
+         >
+           {goalGood.split("").map((char, index) => (
+             <motion.span key={index} variants={letterVariants}>
+               {char}
+             </motion.span>
+           ))}
+              <span className="font-semibold text-lg ml-2">{progress.toFixed(2)}% </span>
+          <em className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+              onClick={resetAll}
+              > Reset</em>
+         </motion.p>
+            </div>
+          }
 
           {analyzeExpense && 
             <div className="flex flex-col mt-2.5">
@@ -2423,13 +2532,112 @@ const text3 ="Give this a go and your Balance will stay higher than the Expenses
             initial={{opacity:0}}
             animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
             className="mt-1">
-              <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer">Check your Goal  </em> 
+              <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer" onClick={()=>setGoalAnalyzer2(true)}>Check your Goal  </em> 
               or <em className="font-light text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
               onClick={resetAll}
               >Finish Analyzing</em></motion.p>
           </motion.p>
 </div>
 }
+    {goalAnalyzer2 && (
+  <div className="flex flex-col mt-2.5">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.5, delay: 0.3 } }}
+      className="flex items-center gap-2"
+      style={{ color: '#8CE163' }}
+    >
+      <MdBubbleChart
+        style={{
+          border: '1px solid #8CE163',
+          borderRadius: '999px',
+          padding: '1.5px',
+          width: '20px',
+          height: '20px',
+        }}
+      />
+      <p className="text-lg font-semibold text-[#fff]">FinChat</p>
+    </motion.div>
+
+    {Array.isArray(noGoal) && noGoal.length > 0 ? (
+      <>
+        <motion.p
+          className="text-sm font-light mt-1"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {textGoal.split("").map((char, index) => (
+    <motion.span key={index} variants={letterVariants}>
+      {char}
+    </motion.span>
+  ))}
+           <motion.span initial={{opacity:0}}
+           animate={{opacity:1,trainsition:{dalay:0.5,duration:0.5}}}
+           style={{ color: '#8CE163' }}>
+            {changeBalance}
+          </motion.span>
+          {", you need:"}
+        </motion.p>
+
+        <ul className="list-none mt-2 pl-0">
+          {noGoal.map((item, index) => (
+            <motion.li
+              key={index}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0, transition: { delay: 0.3 + index * 0.2 } }}
+              className="text-sm text-[rgba(222,222,222,0.9)] flex justify-between"
+            >
+              <span>{item.goalName} ({userData.currency} {item.goalPrice})</span>
+              <span>{item.timeToAchieve}</span>
+            </motion.li>
+          ))}
+        </ul>
+
+        <p className="text-sm mt-2">
+          Do you want to 
+          <em
+            className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+            onClick={() => chooseInfo("goal")}
+          >
+            Check Goals with Expenses 
+          </em>
+        </p>
+      </>
+    ) : (
+      <motion.p
+        className="text-sm font-light mt-1"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {noGoal.split("").map((char, index) => (
+          <motion.span
+            key={index}
+            variants={letterVariants}
+          >
+            {char}
+          </motion.span>
+        ))}
+        <br />
+        <em
+          className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+          onClick={() => chooseInfo("goal")}
+        >
+          Create Goal
+        </em>
+        or
+        <em
+          className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+          onClick={() => setAnalyzeExpense(true)}
+        >
+          Proceed Analyzing without a Goal
+        </em>
+      </motion.p>
+    )}
+  </div>
+)}
+
         </div>
       </div>
       {/* Empty space */}
