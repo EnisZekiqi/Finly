@@ -533,6 +533,8 @@ const data = [
     setSearchResults(results);
   };
 
+
+
   useEffect(
     () => {
       handleSearch({ target: { value: searchQuery } });
@@ -541,6 +543,32 @@ const data = [
     totalBalance,
     changeBalance
   );
+
+const [analyzeTime,setAnalyzeTime]=useState("")
+
+useEffect(()=>{
+
+  const analyzedTime = localStorage.getItem("analyzedTime")
+
+  if (analyzedTime) {
+  setAnalyzeTime(analyzedTime); // Correct function name
+}
+
+},[])
+
+
+ const [totalGp,setTotalGp]=useState(0)
+
+useEffect(() => {
+  const goal = localStorage.getItem("allGoal");
+
+  if (goal) {
+    const parsedGoals = JSON.parse(goal); // Parse the string into an array
+    const totalPrice = parsedGoals.reduce((sum, goal) => sum + goal.priceGoal, 0); // Sum all priceGoal values
+    setTotalGp(totalPrice); // Update state with total sum
+  }
+}, []);
+
 
   const multiItems = useMemo(
     () => [
@@ -586,6 +614,27 @@ const data = [
         id: "analytic",
         label: "Analytic",
         icon: <MdPieChart style={{ width: "30px", height: "30px" }} />,
+        more: [
+         
+          {
+            expense: "Last Analyzed",
+            icon: <MdBubbleChart  style={{ width: "30px", height: "30px" }} />,
+            money: analyzeTime,
+          },
+        ],
+      },
+      {
+        id: "goal",
+        label: "Goal",
+        icon: <MdEmojiEvents  style={{ width: "30px", height: "30px" }} />,
+        more: [
+       
+          {
+            expense: "Total Goals",
+            icon: <MdPayments  style={{ width: "30px", height: "30px" }} />,
+            money: totalGp,
+          },
+        ],
       },
       {
         id: "wallet",
@@ -950,6 +999,7 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
                   setNotify={setNotify}
                   setNotification={setNotification}
                   allGoal={allGoal}
+                  setAnalyzeTime={setAnalyzeTime}
                
                 />
               )}
@@ -1503,12 +1553,12 @@ function Expenses({
           Let's see what we've got to do today.
         </p>
       </div>
-      <div className="expensess flex flex-col items-center justify-center  mt-5 gap-5 ml-28 overflow-y-auto h-[400px] py-6 w-fit">
+      <div className="expensess grid grid-cols-2 gap-5 ml-32 overflow-y-auto h-[calc(100vh-50px)] py-4 w-fit">
         {expenses.length > 0 ? (
           expenses.map((info) => (
             <div
               key={info.id || `${info.nameExpense}-${info.howMuch}`}
-              className="flex flex-col rounded-xl px-2 border border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900 "
+              className="flex flex-col rounded-xl px-2 border h-fit border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900 "
             >
               <div className="flex items-center justify-between w-[400px]">
                 <h1 className="text-[#fff] font-medium text-lg">
@@ -1647,7 +1697,7 @@ const Analytic = ({
   setNotify,
   setNotification,
   allGoal,
-  sortedData2,
+  sortedData2,setAnalyzeTime
 }) => {
   // functions are here because they dont need to be passed to another components
 
@@ -1829,17 +1879,21 @@ const Analytic = ({
   const [isReset, setIsReset] = useState(false);
 
 
-  const resetAll=()=>{
-    setAnalyze(false)
-    setGoalChecker(false)
-    setAnalyzeExpense(false)
-    setAnalyzeExpense2(false)
-    setContinueAnalyze(false)
-    setContinueLess(false)
-            (false)
-    setIsReset(true);
+  const resetAll = () => {
+  setAnalyze(false);
+  setGoalChecker(false);
+  setAnalyzeExpense(false);
+  setAnalyzeExpense2(false);
+  setContinueAnalyze(false);
+  setContinueLess(false);
+  setIsReset(true);
 
-  }
+  const analyzedTime = new Date().toLocaleDateString(); // Formats the date
+  localStorage.setItem("analyzedTime", analyzedTime);
+
+  setAnalyzeTime(analyzedTime); // Also update state
+};
+
 
   useEffect(() => {
     if (isReset) {
@@ -1994,40 +2048,37 @@ const [goalGood,setGoalGood]=useState('')
 const [progress,setProgress]=useState(0)
 
 useEffect(() => {
-  // Ensure totalSpent is a valid number and calculate the total expenses
- const totalSpent = allExpenses.reduce((sum, expense) => sum + (parseFloat(expense.howMuch) || 0), 0);
+  // Sum all goals correctly
+  const goalPrice = allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0);
 
-  // Ensure the goal price is a valid number
-  const goalPrice = parseFloat(allGoal.priceGoal) || 0;
-
-  // Ensure totalBalance is a valid number
+  // Ensure balance and expenses are numbers
   const balance = parseFloat(totalBalance) || 0;
+  const expenses = parseFloat(totalExpenses) || 0;
 
   // Remaining balance after expenses
-  const remainingBalanceAfterExpenses = balance - totalSpent;
+  
 
-  // Calculate remaining amount to cover goal
-  const remainingAmountToGoal = goalPrice - remainingBalanceAfterExpenses;
+  // Calculate remaining amount to cover the goal correctly
+  const remainingAmountToGoal = Math.max(0, goalPrice - balance);
 
-console.log('Remaining Balance After Expenses:', remainingBalanceAfterExpenses);
-console.log('Remaining Amount to Goal:', remainingAmountToGoal);
-  // Check if the balance is enough to cover both expenses and the goal
- if (remainingBalanceAfterExpenses >= goalPrice) {
-    setGoalGood('Your balance will cover both the expenses and the goal!');
-  } else if (remainingBalanceAfterExpenses >= 0 && remainingBalanceAfterExpenses < goalPrice) {
-    setGoalGood(`Your balance will cover the expenses, but you still need ${remainingAmountToGoal} to reach your goal.`);
-  } else {
-    setGoalGood('Your balance is insufficient to cover expenses and the goal together.');
-  }
-
-  // Safely calculate progress towards goal as a percentage
-  const amountNeededToCover = Math.max(0, goalPrice - remainingBalanceAfterExpenses);
-  const progressPercentage = goalPrice > 0 ? (amountNeededToCover / goalPrice) * 100 : 0;
+  const progressPercentage = goalPrice > 0 ? ((goalPrice - balance) / goalPrice) * 100 : 0;
   setProgress(progressPercentage);
+  
+  // Check if balance can cover both expenses and the goal
+  if (balance >= goalPrice) {
+    setGoalGood('Your balance will cover both the expenses and the goal!');
+  } else if (balance >= 0 && balance < goalPrice) {
+    setGoalGood(`Your balance will cover the expenses, but you still need ${remainingAmountToGoal.toFixed(2)} to reach your goal which will be `);
+  } else {
+    setGoalGood('Your balance is insufficient to cover expenses and the goal together. Do you want to ');
+  }
+  // Calculate progress percentage
 
 
 }, [allGoal, allExpenses, totalBalance]);
 
+
+ const [analyzeGoalAfter,setAnalyzeGoalAfter]=useState(false)
 
 
   return (
@@ -2246,7 +2297,7 @@ console.log('Remaining Amount to Goal:', remainingAmountToGoal);
           {noGoal.map((item, index) => (
             <motion.li
               key={index}
-              initial={{ opacity: 0, x: -10 }}
+              in    itial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0, transition: { delay: 0.3 + index * 0.2 } }}
               className="text-sm text-[rgba(222,222,222,0.9)] flex justify-between"
             >
@@ -2265,7 +2316,7 @@ console.log('Remaining Amount to Goal:', remainingAmountToGoal);
             Check Goals with Expenses 
           </em>}
 
-          {analyzeExpense2 && goalvsExpenses === true && 'or'}
+          {!analyzeExpense2 && !goalvsExpenses === true && 'or'}
           {goalvsExpenses === true ? '' :<em
             className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
             onClick={() => setAnalyzeExpense2(true)}
@@ -2327,10 +2378,11 @@ console.log('Remaining Amount to Goal:', remainingAmountToGoal);
                {char}
              </motion.span>
            ))}
-              <span className="font-semibold text-lg ml-2">{progress.toFixed(2)}% </span>
+            {totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0) ?  <span className="font-light text-sm ml-0.5 text-[#8CE163]">{progress.toFixed(2)}% </span> : ''}
+            
           <em className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-              onClick={resetAll}
-              > Reset</em>
+              onClick={totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0) ? ()=>setAnalyzeGoalAfter(true) : {resetAll}}
+              > {totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0) ? 'Achive Goals':'Finish Analyzing'}</em>
          </motion.p>
             </div>
           }
