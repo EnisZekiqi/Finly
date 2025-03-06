@@ -29,7 +29,9 @@ import {
   MdEmojiEvents,
   MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning ,MdChat 
 } from "react-icons/md";
-import { IoMdInformation } from "react-icons/io";
+import { HiUser } from "react-icons/hi2";
+import { HiUserGroup } from "react-icons/hi2";
+
 const Tracker = () => {
   const [userData, setUserData] = useState({
     name: "",
@@ -79,7 +81,7 @@ const Tracker = () => {
         },
         {
           id: "wallet",
-          label: "Wallet",
+          label: "Cash Flow",
           icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
         },
         {
@@ -637,8 +639,8 @@ useEffect(() => {
         ],
       },
       {
-        id: "wallet",
-        label: "Wallet",
+        id: "cash flow",
+        label: "Cash Flow",
         icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
       },
       {
@@ -1017,6 +1019,15 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
                 handleSubmitGoal={handleSubmitGoal}
                 createGoal={createGoal}
                 userData={userData}/>
+              )}
+               {showInfo === "wallet" && (
+                <Wallet 
+                totalExpenses={totalExpenses}
+                totalBalance={totalBalance}
+                userData={userData}
+                expenses={allExpenses}
+                income={income}
+                />
               )}
             </motion.div>
           </AnimatePresence>
@@ -1823,10 +1834,10 @@ const Analytic = ({
   useEffect(() => {
     if (continueLess === true && allExpenses.length > 0) {
       const totalExpenses = allExpenses.reduce((acc, expense) => acc + Number(expense.howMuch), 0);
-      const categoryTotals = allExpenses.reduce((acc, expense) => {
-        acc[expense.category] = (acc[expense.category] || 0) + Number(expense.howMuch);
-        return acc;
-      }, {});
+            const categoryTotals = allExpenses.reduce((acc, expense) => {
+              acc[expense.category] = (acc[expense.category] || 0) + Number(expense.howMuch);
+              return acc;
+            }, {});
   
       // Sort categories from highest to lowest expense
       const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
@@ -1887,7 +1898,9 @@ const Analytic = ({
   setContinueAnalyze(false);
   setContinueLess(false);
   setIsReset(true);
-
+setAnalyzeGoalAfter(false)
+setGoalAnalyzer(false)
+setGoalvsExpenses(false)
   const analyzedTime = new Date().toLocaleDateString(); // Formats the date
   localStorage.setItem("analyzedTime", analyzedTime);
 
@@ -2078,7 +2091,66 @@ useEffect(() => {
 }, [allGoal, allExpenses, totalBalance]);
 
 
- const [analyzeGoalAfter,setAnalyzeGoalAfter]=useState(false)
+const [goalAnalysis, setGoalAnalysis] = useState('');
+const [analyzeGoalAfter, setAnalyzeGoalAfter] = useState(false);
+
+    useEffect(() => {
+  if (analyzeGoalAfter) {
+    const goalPrice = allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0);
+    const balance = parseFloat(totalBalance) || 0;
+    const expenses = parseFloat(totalExpenses) || 0;
+
+    const remainingAmountToGoal = goalPrice - balance;
+
+    let analysisText = `📊 **Financial Analysis:**\n\n`;
+
+    // ✅ **Case 1: User can afford everything**
+    if (balance >= goalPrice) {
+      analysisText += `✅ You can achieve all your goals immediately! 🎉`;
+    } 
+    // 🔹 **Case 2: Suggest Expense Adjustments**
+    else if (balance >= 0 && balance < goalPrice) {
+      let neededSavings = remainingAmountToGoal;
+      let adjustableExpenses = [...allExpenses].sort((a, b) => a.howMuch - b.howMuch); // Sort from lowest to highest
+
+      let reducedExpenses = [];
+      let totalReduced = 0;
+
+      for (let i = 0; i < adjustableExpenses.length; i++) {
+        let expense = adjustableExpenses[i];
+
+        if (totalReduced >= neededSavings) break; // Stop once enough has been saved
+
+        let reductionAmount = Math.min(neededSavings - totalReduced, expense.howMuch); // Cut as much as needed
+        totalReduced += reductionAmount;
+
+        reducedExpenses.push({
+          name: expense.nameExpense,
+          newAmount: expense.howMuch - reductionAmount
+        });
+      }
+
+      // ✅ If we managed to save enough, show the reduced expenses.
+      if (totalReduced >= neededSavings) {
+        analysisText += `💡 **Reduce these expenses to save for your goals:**\n`;
+        reducedExpenses.forEach((expense, index) => {
+          analysisText += `  ${index + 1}. ${expense.name}: $${expense.newAmount.toFixed(2)} (Adjusted)\n`;
+        });
+        analysisText += `\n✅ With these adjustments, you will reach your goals!\n`;
+      } 
+    } 
+    // ⛔️ **Case 3: Balance is too low**
+    else {
+      analysisText += `⚠️ Your balance is too low to cover your expenses and goals. Consider adjusting your budget or increasing income.\n`;
+    }
+
+    setGoalAnalysis(analysisText);
+  }
+}, [analyzeGoalAfter, allGoal, allExpenses, totalBalance, totalExpenses]);
+
+
+
+
 
 
   return (
@@ -2381,12 +2453,40 @@ useEffect(() => {
             {totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0) ?  <span className="font-light text-sm ml-0.5 text-[#8CE163]">{progress.toFixed(2)}% </span> : ''}
             
           <em className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-              onClick={totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0) ? ()=>setAnalyzeGoalAfter(true) : {resetAll}}
+onClick={totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0) 
+  ? () => setAnalyzeGoalAfter(true) 
+  : resetAll}
               > {totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0) ? 'Achive Goals':'Finish Analyzing'}</em>
          </motion.p>
             </div>
           }
-
+{analyzeGoalAfter && 
+            <div className="flex flex-col mt-2.5">
+               <motion.div
+               initial={{opacity:0}}
+               animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
+               className="flex items-center gap-2" style={{color:'#8CE163'}}>
+            <MdBubbleChart  style={{border:'1px solid #8CE163' ,borderRadius:'999px',padding:'1.5px' ,widht:'20px',height:'20px'}}/>
+            <p className="text-lg font-semibold text-[#fff]">FinChat</p>
+          </motion.div>
+           <motion.p
+           className="text-sm font-light mt-1"
+           variants={containerVariants}
+           initial="hidden"
+           animate="visible"
+         >
+           {goalAnalysis.split("").map((char, index) => (
+             <motion.span key={index} variants={letterVariants}>
+               {char}
+             </motion.span>
+           ))}
+            
+          <em className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
+              onClick={resetAll}
+              > Finish Analyzing</em>
+         </motion.p>
+            </div>
+          }
           {analyzeExpense && 
             <div className="flex flex-col mt-2.5">
                <motion.div
@@ -2473,7 +2573,7 @@ useEffect(() => {
   initial={{opacity:0}}
   animate={{opacity:1,transition:{delay:1.5,duration:0.7}}}
     className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-    onClick={changeFunction ? () => setContinueLess(true) : () => setContinueAnalyze(true)}
+onClick={changeFunction ? () => setContinueLess(true) : resetAll}
   >
     {changeFunction ? 'Improve Expenses':'Continue Analyzing'}
   </motion.em>
@@ -2824,4 +2924,263 @@ const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
       <div className="empty h-12"></div>
     </div>
   )
+}
+ 
+const Wallet =({expenses,totalBalance,userData,totalExpenses})=>{
+  const [mode, setMode] = useState("employee");
+
+ const storedData = JSON.parse(localStorage.getItem("userData")) || {};
+  const [businessType, setBusinessType] = useState(storedData.businessType || "");
+  const [businessExpenses, setBusinessExpenses] = useState(0);
+  const [products, setProducts] = useState(0);
+  const [productCost, setProductCost] = useState(0);
+  const profit = (products * productCost) - businessExpenses;
+  const [income, setIncome] = useState(storedData.income || "");
+  const [businessArray,setBusinessArray]=useState([])
+
+    const updateIncome = () => {
+    const updatedData = { ...storedData, income: parseFloat(income) };
+    localStorage.setItem("userData", JSON.stringify(updatedData));
+  };
+
+const updateBusinessType = (type) => {
+    setBusinessType(type);
+    const updatedData = { ...storedData, businessType: type };
+    localStorage.setItem("userData", JSON.stringify(updatedData));
+  };
+
+const submitBusiness = () => {
+  const businessSaved = {
+    type: businessType,
+    be: businessExpenses,
+    sold: products,
+    cost: productCost,
+  };
+
+  // Get existing businesses from localStorage
+  const existingBusiness = JSON.parse(localStorage.getItem("setupBusiness")) || [];
+
+  // Add new business entry
+  const updatedBusiness = [...existingBusiness, businessSaved];
+
+  // Save back to localStorage
+  localStorage.setItem("setupBusiness", JSON.stringify(updatedBusiness));
+
+  // Update state
+  setBusinessArray(updatedBusiness);
+};
+
+
+useEffect(() => {
+  const savedBusiness = JSON.parse(localStorage.getItem("setupBusiness")) || [];
+  setBusinessArray(savedBusiness);
+}, []);
+
+
+// Simulated Monthly and Yearly Data (Replace with actual calculations later)
+const monthlyRevenue = products * productCost * 30; // Example: 30 days of sales
+const yearlyRevenue = monthlyRevenue * 12; // 12 months
+const monthlyProfit = monthlyRevenue - (businessExpenses * 30);
+const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
+
+
+  return (
+    <div className="cashflow-container flex flex-col items-center h-full">
+       <div className="flex flex-col gap-2 w-[50%]">
+        <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
+          Cash Flow
+        </h1>
+        <p className="text-start text-[#dedede] font-normal text-md">
+          Let's see what we can achive today
+        </p>
+      </div>
+      {/* Toggle between Employee & Business Mode */}
+      <div className="flex items-center gap-8 ml-16">
+      <div className="bg-[#1b1f21] mt-10 rounded-md p-3 w-[450px]" 
+      style={{border:'1px solid rgba(172, 233, 142,0.6)',height:mode === 'business' && ["Restaurant", "Retail", "Freelancer", "Coffee Shop", "Car Wash", "Rent Cars", "Other"].includes(businessType)  ? '530px':'370px',transition:'height 0.5s ease'}}>
+      <div className="flex flex-col items-center gap-2">
+      <div className="toggle-container flex items-center gap-24 justify-around rounded-md mt-10">
+        <div 
+         style={{
+      opacity: mode === "employee" ? 1 : 0.6, // Lower opacity when not selected
+      filter: mode === "employee" ? "none" : "blur(2px)", // Add blur effect when not selected
+      cursor: "pointer", // Make it clickable,
+      scale:mode === 'employee' ? 1.5 : 1,transition:'all 0.5s ease'
+    }} onClick={() => setMode("employee")}
+          className="flex flex-col items-center gap-2">
+            <HiUser style={{color:'#8ce163',width:'35px',height:'35px',backgroundColor:'#1a3a0b',padding:'3px',borderRadius:'10px'}}/>
+          <h1 className="font-semibold text-lg">
+          Employee
+        </h1>
+        </div>
+        <div
+        style={{ opacity: mode === "business" ? 1 : 0.6, // Lower opacity when not selected
+      filter: mode === "business" ? "none" : "blur(2px)", // Add blur effect when not selected
+      cursor: "pointer", // Make it clickable,
+      scale:mode === 'business' ? 1.5 : 1,transition:'all 0.5s ease'}}
+          className="flex flex-col items-center gap-2"
+          onClick={() => setMode("business")}
+        >
+          <HiUserGroup style={{color:'#8ce163',width:'35px',height:'35px',backgroundColor:'#1a3a0b',padding:'3px',borderRadius:'10px'}}/>
+          <h1 className="font-semibold text-lg">
+            Business
+          </h1>
+        </div>
+      </div>
+      <span className="w-full h-2 rounded-full bg-[] flex items-center relative">
+  {/* Moving inner bar */}
+  <span
+    style={{
+      width: "50%", // Half the width of the container
+      backgroundColor: "#8ce163", // Different background color
+      position: "absolute",
+      left:mode === 'employee' ? "0%" : "50%", // Moves left if expenses exist, otherwise right
+      transition: "left 0.5s ease", // Smooth movement
+      height: "100%",
+      borderRadius: "inherit" // Match rounded corners
+    }}
+  ></span>
+</span>
+
+      </div>
+      {/* Employee Mode */}
+     <AnimatePresence mode="wait">
+        {mode === "employee" ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.5 } }}
+            exit={{ opacity: 0, y: 10, transition: { duration: 0.5 } }}
+            key="employee"
+            className="employee-mode mt-10 flex flex-col items-start pl-1 gap-2"
+          >
+            <h3 className="w-full text-start mb-4 -mt-6 text-base font-medium">Employee Mode</h3>
+            <label>
+              <p className="text-sm font-light text-start">Income: </p>
+              <input
+                type="number"
+                value={income}
+                onChange={(e) => setIncome(e.target.value)}
+                onBlur={updateIncome} // Save income when the user leaves input
+                className="bg-transparent border p-1 text-start border border-[#8ce163] rounded-sm"
+              />
+            </label>
+            <p><strong className="text-sm font-light text-start">Expenses:</strong> ${totalExpenses}</p>
+            <p><strong className="text-sm font-light text-start">Remaining Balance:</strong> ${totalBalance}</p>
+            <p><strong className="text-sm font-light text-start">Business Type (if applicable):</strong> {businessType || "N/A"}</p>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0, transition: { duration: 0.5 } }}
+            exit={{ opacity: 0, y: 10, transition: { duration: 0.5 } }}
+            key="business"
+            className="business-mode mt-10 flex flex-col items-end pr-1 gap-2"
+          >
+            <h3 className="w-full text-end mb-4 -mt-6 text-base font-medium">Business Mode</h3>
+            <label className="flex items-center flex-col gap-1">
+              <p className="text-sm font-light text-end w-full">Business Type</p>
+              <select
+                value={businessType}
+                onChange={(e) => updateBusinessType(e.target.value)}
+                className="bg-transparent border border-[#8ce163] rounded-sm  focus:outline-0 p-1"
+              >
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="">Select Business Type</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Restaurant">Restaurant</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Retail">Retail</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Freelancer">Freelancer</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Coffee Shop">Coffee Shop</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Bakery">Bakery</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Car Wash">Car Wash</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Rent Cars">Rent Cars</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Car Salesman">Car Salesman</option>
+                <option className="bg-[#1b1f21] text-[#8ce163]" value="Other">Other</option>
+
+              </select>
+            </label>
+            <label className="flex items-center flex-col gap-1">
+              <p className="text-sm font-light text-end w-full">Business Expenses</p>
+              <input
+                type="number"
+                value={businessExpenses}
+                onChange={(e) => setBusinessExpenses(Number(e.target.value))}
+                className="bg-transparent border border-[#8ce163] rounded-sm p-1 focus:outline-0"
+              />
+            </label>
+
+               {["Restaurant", "Retail", "Freelancer", "Coffee Shop", "Car Wash", "Rent Cars", "Other"].includes(businessType) && (
+  <motion.div 
+    initial={{ opacity: 0, y: -10, height: 0 }}
+    animate={{ opacity: 1, y: 0, height: "auto" }}
+    exit={{ opacity: 0, y: -10, height: 0 }}
+    transition={{ duration: 0.8 }}
+    className="mt-4"
+  >
+    {/* Products Sold Input */}
+    <label>
+      <p className="text-sm font-light text-end w-full">Products Sold (Today):</p>
+      <input
+        type="number"
+        value={products}
+        onChange={(e) => setProducts(Number(e.target.value))}
+        className="bg-transparent border p-1 focus:outline-0"
+      />
+    </label>
+
+    {/* Product Cost Input */}
+    <label>
+      <p className="text-sm font-light text-end w-full mt-2">Product Cost ({userData.currency} per unit):</p>
+      <input
+        type="number"
+        value={productCost}
+        onChange={(e) => setProductCost(Number(e.target.value))}
+         onBlur={updateIncome} // Save income when the user leaves input
+        className="bg-transparent border p-1 focus:outline-0"
+      />
+    </label>
+
+    {/* Sales Overview */}
+   
+  </motion.div>
+)}
+
+
+
+            <p><strong>Profit:</strong> {userData.currency}{profit}</p>
+            <button onClick={submitBusiness}>Submit</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      </div>
+             <div className="mt-4 border-t pt-3 ml-8">
+      <h4 className="text-md font-semibold text-[#8ce163] mb-2">Sales Overview</h4>
+      
+      {/* Daily Totals */}
+    {businessArray.length === 0 ? (
+  <p>Please submit Business fields for the finances to appear</p>
+) : (
+  businessArray.map((bus, index) => (
+    <div key={index}>
+      <p><strong>Daily Revenue:</strong> {userData.currency}{bus.sold * bus.cost}</p>
+      <p><strong>Daily Profit:</strong> {userData.currency}{(bus.sold * bus.cost) - bus.be}</p>
+
+      {/* Monthly Totals */}
+      <p className="mt-2"><strong>Monthly Revenue:</strong> {userData.currency}{bus.sold * bus.cost * 30}</p>
+      <p><strong>Monthly Profit:</strong> {userData.currency}{(bus.sold * bus.cost * 30) - (bus.be * 30)}</p>
+
+      {/* Yearly Totals */}
+      <p className="mt-2"><strong>Yearly Revenue:</strong> {userData.currency}{bus.sold * bus.cost * 365}</p>
+      <p><strong>Yearly Profit:</strong> {userData.currency}{(bus.sold * bus.cost * 365) - (bus.be * 365)}</p>
+    </div>
+  ))
+)}
+
+
+    </div>
+    </div>
+
+    <div className="empty h-24"></div>
+
+    </div>
+  );
+
 }
