@@ -10,8 +10,10 @@ import {
   Cell,
   Tooltip,
   ResponsiveContainer,
-  Sector,
+  
 } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Legend } from 'recharts';
+
 import {
   MdDashboard,
   MdStore,
@@ -27,11 +29,14 @@ import {
   MdOutlineSearch,
   MdCheck,
   MdEmojiEvents,
-  MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning ,MdChat 
+  MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning ,MdChat,MdOutlineCalendarToday  
 } from "react-icons/md";
+import analyticImg from './images/Analytics.svg'
 import { HiUser } from "react-icons/hi2";
 import { HiUserGroup } from "react-icons/hi2";
-
+import goalphoto from './images/Capture.jpg'
+import expensephoto from './images/Capture2.jpg'
+import progressphoto from './images/Capture3.jpg'
 const Tracker = () => {
   const [userData, setUserData] = useState({
     name: "",
@@ -571,6 +576,14 @@ useEffect(() => {
   }
 }, []);
 
+   const [sales,setSales]=useState([])
+  
+  useEffect(()=>{
+  const existingBusiness = JSON.parse(localStorage.getItem("setupBusiness")) || [];
+  if(existingBusiness){
+    setSales(existingBusiness)
+  }
+  },[])
 
   const multiItems = useMemo(
     () => [
@@ -642,6 +655,13 @@ useEffect(() => {
         id: "cash flow",
         label: "Cash Flow",
         icon: <MdWallet style={{ width: "30px", height: "30px" }} />,
+         more: [
+          {
+            expense: "Sales Overview",
+            icon: <HiUserGroup  style={{ width: "30px", height: "30px" }} />,
+            money: sales,
+          },
+        ],
       },
       {
         id: "category",
@@ -657,7 +677,6 @@ useEffect(() => {
     [stateIncome, changeIncome, allExpenses, totalExpenses, changeHowMuch]
   );
 
-  ///// goal functions passed to props to analyze and goal category //// 
 
 
   const [userGoal,setUserGoal]=useState("") //// name of the goal
@@ -768,6 +787,37 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
   };
 
   const [activeTab,setActiveTab]=useState("")
+
+
+const [chartSystem, setChartSystem] = useState(() => {
+  return localStorage.getItem("chartsystem") || "piechart";
+});
+
+const [progressSystem, setProgressSystem] = useState(() => {
+  return localStorage.getItem("progressSystem") || "goalexpenses";
+})
+
+   const changeChart =(chart)=>{
+    setChartSystem(chart)
+    localStorage.setItem("chartsystem",chart)
+   }
+
+
+   const changeProgress =(progress)=>{
+    setProgressSystem(progress)
+   localStorage.setItem("progressSystem",progress)
+   }
+
+useEffect(() => {
+  const storedChart = localStorage.getItem("chartsystem");
+  if (storedChart) setChartSystem(storedChart);
+
+  const storedProgress = localStorage.getItem("progressSystem");
+  if (storedProgress) setProgressSystem(storedProgress);
+}, []);
+
+
+  const [businessArray,setBusinessArray]=useState([])
 
   return (
     <div>
@@ -963,6 +1013,9 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
                   convertAmount={convertAmount}
                   totalSavings={totalSavings}
                   convertExpense={convertExpense}
+                  chartSystem={chartSystem}
+                  progressSystem={progressSystem}
+                  businessArray={businessArray}
                 />
               )}
               {showInfo === "store" && (
@@ -1002,7 +1055,7 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
                   setNotification={setNotification}
                   allGoal={allGoal}
                   setAnalyzeTime={setAnalyzeTime}
-               
+                  
                 />
               )}
                {showInfo === "goal" && (
@@ -1027,6 +1080,19 @@ const data3 = Object.entries(categoryGoals).map(([category, value]) => ({
                 userData={userData}
                 expenses={allExpenses}
                 income={income}
+                businessArray={businessArray}
+                setBusinessArray={setBusinessArray}
+                />
+              )}
+              {showInfo === "category" && (
+                <Category 
+                chartSystem={chartSystem}
+                changeChart={changeChart}
+                setChartSystem={setChartSystem}
+                COLORS={COLORS}
+                progressSystem={progressSystem}
+                setProgressSystem={setProgressSystem}
+                changeProgress={changeProgress}
                 />
               )}
             </motion.div>
@@ -1186,7 +1252,8 @@ function Dashboard({
   COLORS,
   activeTab,
   setActiveTab,
-  allGoal,convertAmount,convertExpense
+  allGoal,convertAmount,convertExpense,
+  chartSystem,progressSystem,businessArray
 }) {
   const allInfo = [
     {
@@ -1249,55 +1316,104 @@ const [progressView, setProgressView] = useState('Monthly');
     const [chartView, setChartView] = useState('Expenses vs Goals');
   const [previousView, setPreviousView] = useState('Monthly');
   const [pieData, setPieData] = useState([]);
+  const [circleChartData, setCircleChartData] = useState([]);
   const [expenseProgress, setExpenseProgress] = useState(0);
   const [goalProgress, setGoalProgress] = useState(0);
 
+  //// functions to switch between charts in the catergory section /// 
 
-
+   
 const updatePieData = (view) => {
-    let data = [];
+  let data = [];
 
-    switch (view) {
-      case 'Expenses vs Goals':
-        data = [
-          { name: 'Total Expenses', value: Number(totalExpenses) },
-          { name: 'Total Goals', value: Number(totalGoals) }
-        ];
-        break;
+  switch (view) {
+    case 'Expenses vs Goals':
+      data = [
+        { name: 'Total Expenses', value: totalExpenses || 0 },
+        { name: 'Total Goals', value: totalGoals || 0 }
+      ];
+      break;
 
-      case 'Balance (Daily/Monthly/Yearly)':
-        data = [
-          { name: 'Daily Balance', value: Number(convertAmount(totalBalance, 'Daily')) },
-          { name: 'Monthly Balance', value: Number(convertAmount(totalBalance, 'Monthly')) },
-          { name: 'Yearly Balance', value: Number(convertAmount(totalBalance, 'Yearly')) }
-        ];
-        break;
+    case 'Balance (Daily/Monthly/Yearly)':
+      data = [
+        { name: 'Daily Balance', value: convertAmount(totalBalance, 'Daily') || 0 },
+        { name: 'Monthly Balance', value: convertAmount(totalBalance, 'Monthly') || 0 },
+        { name: 'Yearly Balance', value: convertAmount(totalBalance, 'Yearly') || 0 }
+      ];
+      break;
 
-      case 'Balance vs Goals':
-        data = [
-          { name: 'Total Balance', value: Number(totalBalance) },
-          { name: 'Total Goals', value: Number(totalGoals) }
-        ];
-        break;
+    case 'Balance vs Goals':
+      data = [
+        { name: 'Total Balance', value: totalBalance || 0 },
+        { name: 'Total Goals', value: totalGoals || 0 }
+      ];
+      break;
 
-      case 'Balance vs Expenses':
-        data = [
-          { name: 'Total Balance', value: Number(totalBalance) },
-          { name: 'Total Expenses', value: Number(totalExpenses) }
-        ];
-        break;
+    case 'Balance vs Expenses':
+      data = [
+        { name: 'Total Balance', value: totalBalance || 0 },
+        { name: 'Total Expenses', value: totalExpenses || 0 }
+      ];
+      break;
 
-      default:
-        data = [];
-    }
+    default:
+      data = [];
+  }
 
-    setPieData(data);
-  };
+  console.log("Updated Pie Data:", data); // Debugging
+  setPieData(data);
+  setCircleChartData(data);  // Now updating circle chart with same data
+};
 
-  // Update Pie Data on Initial Load and When View Changes
-  useEffect(() => {
-    updatePieData(chartView);
-  }, [chartView, totalBalance, totalExpenses, totalGoals]);
+useEffect(() => {
+  updatePieData(chartView);
+}, [chartView, totalBalance, totalExpenses, totalGoals]);
+
+const [barChartData, setBarChartData] = useState([]);
+
+const updateBarChartData = (view) => {
+  let data = [];
+
+  switch (view) {
+    case 'Expenses vs Goals':
+      data = [
+        { name: 'Total Expenses', value: Number(totalExpenses) },
+        { name: 'Total Goals', value: Number(totalGoals) }
+      ];
+      break;
+
+    case 'Balance (Daily/Monthly/Yearly)':
+      data = [
+        { name: 'Daily Balance', value: Number(convertAmount(totalBalance, 'Daily')) },
+        { name: 'Monthly Balance', value: Number(convertAmount(totalBalance, 'Monthly')) },
+        { name: 'Yearly Balance', value: Number(convertAmount(totalBalance, 'Yearly')) }
+      ];
+      break;
+
+    case 'Balance vs Goals':
+      data = [
+        { name: 'Total Balance', value: Number(totalBalance) },
+        { name: 'Total Goals', value: Number(totalGoals) }
+      ];
+      break;
+
+    case 'Balance vs Expenses':
+      data = [
+        { name: 'Total Balance', value: Number(totalBalance) },
+        { name: 'Total Expenses', value: Number(totalExpenses) }
+      ];
+      break;
+
+    default:
+      data = [];
+  }
+
+  setBarChartData(data);
+};
+
+useEffect(() => {
+  updateBarChartData(chartView);
+}, [chartView, totalBalance, totalExpenses, totalGoals]);
 
 
 
@@ -1314,6 +1430,8 @@ const updateProgressData = (view) => {
   setExpenseProgress(newExpenseProgress);
   setGoalProgress(newGoalProgress);
 };
+
+
 
 
 const handleProgressViewChange = (view) => {
@@ -1426,28 +1544,113 @@ const [chooseProgress,setChooseProgress]=useState('goals')
             <div className="flex items-start justify-center">
               <ResponsiveContainer width="100%" height={330}>
 
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={130}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
-                >
-                  {pieData.map((entry, index) => (
-                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+               <>
+  {/* If pieData is empty and the Pie Chart is selected, show a message */}
+  {chartSystem === 'piechart' && pieData.length === 0 ? (
+    <div className="h-full flex flex-col-reverse gap-2 items-center justify-center text-xl font-medium text-center">
+      <img width="300px" height="300px" src={analyticImg} />
+      Create some Expenses and Goals for the pie chart to work
+    </div>
+  ) : null}
+
+  {/* Render Pie Chart if there is data */}
+  {chartSystem === 'piechart' && pieData.length > 0 && (
+    <PieChart width={600} height={275}>
+      <Pie
+        data={pieData}
+        cx="50%"
+        cy="50%"
+        outerRadius={110}
+        fill="#8884d8"
+        dataKey="value"
+        label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+      >
+        {pieData.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        ))}
+      </Pie>
+ <Tooltip
+    contentStyle={{
+      backgroundColor: '#2d2f31', // Dark background
+      borderRadius: '8px', 
+      border: 'none', 
+      color: '#ffffff', // White text
+    }}
+    cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }} 
+     itemStyle={{ color: "#ffffff" }}// Light green hover effect instead of grey
+  />    </PieChart>
+  )}
+
+  {/* Render Bar Chart if selected */}
+  {chartSystem === 'barchart' && (
+    <BarChart width={500} height={275} data={barChartData} style={{marginLeft:'50px',marginTop:"25px"}}>
+      <XAxis dataKey="name" />
+      <YAxis />
+ <Tooltip
+    contentStyle={{
+      backgroundColor: '#2d2f31', // Dark background
+      borderRadius: '8px', 
+      border: 'none', 
+      color: '#ffffff', // White text
+    }}
+    cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }} // Light green hover effect instead of grey
+  />      <Legend />
+      <Bar dataKey="value" fill="#8ce163" stackId="a" name="Data" />
+    </BarChart>
+  )}
+
+  {/* If circleChartData is empty and Circle Chart is selected, show a message */}
+  {chartSystem === 'circlechart' && circleChartData.length === 0 ? (
+    <div className="h-full flex flex-col-reverse gap-2 items-center justify-center text-xl font-medium text-center">
+      No data available for the circle chart.
+    </div>
+  ) : null}
+
+  {/* Render Circle Chart if there is data */}
+  {chartSystem === 'circlechart' && circleChartData.length > 0 && (
+    <PieChart width={650} height={275} style={{ marginLeft: '50px' }}>
+      <Pie
+        data={circleChartData}
+        cx={270}
+        cy={160}
+        innerRadius={60}
+        outerRadius={80}
+        fill="#8884d8"
+        paddingAngle={5}
+        dataKey="value"
+         labelStyle={{
+      fill: "#ffffff", // White text color
+      fontSize: "14px",
+      fontWeight: "bold",
+    }}
+        label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+      >
+        {circleChartData.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        ))}
+      </Pie>
+       <Tooltip
+    contentStyle={{
+      backgroundColor: '#2d2f31', // Dark background
+      borderRadius: '8px', 
+      border: 'none', 
+      color: '#ffffff', // White text
+    }}
+    cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }} 
+     itemStyle={{ color: "#ffffff" }}// Light green hover effect instead of grey
+  />
+    </PieChart>
+  )}
+</>
+
+
             </ResponsiveContainer>
 
             </div>
           </div>
           <div>
             <div className="cardTask bg-[#] max-w-[650px]  rounded-xl p-2 flex flex-col gap-4 max-h-[450px] overflow-y-auto">
+        {progressSystem === 'goalexpenses' && 
          <h2 className="text-lg font-semibold mb-2 flex flex-col items-center"> Progress Breakdown 
           <select
            onChange={(e) => setChooseProgress(e.target.value)}
@@ -1458,9 +1661,15 @@ const [chooseProgress,setChooseProgress]=useState('goals')
             <option value="expense" className="bg-[#141718] text-[#8CE163]">Expense Progress</option>
           </select>
          </h2>
+        }
+        {progressSystem === 'business' && 
+         <h2 className="text-lg font-semibold mb-2 flex flex-col items-center"> Business Breakdown 
+         </h2>
+        }
 <div className="flex flex-col items-center gap-4">
-            
-    {/* Expense Progress */}
+    {progressSystem ==="goalexpenses" && 
+    <div>
+     {/* Expense Progress */}
     {chooseProgress === 'expense' && 
     <div className="bg-[#1b1f21] rounded-xl p-4 text-white shadow-lg">
       <h2 className="text-lg font-semibold mb-2">Expense Progress</h2>
@@ -1518,6 +1727,59 @@ const [chooseProgress,setChooseProgress]=useState('goals')
 
     </div>
     }
+    </div>
+    }
+    {progressSystem === "business" && 
+    <div>
+       {businessArray.length === 0 ? (
+  <p>Please submit Business fields for the finances to appear</p>
+) : (
+  businessArray.map((bus, index) => (
+    <div className="flex flex-col items-start gap-2 bg-[#1B1F21] text-[#8CE163] p-2 border border-[#3e453b] rounded-lg shadow-md" key={index}>
+       <div className="mb-2">
+      <p className="text-lg font-semibold flex items-center gap-1 text-[#fff]"><MdOutlineCalendarToday style={{color:'#8CE163'}}/> Daily Overview</p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Revenue:</span> 
+        <span className="font-medium">{userData.currency}{bus.sold * bus.cost}</span>
+      </p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Profit:</span> 
+        <span className="font-medium">{userData.currency}{(bus.sold * bus.cost) - bus.be}</span>
+      </p>
+    </div>
+
+      {/* Monthly Totals */}
+      <div className="border-t border-gray-600 pt-2 mb-2">
+      <p className="text-lg font-semibold flex items-center gap-1 text-[#fff]"><MdOutlineCalendarToday style={{color:'#8CE163'}}/> Monthly Overview</p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Revenue:</span> 
+        <span className="font-medium">{userData.currency}{bus.sold * bus.cost * 30}</span>
+      </p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Profit:</span> 
+        <span className="font-medium">{userData.currency}{(bus.sold * bus.cost * 30) - (bus.be * 30)}</span>
+      </p>
+    </div>
+
+
+      {/* Yearly Totals */}
+     <div className="border-t border-gray-600 pt-2">
+      <p className="text-lg font-semibold flex items-center gap-1 text-[#fff]"><MdOutlineCalendarToday style={{color:'#8CE163'}}/> Yearly Overview</p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Revenue:</span> 
+        <span className="font-medium">{userData.currency}{bus.sold * bus.cost * 365}</span>
+      </p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Profit:</span> 
+        <span className="font-medium">{userData.currency}{(bus.sold * bus.cost * 365) - (bus.be * 365)}</span>
+      </p>
+    </div>
+    </div>
+  ))
+)}
+    </div>
+    }        
+    
   </div>
 
             </div>
@@ -1606,7 +1868,7 @@ function Expenses({
             </div>
           ))
         ) : (
-          <div className="expen text-3xl font-semibold">No Expenses Yet</div>
+          <div className="expen text-3xl font-semibold h-full text-center flex items-center justify-center -mr-14">No Expenses Yet</div>
         )}
 
         <div className="fixed bottom-2 left-1/2 w-full max-w-xl -translate-x-1/2 px-4">
@@ -2926,7 +3188,7 @@ const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
   )
 }
  
-const Wallet =({expenses,totalBalance,userData,totalExpenses})=>{
+const Wallet =({expenses,totalBalance,userData,totalExpenses,businessArray,setBusinessArray})=>{
   const [mode, setMode] = useState("employee");
 
  const storedData = JSON.parse(localStorage.getItem("userData")) || {};
@@ -2936,7 +3198,6 @@ const Wallet =({expenses,totalBalance,userData,totalExpenses})=>{
   const [productCost, setProductCost] = useState(0);
   const profit = (products * productCost) - businessExpenses;
   const [income, setIncome] = useState(storedData.income || "");
-  const [businessArray,setBusinessArray]=useState([])
 
     const updateIncome = () => {
     const updatedData = { ...storedData, income: parseFloat(income) };
@@ -2960,7 +3221,7 @@ const submitBusiness = () => {
   // Get existing businesses from localStorage
   const existingBusiness = JSON.parse(localStorage.getItem("setupBusiness")) || [];
 
-  // Add new business entry
+  // Add ne   w business entry
   const updatedBusiness = [...existingBusiness, businessSaved];
 
   // Save back to localStorage
@@ -3061,7 +3322,7 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
                 value={income}
                 onChange={(e) => setIncome(e.target.value)}
                 onBlur={updateIncome} // Save income when the user leaves input
-                className="bg-transparent border p-1 text-start border border-[#8ce163] rounded-sm"
+                className="bg-transparent  p-1 text-start  border-[#8ce163] rounded-sm"
               />
             </label>
             <p><strong className="text-sm font-light text-start">Expenses:</strong> ${totalExpenses}</p>
@@ -3122,7 +3383,7 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
         type="number"
         value={products}
         onChange={(e) => setProducts(Number(e.target.value))}
-        className="bg-transparent border p-1 focus:outline-0"
+        className="bg-transparent border border-[#8ce163] rounded-sm p-1 p-1 focus:outline-0"
       />
     </label>
 
@@ -3134,7 +3395,7 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
         value={productCost}
         onChange={(e) => setProductCost(Number(e.target.value))}
          onBlur={updateIncome} // Save income when the user leaves input
-        className="bg-transparent border p-1 focus:outline-0"
+        className="bg-transparent border border-[#8ce163] rounded-sm  p-1 focus:outline-0"
       />
     </label>
 
@@ -3145,37 +3406,72 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
 
 
 
-            <p><strong>Profit:</strong> {userData.currency}{profit}</p>
-            <button onClick={submitBusiness}>Submit</button>
+            <div className="flex items-center flex-row-reverse justify-between w-full mt-3">
+              <p><strong>Profit:</strong> {userData.currency}{profit}</p>
+            <button className="rounded bg-[#8DE163] px-1.5 py-1 text-xs text-[#000] transition-colors hover:bg-[rgba(141,225,99,0.7)]"
+            onClick={submitBusiness}>Submit</button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
       </div>
-             <div className="mt-4 border-t pt-3 ml-8">
-      <h4 className="text-md font-semibold text-[#8ce163] mb-2">Sales Overview</h4>
+             <motion.div
+             initial={{opacity:0}}
+             animate={{opacity:1}}
+             transition={{duration:0.5}}
+             className="mt-4 border-t pt-3 ml-8">
+      <h4 className="text-md font-semibold text-[#8ce163] mb-4">Sales Overview</h4>
       
       {/* Daily Totals */}
     {businessArray.length === 0 ? (
   <p>Please submit Business fields for the finances to appear</p>
 ) : (
   businessArray.map((bus, index) => (
-    <div key={index}>
-      <p><strong>Daily Revenue:</strong> {userData.currency}{bus.sold * bus.cost}</p>
-      <p><strong>Daily Profit:</strong> {userData.currency}{(bus.sold * bus.cost) - bus.be}</p>
+    <div className="flex flex-col items-start gap-2 bg-[#1B1F21] text-[#8CE163] p-2 border border-[#3e453b] rounded-lg shadow-md" key={index}>
+       <div className="mb-2">
+      <p className="text-lg font-semibold flex items-center gap-1 text-[#fff]"><MdOutlineCalendarToday style={{color:'#8CE163'}}/> Daily Overview</p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Revenue:</span> 
+        <span className="font-medium">{userData.currency}{bus.sold * bus.cost}</span>
+      </p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Profit:</span> 
+        <span className="font-medium">{userData.currency}{(bus.sold * bus.cost) - bus.be}</span>
+      </p>
+    </div>
 
       {/* Monthly Totals */}
-      <p className="mt-2"><strong>Monthly Revenue:</strong> {userData.currency}{bus.sold * bus.cost * 30}</p>
-      <p><strong>Monthly Profit:</strong> {userData.currency}{(bus.sold * bus.cost * 30) - (bus.be * 30)}</p>
+      <div className="border-t border-gray-600 pt-2 mb-2">
+      <p className="text-lg font-semibold flex items-center gap-1 text-[#fff]"><MdOutlineCalendarToday style={{color:'#8CE163'}}/> Monthly Overview</p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Revenue:</span> 
+        <span className="font-medium">{userData.currency}{bus.sold * bus.cost * 30}</span>
+      </p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Profit:</span> 
+        <span className="font-medium">{userData.currency}{(bus.sold * bus.cost * 30) - (bus.be * 30)}</span>
+      </p>
+    </div>
+
 
       {/* Yearly Totals */}
-      <p className="mt-2"><strong>Yearly Revenue:</strong> {userData.currency}{bus.sold * bus.cost * 365}</p>
-      <p><strong>Yearly Profit:</strong> {userData.currency}{(bus.sold * bus.cost * 365) - (bus.be * 365)}</p>
+     <div className="border-t border-gray-600 pt-2">
+      <p className="text-lg font-semibold flex items-center gap-1 text-[#fff]"><MdOutlineCalendarToday style={{color:'#8CE163'}}/> Yearly Overview</p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Revenue:</span> 
+        <span className="font-medium">{userData.currency}{bus.sold * bus.cost * 365}</span>
+      </p>
+      <p className="flex justify-between text-sm">
+        <span className="font-light text-[#dedede]">Profit:</span> 
+        <span className="font-medium">{userData.currency}{(bus.sold * bus.cost * 365) - (bus.be * 365)}</span>
+      </p>
+    </div>
     </div>
   ))
 )}
 
 
-    </div>
+    </motion.div>
     </div>
 
     <div className="empty h-24"></div>
@@ -3183,4 +3479,163 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
     </div>
   );
 
+}
+
+const Category =({chartSystem,setChartSystem,changeChart,COLORS,progressSystem,setProgressSystem,changeProgress})=>{
+  
+
+  const data = [
+  { name: 'Page A', value: 4000 },
+  { name: 'Page B', value: 3000 },
+  { name: 'Page C', value: 2000 },
+  { name: 'Page D', value: 2780 },
+];
+
+const data2 = [
+  { name: 'Page A', uv: 4000, pv: 2400, amt: 2400 },
+  { name: 'Page B', uv: 3000, pv: 1398, amt: 2210 },
+  { name: 'Page C', uv: 2000, pv: 9800, amt: 2290 },
+  { name: 'Page D', uv: 2780, pv: 3908, amt: 2000 },
+];
+
+
+const renderTooltipWithoutRange = (props) => <Tooltip {...props} />;
+const renderLegendWithoutRange = (props) => <Legend {...props} />
+
+
+const [selectCategory,setSelectCategory]=useState('charts')
+
+const chooseCategory =(select)=>{
+  setSelectCategory(select)
+}
+
+  return(
+   <div className="category flex flex-col items-center h-full">
+     <div className="flex flex-col gap-2 w-[50%]">
+        <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
+          Category
+        </h1>
+        <p className="text-start text-[#dedede] font-normal text-md">
+          Make changes to your preferences
+        </p>
+      </div>
+      <h1 className="text-2xl font-medium text-[#fff]  w-[50%] text-start mt-10">
+          Charts
+        </h1>
+      <p className="w-[50%] mt-4 text-[#dedede] text-start font-light text-sm">Current chosen : {chartSystem}</p>
+      <div className="flex items-center gap-6 ml-[5%] justify-end w-[100%] mt-8">
+      <div onClick={()=>changeChart('piechart')} className="cursor-pointer bg-[#1b1f21] p-1 rounded-md" style={{border:chartSystem === 'piechart' ? '1px solid #8ce163':'1px solid #3e453b',opacity:chartSystem==='piechart'? '1': '0.7',transition:'all 0.5s ease'}}>
+         <PieChart width={300} height={275}>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            outerRadius={100}
+            fill="#8884d8"
+            dataKey="value" // Use "value" since we fixed the data format
+            label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </div>
+       <div onClick={()=>changeChart('barchart')} className="cursor-pointer bg-[#1b1f21] p-1 rounded-md" style={{border:chartSystem === 'barchart' ? '1px solid #8ce163':'1px solid #3e453b',opacity:chartSystem==='barchart'? '1': '0.7',transition:'all 0.5s ease'}}>
+        <BarChart width={330} height={275} data={data2}>
+        <XAxis  is dataKey="name" /> {/* Added X-Axis */}
+        <YAxis /> {/* Added Y-Axis */}
+ <Tooltip
+    contentStyle={{
+      backgroundColor: '#2d2f31', // Dark background
+      borderRadius: '8px', 
+      border: 'none', 
+      color: '#ffffff', // White text
+    }}
+    cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }} // Light green hover effect instead of grey
+  />        <Legend /> {/* Added Legend for better UI */}
+        <Bar dataKey="uv" fill="#8ce163" stackId="a" />
+        <Bar dataKey="pv" fill="#5FA038" stackId="a" />
+      </BarChart>
+       </div>
+        <div onClick={()=>changeChart('circlechart')} className="cursor-pointer bg-[#1b1f21] p-1 rounded-md" style={{border:chartSystem === 'circlechart' ? '1px solid #8ce163':'1px solid #3e453b',opacity:chartSystem==='circlechart'? '1': '0.7',transition:'all 0.5s ease'}}>
+ <PieChart width={300} height={275}>
+        <Pie
+          data={data}
+          cx={140}
+          cy={120}
+          innerRadius={60}
+          outerRadius={80}
+          fill="#8884d8"
+          paddingAngle={5}
+          dataKey="value"
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+      </PieChart>
+       </div>
+       
+      </div>
+      <h1 className="text-2xl font-medium text-[#fff]  w-[50%] text-start mt-10">
+          Progress
+        </h1>
+       
+      <p className="w-[50%] mt-4 text-[#dedede] text-start font-light text-sm">
+  Current chosen : {progressSystem}
+</p>
+
+<div className="flex items-center gap-20 justify-center mt-14">
+  
+  {/* Goal & Expenses Section */}
+  <div 
+    className={`flex items-center relative p-2 rounded-lg transition-all duration-500 cursor-pointer 
+                ${progressSystem === 'goalexpenses' ? 'scale-110 inset-shadow-lg inset-shadow-[#8CE163]/40' : 'opacity-70 hover:opacity-100'}`}
+    onClick={() => changeProgress('goalexpenses')}
+  >
+    <img 
+      className="object-cover rounded-md border border-[#3e453b] transition-transform duration-500" 
+      style={{
+        transform: progressSystem === 'goalexpenses' ? "rotate(-15deg) scale(1.2)" : "rotate(-20deg)",
+      }}
+      src={goalphoto}
+      width="125px"
+      height="125px"
+    />
+    
+    <img 
+      className="object-cover -ml-8 rounded-md border border-[#3e453b] transition-transform duration-500" 
+      style={{
+        transform: progressSystem === 'goalexpenses' ? "rotate(5deg) scale(1.2)" : "rotate(10deg)",
+      }}
+      src={expensephoto}
+      width="125px"
+      height="125px"
+    />
+  </div>
+
+  {/* Business Section */}
+  <div 
+    className={`flex items-center relative p-2 rounded-lg transition-all duration-500 cursor-pointer ml-20 -mr-36
+                ${progressSystem === 'business' ? 'scale-110 border-2 border-[#8CE163] shadow-lg shadow-[#8CE163]/40' : 'opacity-70 hover:opacity-100'}`}
+    onClick={() => changeProgress('business')}
+  >
+    <img 
+      className="object-cover rounded-md border border-[#3e453b] transition-transform duration-500" 
+      style={{
+        transform: progressSystem === 'business' ? "rotate(0deg) scale(1.2)" : "rotate(0deg)",
+      }}
+      src={progressphoto}
+      width="145px"
+      height="145px"
+    />
+  </div>
+
+</div>
+
+     <div className="empty h-24"></div>
+   </div>
+  )
 }
