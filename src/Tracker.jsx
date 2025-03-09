@@ -29,7 +29,7 @@ import {
   MdOutlineSearch,
   MdCheck,
   MdEmojiEvents,
-  MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning ,MdChat,MdOutlineCalendarToday  
+  MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning ,MdMenuBook ,MdOutlineCalendarToday,MdInfoOutline   
 } from "react-icons/md";
 import analyticImg from './images/Analytics.svg'
 import { HiUser } from "react-icons/hi2";
@@ -108,7 +108,7 @@ const Tracker = () => {
           id: "help",
           label: "Help",
           icon: (
-            <MdOutlineQuestionMark style={{ width: "30px", height: "30px" }} />
+            <MdMenuBook  style={{ width: "30px", height: "30px" }} />
           ),
         },
       ],
@@ -488,14 +488,26 @@ const data = [
   ////// state and function of the total expenses that was taken by the component expenses :)
 
   const [openSearch, setOpenSearch] = useState(false);
+  const [bind1,setBind1]=useState('ctrl')
+  const [bind2,setBind2]=useState('+k')
+  const [bind3,setBind3]=useState('esc')
 
-  Mousetrap.bind("ctrl+k", () => {
+  Mousetrap.bind(bind1 + bind2 , () => {
     setOpenSearch(!openSearch);
   });
 
-  Mousetrap.bind("esc", () => {
+  Mousetrap.bind(bind3, () => {
     setOpenSearch(false);
   });
+
+useEffect(()=>{
+const storedBinds = JSON.parse(localStorage.getItem("mousebinds")) || { bind1: 'ctrl', bind2: '+k', bind3: 'esc' };
+
+setBind1(storedBinds.bind1);
+setBind2(storedBinds.bind2);
+setBind3(storedBinds.bind3);
+
+},[])
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -819,6 +831,14 @@ useEffect(() => {
 
   const [businessArray,setBusinessArray]=useState([])
 
+  const [notifSettings,setNotifSettings]=useState(true)
+
+  const updateNotif = ()=>{
+    setNotifSettings((prev) => !prev)
+    localStorage.setItem("notifSettings",notifSettings)
+  }
+
+
   return (
     <div>
       <div className="flex w-full">
@@ -889,11 +909,18 @@ useEffect(() => {
               </div>
               <label>
                 <p className="text-sm font-light text-[rgba(222,222,222,0.6)]">
-                  Ctrl K
+                  {bind1}{bind2}
                 </p>
               </label>
             </button>
-            <div onClick={openNotification} className="relative cursor-pointer">
+           <AnimatePresence>
+             {notifSettings &&
+            <motion.div
+            initial={{opacity:0}}
+            animate={{opacity:1}}
+            exit={{opacity:0}}
+            transition={{duration:0.2}}
+            onClick={openNotification} className={`relative cursor-pointer`}>
               <MdOutlineNotifications
                 style={{ width: "25px", height: "25px" }}
               />
@@ -902,7 +929,9 @@ useEffect(() => {
               ) : (
                 ""
               )}
-            </div>
+            </motion.div>
+            }
+           </AnimatePresence>
             <AnimatePresence>
               {notificationDrawer && (
                 <motion.div
@@ -1095,6 +1124,22 @@ useEffect(() => {
                 changeProgress={changeProgress}
                 />
               )}
+               {showInfo === "settings" && (
+                <Settings 
+                userData={userData}
+                notifSettings={notifSettings}
+                updateNotif={updateNotif}
+                bind1={bind1}
+                bind2={bind2}
+                bind3={bind3}
+                setBind1={setBind1}
+                setBind2={setBind2}
+                setBind3={setBind3}
+                />
+              )}
+              {showInfo === "help" && (
+                <Help />
+              )}
             </motion.div>
           </AnimatePresence>
 
@@ -1148,7 +1193,7 @@ useEffect(() => {
                         onClick={() => setOpenSearch(false)}
                         className="text-gray-500 hover:text-gray-700 bg-transparent text-sm font-light border border-[rgba(222,222,222,0.1)] p-0.5"
                       >
-                        esc
+                        {bind3}
                       </button>
                     </div>
 
@@ -3637,5 +3682,284 @@ const chooseCategory =(select)=>{
 
      <div className="empty h-24"></div>
    </div>
+  )
+}
+
+
+const Settings =({userData,updateNotif,notifSettings,bind1,bind2,bind3,setBind1,setBind2,setBind3})=>{
+
+  const [changeName,setChangeName]=useState(userData.name)
+
+const submitChanges = () => {
+  const storedUserData = JSON.parse(localStorage.getItem("userData")) || {}; // Get the current user data
+  const updatedUserData = {
+    ...storedUserData,  // Keep existing data
+    name: changeName,   // Update only the name
+  };
+
+
+  const mouseBinds = { bind1, bind2, bind3 };
+
+  localStorage.setItem("userData", JSON.stringify(updatedUserData));
+  localStorage.setItem("notifSettings",notifSettings)
+  localStorage.setItem("mousebinds", JSON.stringify(mouseBinds));
+};
+
+const [notification,setNotification]=useState('')
+
+useEffect(()=>{
+
+  if(notifSettings === true){
+    setNotification('Enabled')
+  }else{
+    setNotification('Disabled')
+  }
+
+},[notifSettings])
+
+  return(
+    <div className="flex flex-col items-center h-full">
+       <div className="flex flex-col gap-2 w-[50%]">
+        <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
+          Settings
+          <p className="mt-10 text-xl font-medium text-[#fff] text-start">Name</p>
+         <p className="mt-1 text-sm font-[400] text-[#d8dcd6] text-start">Change the username as your preference.Keep in mind the name needs to be 8 letters in average</p>
+        </h1>          
+      </div>
+     <div className="flex flex-col gap-2 w-[50%] mt-4">
+       <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Name: <p className="text-[#fff] font-medium">{changeName}</p></p>
+      <input className="w-[40%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={changeName} onChange={(e)=>setChangeName(e.target.value)}/>
+     </div>
+     <hr className="w-[50%] h-0.5 bg-[#d8dcd6] mt-6 opacity-30"/>
+        <p className="mt-6 text-xl font-medium text-[#fff] text-start w-[50%]">Notification</p>
+         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-[50%]">Allow the notifications so you can check on what did you achive</p>
+        <div className="flex items-end gap-6 w-[50%] mt-4">
+       <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Currently: <p className="text-[#fff] font-medium">{notification}</p></p>
+     <input onClick={updateNotif} class="switch focus:outline-0 mt-2" type="checkbox" checked={notifSettings}/>   
+    </div>
+     <hr className="w-[50%] h-0.5 bg-[#d8dcd6] mt-6 opacity-30"/>
+      <p className="mt-6 text-xl font-medium text-[#fff] text-start w-[50%]">MouseBinds</p>
+         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-[50%]">Costumize the mousebinds for your preference,Mousebinds needs to be keyboard letters</p>
+         <div className="bg-[#e16363] rounded-md p-0.5 mt-3 text-[#3a0b0b] w-[50%] text-sm font-light flex items-center gap-1.5">
+          <MdInfoOutline style={{width:'20px',height:'20px'}}/><p className="text-start">Keep in mind that that for the mousebinds to work one of the keyboard letters needs to have '+' before the letter</p>
+         </div>
+         <div className="flex items-center gap-4 w-[50%] mt-2">
+       <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Mousebinds: <p className="text-[#fff] font-medium">{bind1}{bind2}</p></p>|
+        <p className="text-sm font-extralight text-[#a3ac9f] flex items-center mt-2 gap-0.5">What it does: <p className="text-[#fff] font-medium">Opens the Quick Search</p></p>
+         </div>
+         <div className="flex items-center gap-3 w-[50%] mt-2">
+          <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind1} onChange={(e)=>setBind1(e.target.value)}/>
+      <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind2} onChange={(e)=>setBind2(e.target.value)}/>
+         </div>
+           <div className="flex items-center gap-4 w-[50%] mt-2">
+       <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Mousebinds: <p className="text-[#fff] font-medium">{bind3}</p></p>|
+        <p className="text-sm font-extralight text-[#a3ac9f] flex items-center mt-2 gap-0.5">What it does: <p className="text-[#fff] font-medium">Closes the Quick Search</p></p>
+         </div>
+         <div className="flex items-center gap-3 w-[50%] mt-2">
+          <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind3} onChange={(e)=>setBind3(e.target.value)}/>
+         </div>
+      <button onClick={submitChanges}></button>
+    <div className="empty h-24"></div>
+    </div>
+  )
+}
+
+const Help =()=>{
+
+  const [openHelp,setOpenHelp]=useState('Dashboard')
+
+  
+
+const helpContent = {
+    Dashboard: (
+      <motion.p 
+      initial={{opacity:0}}
+      animate={{opacity:1}}
+      transition={{duration:0.3}}
+      className="text-lg text-[#ddd] mt-4">
+        The Dashboard provides an overview of your finances. It includes:
+        <ul className="list-disc pl-5 mt-2">
+          <li className="text-sm font-light text-[#a3ac9f]">
+            <strong className="text-md font-medium text-[#d8dcd6]">Total Balance:</strong> Displays your remaining balance after all expenses.
+          </li>
+          <li className="text-sm font-light text-[#a3ac9f]">
+            <strong className="text-md font-medium text-[#d8dcd6]">Total Income:</strong> Shows your income before expenses are deducted.
+          </li>
+          <li className="text-sm font-light text-[#a3ac9f]">
+            <strong className="text-md font-medium text-[#d8dcd6]">Total Expenses:</strong> Sums up all recorded expenses from the Expenses section.
+          </li>
+        </ul>
+         <p className="text-sm font-light text-[#a3ac9f] text-start flex justify-center mt-1.5">Each financial card has a button (default:Monthly ) to switch views between Monthly, Yearly, and Daily.</p>
+        <p className="text-sm font-light text-[#a3ac9f] text-start mt-1.5"> Below these, the Pie Chart visually represents your spending breakdown, updating dynamically based on your selection.
+        At the bottom, the Goals & Expenses Progress section tracks how close you are to reaching your financial goals.
+        </p>
+      </motion.p>
+    ),
+  Expenses: (
+  <motion.p 
+    initial={{opacity: 0}}
+    animate={{opacity: 1}}
+    transition={{duration: 0.3}}
+    className="text-lg text-[#ddd] mt-4"
+  >
+    The <strong className="text-md font-medium text-[#d8dcd6]">Expenses</strong> section allows you to manage your daily, monthly, or yearly expenses. It includes:
+    <ul className="list-disc pl-5 mt-2">
+      <li className="text-sm font-light text-[#a3ac9f] text-start">
+        <strong className="text-md font-medium text-[#d8dcd6] text-start">Add Expenses:</strong> Create new expenses, specifying the name, category, and amount.
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+        <strong className="text-md font-medium text-[#d8dcd6]">Expense Calculation:</strong> All expenses are summed up and displayed in the <strong>Dashboard</strong> to track your total spending.
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+        <strong className="text-md font-medium text-[#d8dcd6]">Delete Expenses:</strong> Remove unnecessary expenses anytime to update your budget.
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+        <strong className="text-md font-medium text-[#d8dcd6]">Character Limit:</strong> The expense name has a limited number of characters to maintain UI consistency.
+      </li>
+    </ul>
+    <p className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+      All fields (expense name, category, and amount) must be completed for the expense to be saved. Incomplete entries will not be recorded.
+    </p>
+  </motion.p>
+)
+,
+    Analytics: (
+  <motion.p 
+    initial={{opacity: 0}}
+    animate={{opacity: 1}}
+    transition={{duration: 0.3}}
+    className="text-lg text-[#ddd] mt-4"
+  >
+    The <strong className="text-md font-medium text-[#d8dcd6]">Analytics</strong> section helps you gain deeper insights into your financial status. This system includes:
+    <ul className="list-disc pl-5 mt-2">
+      <li className="text-sm font-light text-[#a3ac9f] text-start">
+        <strong className="text-md font-medium text-[#d8dcd6]">Expense & Balance Analysis:</strong> The analyzer <strong className="text-md text-[#8ce163]">Finly</strong> examines your expenses and balance to identify areas for improvement.
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+        <strong className="text-md font-medium text-[#d8dcd6]">Goal-Based Insights:</strong> If you have a financial goal, Finly will evaluate your progress and compare your expenses to determine if achieving the goal is feasible.
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+        <strong className="text-md font-medium text-[#d8dcd6]">Alternative Analysis:</strong> If no goal is set, Finly will provide general financial improvement suggestions based on your spending patterns.
+      </li>
+    </ul>
+    <p className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+      Finly will highlight areas where you may be overspending and suggest optimizations, ensuring better financial planning and stability.
+    </p>
+  </motion.p>
+)
+,
+   Goal: (
+  <motion.p 
+    initial={{opacity: 0}}
+    animate={{opacity: 1}}
+    transition={{duration: 0.3}}
+    className="text-lg text-[#ddd] mt-4"
+  >
+    The <strong className="text-md font-medium text-[#d8dcd6]">Goal</strong> section allows you to set financial targets you aim to achieve. Unlike expenses, goals do not have a fixed time frame but are completed using your remaining balance over time.
+    <ul className="list-disc pl-5 mt-2">
+      <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+        <strong className="text-md font-medium text-[#d8dcd6] ">Creating a Goal:</strong> You can define a goal by specifying a name and an amount to save. The system ensures all fields are properly filled before saving.
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+        <strong className="text-md font-medium text-[#d8dcd6]">Progress Tracking:</strong> The system calculates how long it will take to reach your goal based on your remaining balance and spending habits.
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+        <strong className="text-md font-medium text-[#d8dcd6]">Limitations:</strong> To maintain a clean UI and system stability, goal names have a character limit.
+      </li>
+    </ul>
+    <p className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+      Goals help you stay motivated and financially disciplined, allowing you to plan for future purchases, investments, or savings milestones.
+    </p>
+  </motion.p>
+)
+,
+   CashFlow: (
+  <motion.p 
+    initial={{opacity: 0}}
+    animate={{opacity: 1}}
+    transition={{duration: 0.3}}
+    className="text-lg text-[#ddd] mt-4"
+  >
+    The <strong className="text-md font-medium text-[#d8dcd6]">Cash Flow</strong> section allows you to define your financial structure. You can select between being an <strong>Employee</strong> or a <strong>Business Owner</strong>, and based on your choice, input relevant financial details.
+    <ul className="list-disc pl-5 mt-2">
+      <li className="text-sm font-light text-[#a3ac9f] text-start">
+        <strong className="text-md font-medium text-[#d8dcd6]">Employee:</strong> If you are an employee, you need to enter:
+        <ul className="list-disc pl-5 mt-1">
+          <li className="text-sm font-light text-[#a3ac9f]">The company you work for</li>
+          <li className="text-sm font-light text-[#a3ac9f]">Your monthly salary</li>
+        </ul>
+        <p className="text-sm font-light text-[#a3ac9f] mt-1.5">
+          Your salary will automatically update the <strong>Total Balance</strong> and adjust as soon as you leave this section.
+        </p>
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] mt-3 text-start">
+        <strong className="text-md font-medium text-[#d8dcd6]">Business Owner:</strong> If you run a business, you need to provide:
+        <ul className="list-disc pl-5 mt-1">
+          <li className="text-sm font-light text-[#a3ac9f] text-start">Your business name</li>
+          <li className="text-sm font-light text-[#a3ac9f] text-start">Expenses related to your business</li>
+          <li className="text-sm font-light text-[#a3ac9f] text-start">Total sales</li>
+          <li className="text-sm font-light text-[#a3ac9f] text-start">Cost per product sold</li>
+        </ul>
+        <p className="text-sm font-light text-[#a3ac9f] mt-1.5">
+          Based on these inputs, the system will calculate your <strong>Revenue</strong> and <strong>Profit</strong> automatically.
+        </p>
+      </li>
+    </ul>
+    <p className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+      This section ensures accurate financial tracking, integrating your income into the Total Balance dynamically.
+    </p>
+  </motion.p>
+)
+,
+  Category: (
+  <motion.p 
+    initial={{opacity: 0}}
+    animate={{opacity: 1}}
+    transition={{duration: 0.3}}
+    className="text-lg text-[#ddd] mt-4"
+  >
+    The <strong className="text-md font-medium text-[#d8dcd6]">Category</strong> section allows you to customize the UI based on your preferences. Here, you can modify two key elements:
+    <ul className="list-disc pl-5 mt-2">
+      <li className="text-sm font-light text-[#a3ac9f] text-start">
+        <strong className="text-md font-medium text-[#d8dcd6]">Chart Customization:</strong> You can switch between <strong>three different chart types</strong> to visualize your financial data in a way that suits you best.
+      </li>
+      <li className="text-sm font-light text-[#a3ac9f] mt-3 text-start">
+        <strong className="text-md font-medium text-[#d8dcd6]">Progress Section Customization:</strong> In the <strong>Dashboard</strong>, the default view shows your <strong>Expense and Goal Progress</strong>. However, if you have a business, you can replace this section with <strong>Revenue and Profit</strong> to track business performance instead.
+      </li>
+    </ul>
+    <p className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
+      This section gives you full control over how financial insights are displayed, ensuring a tailored experience that fits your needs.
+    </p>
+  </motion.p>
+)
+,
+  };
+
+
+  return(
+  <div className="flex flex-col items-center h-full">
+     <div className="flex flex-col gap-2 w-[50%]">
+        <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">Help</h1> 
+        </div>
+        <div className="flex items-center justify-center w-[90%] ml-36 mt-4">
+         <div className="flex flex-col items-center w-[70%]">
+              {Object.keys(helpContent).map((key) => (
+          <div
+            key={key}
+            onClick={() => setOpenHelp(openHelp === key ? null : key)}
+            style={{color: helpContent[openHelp] ? '' :'#8ce163',transition:'color 0.5s ease'}}
+            className="mt-4 text-xl font-medium cursor-pointer flex items-center p-2 hover:text-[#8ce163] w-[50%] transition-colors" style={{borderBottom:'1px solid rgba(216, 220, 214,0.6)'}}
+          >
+            {key}
+          </div>
+        ))}
+         </div>
+    <div className="w-[40%] mt-4 p-4 bg-[#1b1f21] rounded-lg h-fit">
+        {openHelp && helpContent[openHelp]}
+      </div>
+        </div>
+          <div className="empty h-24"></div>
+
+  </div>
   )
 }
