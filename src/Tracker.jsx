@@ -28,7 +28,7 @@ import {
   MdPayments,
   MdOutlineSearch,
   MdCheck,
-  MdEmojiEvents,
+  MdEmojiEvents,MdMenu ,MdClose ,
   MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning ,MdMenuBook ,MdOutlineCalendarToday,MdInfoOutline   
 } from "react-icons/md";
 import analyticImg from './images/Analytics.svg'
@@ -124,6 +124,7 @@ const Tracker = () => {
     setOpenSearch(false);
     setSearchQuery("");
     setNotificationDrawer(false);
+    setDrawer(false)
   };
 
   const checkExpenses = () => {
@@ -838,15 +839,26 @@ useEffect(() => {
     localStorage.setItem("notifSettings",notifSettings)
   }
 
+  const [drawer,setDrawer]=useState(false)
+
 
   return (
     <div>
       <div className="flex w-full">
+        {drawer && 
+        <div onClick={()=>setDrawer(false)} className={`backdrop fixed left-0 top-0 bottom-0 right-0 z-[400]`}>
+         <button onClick={()=>setDrawer(false)}  className="bg-transparent fixed bottom-0 top-4 right-4 z-[500] h-fit block xl:hidden rounded-md p-1"><MdClose  style={{color:'rgba(222,222,222,0.9)',width:'30px',height:'30px'}}/></button>
+        </div>
+        }
         {/* Drawer */}
+        <AnimatePresence>
         <motion.div
           initial={{ x: -100, opacity: 0 }}
           animate={{ x: 0, opacity: 1, transition: { duration: 0.7 } }}
-          className="drawer-finly w-1/5 fixed left-0 top-0 bottom-0"
+          exit={{x:-100,opacity:0,transition:{duration:0.7}}}
+          key={drawer}
+        className={`drawer-finly cursor-pointer fixed left-0 top-0 bottom-0 z-[500] 
+              ${drawer ? "w-full block" : "hidden xl:block w-1/5"}`}
           style={{ zIndex: 500 }}
         >
           <div className="flex flex-col items-center">
@@ -883,6 +895,8 @@ useEffect(() => {
             ))}
           </div>
         </motion.div>
+        </AnimatePresence>
+        
 
         {/* Main Content */}
         <div
@@ -896,19 +910,19 @@ useEffect(() => {
           >
             <button
               onClick={() => setOpenSearch(!openSearch)}
-              className="cursor-pointer px-3 w-[250px] flex gap-2 justify-between items-center rounded-md border border-[rgba(222,222,222,0.2)] p-1 focus:outline-0"
+              className="cursor-pointer pl-1 xl:pl-0 px-0 xl:px-3 w-fit xl:w-[250px] flex gap-2 justify-between items-center rounded-md border border-[rgba(222,222,222,0.2)] p-1 focus:outline-0"
             >
               {" "}
               <div className="flex items-center gap-2">
                 <label>
                   <MdOutlineSearch style={{ color: "rgba(222,222,222,0.6)" }} />
                 </label>
-                <p className="text-sm font-light text-[rgba(222,222,222,0.6)]">
+                <p className="text-sm font-light hidden xl:flex text-[rgba(222,222,222,0.6)]">
                   Quick Search
                 </p>
               </div>
               <label>
-                <p className="text-sm font-light text-[rgba(222,222,222,0.6)]">
+                <p className="text-sm font-light hidden xl:flex text-[rgba(222,222,222,0.6)]">
                   {bind1}{bind2}
                 </p>
               </label>
@@ -920,9 +934,9 @@ useEffect(() => {
             animate={{opacity:1}}
             exit={{opacity:0}}
             transition={{duration:0.2}}
-            onClick={openNotification} className={`relative cursor-pointer`}>
+            onClick={openNotification} className={`relative cursor-pointer bg-[#1A1A1A] rounded-md border border-[rgba(222,222,222,0.2)]`}>
               <MdOutlineNotifications
-                style={{ width: "25px", height: "25px" }}
+                style={{ width: "25px", height: "25px",color:'rgba(222,222,222,0.6)' }}
               />
               {notification > 0 ? (
                 <div className="absolute top-0 right-0 w-3 h-3 bg-red-600 rounded-full border border-[#dedede]"></div>
@@ -997,10 +1011,12 @@ useEffect(() => {
                 </motion.div>
               )}
             </AnimatePresence>
-            <h1 className="text-base font-light text-[#fff]">
+            <h1 className="text-base hidden xl:block font-light text-[#fff]">
               {userData.name}
             </h1>
-          </div>
+            <button 
+            onClick={()=>setDrawer((prev)=>!prev)}
+            className="bg-[#1A1A1A] block xl:hidden border border-[rgba(222,222,222,0.2)] rounded-md p-1"><MdMenu style={{color:'rgba(222,222,222,0.6)',width:'20px',height:'20px'}}/></button>          </div>
           <AnimatePresence mode="wait">
             <motion.div
               key={showInfo} // ✅ Ensures correct animation behavior
@@ -1509,11 +1525,11 @@ const [chooseProgress,setChooseProgress]=useState('goals')
   return (
     <div className="flex flex-col items-center justify-center gap-5 h-full">
       <div className="flex flex-col items-center w-full mt-10 gap-5">
-        <div className="flex items-center gap-20 justify-end w-full">
+        <div className="flex flex-col lg:flex-row items-center gap-20 justify-end w-full">
           {allInfo.map((info, index) => (
             <div
               key={index}
-              className="incomeD bg-[#141718] rounded-xl p-3 text-center flex flex-col gap-2 w-[270px]"
+              className="incomeD grid  bg-[#141718] rounded-xl p-3 text-center flex flex-col gap-2 w-[270px]"
               style={{ border: "1px solid rgba(222,222,222,0.2)" }}
             >
               <div className="flex items-center gap-4 justify-between">
@@ -1540,9 +1556,9 @@ const [chooseProgress,setChooseProgress]=useState('goals')
             </div>
           ))}
         </div>
-        <div className="flex w-[100%] justify-end items-center gap-4">
+        <div className="flex flex-col lg:flex-row w-[100%] justify-evenly xl:justify-end items-center gap-8 xl:gap-4">
           <div
-            className="bg-[#141718] p-6 rounded-xl shadow-lg w-[52%]"
+            className="bg-[#141718] p-6 rounded-xl shadow-lg w-[60%] xl:w-[52%]"
             style={{
               border: "1px solid rgb(222,222,222,0.2)",
             }}
@@ -1600,12 +1616,12 @@ const [chooseProgress,setChooseProgress]=useState('goals')
 
   {/* Render Pie Chart if there is data */}
   {chartSystem === 'piechart' && pieData.length > 0 && (
-    <PieChart width={600} height={275}>
+    <PieChart width={560} className="piechart" height={275}>
       <Pie
         data={pieData}
         cx="50%"
         cy="50%"
-        outerRadius={110}
+        outerRadius={100}
         fill="#8884d8"
         dataKey="value"
         label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
@@ -1628,7 +1644,7 @@ const [chooseProgress,setChooseProgress]=useState('goals')
 
   {/* Render Bar Chart if selected */}
   {chartSystem === 'barchart' && (
-    <BarChart width={500} height={275} data={barChartData} style={{marginLeft:'50px',marginTop:"25px"}}>
+    <BarChart width={500} height={275} data={barChartData} className="barchart" style={{marginTop:"25px"}}>
       <XAxis dataKey="name" />
       <YAxis />
  <Tooltip
@@ -1653,7 +1669,7 @@ const [chooseProgress,setChooseProgress]=useState('goals')
 
   {/* Render Circle Chart if there is data */}
   {chartSystem === 'circlechart' && circleChartData.length > 0 && (
-    <PieChart width={650} height={275} style={{ marginLeft: '50px' }}>
+    <PieChart width={650} height={275} className="circlechart">
       <Pie
         data={circleChartData}
         cx={270}
@@ -1863,7 +1879,7 @@ function Expenses({
 {
   return (
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
-      <div className="flex flex-col gap-2 w-[50%]">
+      <div className="flex flex-col gap-2 w-[100%] pl-6 xl:pl-0 xl:w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
           Expenses
         </h1>
@@ -1871,7 +1887,7 @@ function Expenses({
           Let's see what we've got to do today.
         </p>
       </div>
-      <div className="expensess grid grid-cols-2 gap-5 ml-32 overflow-y-auto h-[calc(100vh-50px)] py-4 w-fit">
+      <div className="expensess flex flex-col grid-cols-1 gap-6 xl:grid xl:grid-cols-2 xl:gap-5 ml-24 xl:ml-32 overflow-y-auto h-[calc(100vh-50px)] py-4 w-fit">
         {expenses.length > 0 ? (
           expenses.map((info) => (
             <div
@@ -2461,9 +2477,9 @@ const [analyzeGoalAfter, setAnalyzeGoalAfter] = useState(false);
 
 
   return (
-    <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
+    <div className="exp flex flex-col items-center justify-center gap-5 h-full lg:h-screen">
       {/* Page Title */}
-      <div className="flex flex-col gap-2 w-[50%]">
+      <div className="flex flex-col gap-2 w-[100%] pl-10 xl:pl-0 xl:w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff] text-start mt-10">
           Analytics
         </h1>
@@ -2472,12 +2488,12 @@ const [analyzeGoalAfter, setAnalyzeGoalAfter] = useState(false);
         </p>
       </div>
       {/* Content Container */}
-      <div className="flex items-start justify-center w-full">
+      <div className="flex flex-col lg:flex-row items-start justify-center w-full">
         {/* Pie Chart (Shows Expenses by Category) */}
-        <div className="flex flex-col items-center justify-end ml-[10%] w-[65%]">
+        <div className="flex flex-col items-center justify-end ml-[10%] w-[80%] lg:w-[65%]">
           {data2.length > 0 ? (
-            <ResponsiveContainer width="70%" height={300}>
-              <div className="w-full items-end justify-end text-end ml-12">
+            <ResponsiveContainer  className=" w-[100%] lg:w-[60%]" height={300}>
+              <div className="w-full items-end justify-end text-end ml-12 lg:ml-0">
                 <select
                   value={changeMethods}
                   onChange={(e) => setChangeMethods(e.target.value)}
@@ -2577,14 +2593,14 @@ const [analyzeGoalAfter, setAnalyzeGoalAfter] = useState(false);
             )}
           </button>
         </div>
-        <hr className="h-full w-0.5 bg-[rgba(222,222,222,0.3)] ml-3"></hr>
+        <hr className="lg:h-full h-0.5 w-full lg:w-0.5 bg-[rgba(222,222,222,0.3)] mt-4 lg:mt-0 ml-3"></hr>
         {/* Analyze Content */}
-        <div className="analyzerContent overflow-y-auto overflow-x-hidden h-[500px] pl-3 text-start w-[20%] flex-grow">
+        <div className="analyzerContent overflow-y-auto overflow-x-hidden h-[500px] pl-3 text-start w-full lg:w-[20%] flex-grow">
         {(!analyze && goalChecker === false) ? ( 
   <motion.div
   initial={{opacity:0}}
   animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
-  className="flex flex-col items-center justify-center gap-4 h-full">
+  className="flex flex-col items-center justify-center gap-4 h-full w-full">
     <MdBubbleChart style={{ color: "#8CE163", width: "50px", height: "50px" }} />
     <h1 className="text-lg font-semibold text-[#fff]">FinChat Analyzer</h1>
     <p className="text-sm font-light text-[#dedede] text-center">
@@ -3111,7 +3127,7 @@ const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
 
   return(
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
-      <div className="flex flex-col gap-2 w-[50%]">
+      <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
           Goal
         </h1>
@@ -3119,7 +3135,7 @@ const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
           Let's see what we can achive today
         </p>
       </div>
-      <div className="expensess flex flex-col items-center justify-center  mt-5 gap-5 ml-28 overflow-y-auto h-[400px] py-6 w-fit">
+      <div className="expensess flex flex-col items-center justify-center  mt-5 gap-5 ml-20 xl:ml-28 overflow-y-auto h-[400px] py-6 w-fit">
        {allGoal && allGoal.length > 0 ? (
           allGoal.map((info) => (
             <div
@@ -3292,7 +3308,7 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
 
   return (
     <div className="cashflow-container flex flex-col items-center h-full">
-       <div className="flex flex-col gap-2 w-[50%]">
+       <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
           Cash Flow
         </h1>
@@ -3301,7 +3317,7 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
         </p>
       </div>
       {/* Toggle between Employee & Business Mode */}
-      <div className="flex items-center gap-8 ml-16">
+      <div className="flex flex-col lg:flex-row items-center gap-8 ml-16">
       <div className="bg-[#1b1f21] mt-10 rounded-md p-3 w-[450px]" 
       style={{border:'1px solid rgba(172, 233, 142,0.6)',height:mode === 'business' && ["Restaurant", "Retail", "Freelancer", "Coffee Shop", "Car Wash", "Rent Cars", "Other"].includes(businessType)  ? '530px':'370px',transition:'height 0.5s ease'}}>
       <div className="flex flex-col items-center gap-2">
@@ -3428,7 +3444,7 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
         type="number"
         value={products}
         onChange={(e) => setProducts(Number(e.target.value))}
-        className="bg-transparent border border-[#8ce163] rounded-sm p-1 p-1 focus:outline-0"
+        className="bg-transparent border border-[#8ce163] rounded-sm p-1 focus:outline-0"
       />
     </label>
 
@@ -3758,7 +3774,9 @@ useEffect(()=>{
          <div className="flex items-center gap-3 w-[50%] mt-2">
           <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind3} onChange={(e)=>setBind3(e.target.value)}/>
          </div>
-      <button onClick={submitChanges}></button>
+        <div className="flex items-center gap-4 w-[50%] mt-4">
+        <button className="bg-button text-[#000]" onClick={submitChanges}>Save Changes</button>
+        </div>
     <div className="empty h-24"></div>
     </div>
   )
@@ -3833,7 +3851,7 @@ const helpContent = {
     The <strong className="text-md font-medium text-[#d8dcd6]">Analytics</strong> section helps you gain deeper insights into your financial status. This system includes:
     <ul className="list-disc pl-5 mt-2">
       <li className="text-sm font-light text-[#a3ac9f] text-start">
-        <strong className="text-md font-medium text-[#d8dcd6]">Expense & Balance Analysis:</strong> The analyzer <strong className="text-md text-[#8ce163]">Finly</strong> examines your expenses and balance to identify areas for improvement.
+        <strong className="text-md font-medium text-[#d8dcd6]">Expense & Balance Analysis:</strong> The analyzer <strong className="text-md text-[#8ce163]">FinChat</strong> examines your expenses and balance to identify areas for improvement.
       </li>
       <li className="text-sm font-light text-[#a3ac9f] text-start mt-1.5">
         <strong className="text-md font-medium text-[#d8dcd6]">Goal-Based Insights:</strong> If you have a financial goal, Finly will evaluate your progress and compare your expenses to determine if achieving the goal is feasible.
@@ -3937,7 +3955,7 @@ const helpContent = {
 
 
   return(
-  <div className="flex flex-col items-center h-full">
+  <div className="flex flex-col items-center h-screen">
      <div className="flex flex-col gap-2 w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">Help</h1> 
         </div>
@@ -3947,7 +3965,6 @@ const helpContent = {
           <div
             key={key}
             onClick={() => setOpenHelp(openHelp === key ? null : key)}
-            style={{color: helpContent[openHelp] ? '' :'#8ce163',transition:'color 0.5s ease'}}
             className="mt-4 text-xl font-medium cursor-pointer flex items-center p-2 hover:text-[#8ce163] w-[50%] transition-colors" style={{borderBottom:'1px solid rgba(216, 220, 214,0.6)'}}
           >
             {key}
@@ -3959,6 +3976,8 @@ const helpContent = {
       </div>
         </div>
           <div className="empty h-24"></div>
+          <div className="empty h-24"></div>
+
 
   </div>
   )

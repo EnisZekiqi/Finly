@@ -156,6 +156,43 @@ body {
   border-right: 2px solid #242426;
   z-index: 1000;
 }
+@media(max-width:1280px){
+  .drawer-finly{
+    width:30%;
+    background: rgba( 10, 10, 10, 0.85 );
+backdrop-filter: blur( 4px );
+-webkit-backdrop-filter: blur( 4px );
+  }
+}
+.barchart{
+  margin-left:50px
+}
+@media(max-width:1240px){
+  .barchart{
+    margin-left:0px
+  }
+}
+.circlechart{
+  margin-left:50px
+}
+@media(max-width:1240px){
+  .circlechart{
+    margin-left:-45px
+  }
+}
+.piechart{
+  margin-left:0px
+}
+@media(max-width:1240px){
+  .piechart{
+    margin-left:-25px
+  }
+}
+.backdrop{
+  background: rgba( 10, 10, 10, 0.6 );
+backdrop-filter: blur( 4px );
+-webkit-backdrop-filter: blur( 4px );
+}
 .content-finly {
   width: max-content;
   height: 100vh;
