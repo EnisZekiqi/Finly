@@ -28,7 +28,7 @@ import {
   MdPayments,
   MdOutlineSearch,
   MdCheck,
-  MdEmojiEvents,MdMenu ,MdClose ,
+  MdEmojiEvents,MdMenu ,MdClose ,MdOutlineDashboard ,MdPieChartOutline ,MdOutlineCategory ,MdOutlineWallet ,
   MdOutlineQuestionMark,MdBubbleChart ,MdOutlineWarning ,MdMenuBook ,MdOutlineCalendarToday,MdInfoOutline   
 } from "react-icons/md";
 import analyticImg from './images/Analytics.svg'
@@ -37,6 +37,11 @@ import { HiUserGroup } from "react-icons/hi2";
 import goalphoto from './images/Capture.jpg'
 import expensephoto from './images/Capture2.jpg'
 import progressphoto from './images/Capture3.jpg'
+import { useNavigate, useParams } from "react-router-dom";
+import { FaChartPie, FaPlusCircle, FaWallet, FaThLarge } from "react-icons/fa";
+import { BsFillGridFill,BsGrid  } from "react-icons/bs";
+import { FaRegChartBar, FaRegListAlt, FaRegPlusSquare } from "react-icons/fa";
+
 const Tracker = () => {
   const [userData, setUserData] = useState({
     name: "",
@@ -119,8 +124,11 @@ const Tracker = () => {
 
   const [showInfo, setShowInfo] = useState("dashboard");
 
-  const chooseInfo = (info) => {
-    setShowInfo(info);
+   const navigate = useNavigate();
+  const { section } = useParams(); // Get the current section from URL
+
+  const chooseInfo = (id) => {
+    navigate(`/tracker/${id}`);
     setOpenSearch(false);
     setSearchQuery("");
     setNotificationDrawer(false);
@@ -841,16 +849,102 @@ useEffect(() => {
 
   const [drawer,setDrawer]=useState(false)
 
+const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+
+    const [activeTab2, setActiveTab2] = useState("dashboard"); // Default active
 
   return (
     <div>
       <div className="flex w-full">
         {drawer && 
-        <div onClick={()=>setDrawer(false)} className={`backdrop fixed left-0 top-0 bottom-0 right-0 z-[400]`}>
-         <button onClick={()=>setDrawer(false)}  className="bg-transparent fixed bottom-0 top-4 right-4 z-[500] h-fit block xl:hidden rounded-md p-1"><MdClose  style={{color:'rgba(222,222,222,0.9)',width:'30px',height:'30px'}}/></button>
+        <div onClick={()=>setDrawer(false)} className={`backdrop fixed left-0 sm:block hidden top-0 bottom-0 right-0 z-[400]`}>
+         <button onClick={()=>setDrawer(false)}  className="bg-transparent fixed sm:block bottom-0 top-4 right-4 z-[500] h-fit block xl:hidden rounded-md p-1"><MdClose  style={{color:'rgba(222,222,222,0.9)',width:'30px',height:'30px'}}/></button>
         </div>
         }
         {/* Drawer */}
+        {/* Bottom Navigation Bar (Mobile) */}
+ <div className="fixed bottom-0 left-0 right-0 bg-[#121212] p-4 flex justify-between items-center shadow-lg z-[500] sm:hidden">
+      <button
+        onClick={() => {
+          chooseInfo("dashboard");
+          setActiveTab2("dashboard");
+        }}
+        className="text-white hover:text-[#8DE163]"
+      >
+        {activeTab2 === "dashboard" ? <MdDashboard size={24} /> : <MdOutlineDashboard size={24} />}
+      </button>
+
+      <button
+        onClick={() => {
+          chooseInfo("analytic");
+          setActiveTab2("analytic");
+        }}
+        className="text-white hover:text-[#8DE163]"
+      >
+        {activeTab2 === "analytic" ? <MdPieChart  size={24} /> : <MdPieChartOutline size={24} />}
+      </button>
+
+      {/* Centered "+" Button */}
+      <motion.button
+        onClick={handleOpenModal}
+        className="bg-[#8DE163] p-4 rounded-full shadow-lg text-white relative -top-4"
+        whileTap={{ scale: 0.9 }}
+      >
+        <FaPlusCircle size={28} />
+      </motion.button>
+
+      <button
+        onClick={() => {
+          chooseInfo("wallet");
+          setActiveTab2("cashflow");
+        }}
+        className="text-white hover:text-[#8DE163]"
+      >
+        {activeTab2 === "cashflow" ? <MdWallet size={24} /> : <MdOutlineWallet  size={24} />}
+      </button>
+
+      <button
+        onClick={() => {
+          chooseInfo("category");
+          setActiveTab2("category");
+        }}
+        className="text-white hover:text-[#8DE163]"
+      >
+        {activeTab2 === "category" ? <MdCategory size={24} /> : <MdOutlineCategory size={24} />}
+      </button>
+    </div>
+ <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex justify-center items-center z-[500]"
+            onClick={handleCloseModal}
+          >
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              className="bg-white p-6 rounded-lg shadow-lg flex flex-col gap-4 text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button onClick={() => chooseInfo("store")} className="text-lg font-bold text-[#121212] hover:text-[#8DE163]">
+                Create Expense
+              </button>
+              <button onClick={() => chooseInfo("goal")} className="text-lg font-bold text-[#121212] hover:text-[#8DE163]">
+                Create Goal
+              </button>
+              <button onClick={handleCloseModal} className="text-sm text-gray-500 mt-2">
+                Cancel
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
         <AnimatePresence>
         <motion.div
           initial={{ x: -100, opacity: 0 }}
@@ -880,15 +974,11 @@ useEffect(() => {
                     onClick={() => chooseInfo(item.id)}
                     className={`dash w-full px-10 ${index === 0 ? "mt-5" : "mt-3"}`}
                   >
-                    <div
-                      style={{
-                        color: showInfo === item.id ? "#8DE163" : "#fff",
-                        transition: "color 0.5s ease",
-                      }}
-                      className="flex items-center cursor-pointer gap-3 text-[#fff] hover:text-[#8DE163] transition-colors font-medium"
-                    >
-                      {item.icon} {item.label}
-                    </div>
+                    <div className={`flex items-center cursor-pointer gap-3 transition-colors font-medium ${
+  String(section) === String(item.id) ? "text-[#8DE163] font-bold" : "text-[#fff]"
+} hover:text-[#8DE163]`}>
+    {item.icon} {item.label}
+  </div>
                   </div>
                 ))}
               </div>
@@ -1016,16 +1106,20 @@ useEffect(() => {
             </h1>
             <button 
             onClick={()=>setDrawer((prev)=>!prev)}
-            className="bg-[#1A1A1A] block xl:hidden border border-[rgba(222,222,222,0.2)] rounded-md p-1"><MdMenu style={{color:'rgba(222,222,222,0.6)',width:'20px',height:'20px'}}/></button>          </div>
+            className="bg-[#1A1A1A] sm:block hidden xl:hidden border border-[rgba(222,222,222,0.2)] rounded-md p-1"><MdMenu style={{color:'rgba(222,222,222,0.6)',width:'20px',height:'20px'}}/></button>         
+            <button 
+            onClick={()=>chooseInfo('settings')}
+            className="bg-[#1A1A1A] sm:hidden block border border-[rgba(222,222,222,0.2)] rounded-md p-1"><MdSettings style={{color:'rgba(222,222,222,0.6)',width:'20px',height:'20px'}}/></button>
+             </div>
           <AnimatePresence mode="wait">
             <motion.div
-              key={showInfo} // ✅ Ensures correct animation behavior
+              key={section} // ✅ Ensures correct animation behavior
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.7 }}
-              exit={{ opacity: 0, transition: { duration: 0.7 } }}
+              transition={{ duration: 0.4 }}
+              exit={{ opacity: 0, transition: { duration: 0.4 } }}
             >
-              {showInfo === "dashboard" && (
+              {section === "dashboard" && (
                 <Dashboard
                   lastUpdated={lastUpdated}
                   income={income}
@@ -1063,7 +1157,7 @@ useEffect(() => {
                   businessArray={businessArray}
                 />
               )}
-              {showInfo === "store" && (
+              {section === "store" && (
                 <Expenses
                   removeExpense={removeExpense}
                   handleSubmitExpenses={handleSubmitExpenses}
@@ -1082,7 +1176,7 @@ useEffect(() => {
                   dateDaily={dateDaily}
                 />
               )}
-              {showInfo === "analytic" && (
+              {section === "analytic" && (
                 <Analytic
                   data2={data2}
                   data3={data3}
@@ -1103,7 +1197,7 @@ useEffect(() => {
                   
                 />
               )}
-               {showInfo === "goal" && (
+               {section === "goal" && (
                 <Goal 
                 userGoal={userGoal}
                 removeGoal={removeGoal}
@@ -1118,7 +1212,7 @@ useEffect(() => {
                 createGoal={createGoal}
                 userData={userData}/>
               )}
-               {showInfo === "wallet" && (
+               {section === "wallet" && (
                 <Wallet 
                 totalExpenses={totalExpenses}
                 totalBalance={totalBalance}
@@ -1129,7 +1223,7 @@ useEffect(() => {
                 setBusinessArray={setBusinessArray}
                 />
               )}
-              {showInfo === "category" && (
+              {section === "category" && (
                 <Category 
                 chartSystem={chartSystem}
                 changeChart={changeChart}
@@ -1140,7 +1234,7 @@ useEffect(() => {
                 changeProgress={changeProgress}
                 />
               )}
-               {showInfo === "settings" && (
+               {section === "settings" && (
                 <Settings 
                 userData={userData}
                 notifSettings={notifSettings}
@@ -1153,7 +1247,7 @@ useEffect(() => {
                 setBind3={setBind3}
                 />
               )}
-              {showInfo === "help" && (
+              {section === "help" && (
                 <Help />
               )}
             </motion.div>
@@ -1278,6 +1372,77 @@ useEffect(() => {
     </div>
   );
 };
+
+
+const MobileNavbar = ({ chooseInfo }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+
+  return (
+    <>
+      {/* Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#121212] p-4 flex justify-between items-center shadow-lg z-50">
+        <button onClick={() => chooseInfo("dashboard")} className="text-white hover:text-[#8DE163]">
+          <FaThLarge size={24} />
+        </button>
+        <button onClick={() => chooseInfo("analytics")} className="text-white hover:text-[#8DE163]">
+          <FaChartPie size={24} />
+        </button>
+        
+        {/* Centered "+" Button */}
+        <motion.button
+          onClick={handleOpenModal}
+          className="bg-[#8DE163] p-4 rounded-full shadow-lg text-white relative -top-4"
+          whileTap={{ scale: 0.9 }}
+        >
+          <FaPlusCircle size={28} />
+        </motion.button>
+        
+        <button onClick={() => chooseInfo("cashflow")} className="text-white hover:text-[#8DE163]">
+          <FaWallet size={24} />
+        </button>
+        <button onClick={() => chooseInfo("category")} className="text-white hover:text-[#8DE163]">
+          <BsFillGridFill size={24} />
+        </button>
+      </div>
+
+      {/* Modal for Create Expense & Goal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex justify-center items-center z-50"
+            onClick={handleCloseModal}
+          >
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              className="bg-white p-6 rounded-lg shadow-lg flex flex-col gap-4 text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button onClick={() => chooseInfo("createExpense")} className="text-lg font-bold text-[#121212] hover:text-[#8DE163]">
+                Create Expense
+              </button>
+              <button onClick={() => chooseInfo("createGoal")} className="text-lg font-bold text-[#121212] hover:text-[#8DE163]">
+                Create Goal
+              </button>
+              <button onClick={handleCloseModal} className="text-sm text-gray-500 mt-2">
+                Cancel
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+
 
 export default Tracker;
 
@@ -1563,7 +1728,7 @@ const [chooseProgress,setChooseProgress]=useState('goals')
               border: "1px solid rgb(222,222,222,0.2)",
             }}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <h2 className="text-lg font-semibold mb-4"> Finances Breakdown</h2>
               <select
                 onChange={(e) => setChartView(e.target.value)}
@@ -3572,7 +3737,7 @@ const chooseCategory =(select)=>{
 
   return(
    <div className="category flex flex-col items-center h-full">
-     <div className="flex flex-col gap-2 w-[50%]">
+     <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
           Category
         </h1>
@@ -3580,11 +3745,11 @@ const chooseCategory =(select)=>{
           Make changes to your preferences
         </p>
       </div>
-      <h1 className="text-2xl font-medium text-[#fff]  w-[50%] text-start mt-10">
+      <h1 className="text-2xl font-medium text-[#fff] w-full pl-10 xl:pl-0 xl:w-[50%] text-start mt-10">
           Charts
         </h1>
-      <p className="w-[50%] mt-4 text-[#dedede] text-start font-light text-sm">Current chosen : {chartSystem}</p>
-      <div className="flex items-center gap-6 ml-[5%] justify-end w-[100%] mt-8">
+      <p className="w-full xl:w-[50%] pl-10 xl:pl-0 mt-4 text-[#dedede] text-start font-light text-sm">Current chosen : {chartSystem}</p>
+      <div className="flex flex-col lg:flex-row items-center gap-6 ml-[5%] justify-end w-[100%] mt-8">
       <div onClick={()=>changeChart('piechart')} className="cursor-pointer bg-[#1b1f21] p-1 rounded-md" style={{border:chartSystem === 'piechart' ? '1px solid #8ce163':'1px solid #3e453b',opacity:chartSystem==='piechart'? '1': '0.7',transition:'all 0.5s ease'}}>
          <PieChart width={300} height={275}>
           <Pie
@@ -3604,7 +3769,7 @@ const chooseCategory =(select)=>{
         </PieChart>
       </div>
        <div onClick={()=>changeChart('barchart')} className="cursor-pointer bg-[#1b1f21] p-1 rounded-md" style={{border:chartSystem === 'barchart' ? '1px solid #8ce163':'1px solid #3e453b',opacity:chartSystem==='barchart'? '1': '0.7',transition:'all 0.5s ease'}}>
-        <BarChart width={330} height={275} data={data2}>
+        <BarChart width={300} height={275} data={data2}>
         <XAxis  is dataKey="name" /> {/* Added X-Axis */}
         <YAxis /> {/* Added Y-Axis */}
  <Tooltip
@@ -3640,15 +3805,15 @@ const chooseCategory =(select)=>{
        </div>
        
       </div>
-      <h1 className="text-2xl font-medium text-[#fff]  w-[50%] text-start mt-10">
+      <h1 className="text-2xl font-medium text-[#fff] w-full pl-10 xl:pl-0 xl:w-[50%] text-start mt-10">
           Progress
         </h1>
        
-      <p className="w-[50%] mt-4 text-[#dedede] text-start font-light text-sm">
+      <p className="w-full pl-10 xl:pl-0 xl:w-[50%] mt-4 text-[#dedede] text-start font-light text-sm">
   Current chosen : {progressSystem}
 </p>
 
-<div className="flex items-center gap-20 justify-center mt-14">
+<div className="flex flex-col lg:flex-row items-center gap-20 justify-center mt-14">
   
   {/* Goal & Expenses Section */}
   <div 
@@ -3679,7 +3844,7 @@ const chooseCategory =(select)=>{
 
   {/* Business Section */}
   <div 
-    className={`flex items-center relative p-2 rounded-lg transition-all duration-500 cursor-pointer ml-20 -mr-36
+    className={`flex items-center relative p-2 rounded-lg transition-all duration-500 cursor-pointer ml-0 lg:ml-20 mr-0 lg:-mr-36
                 ${progressSystem === 'business' ? 'scale-110 border-2 border-[#8CE163] shadow-lg shadow-[#8CE163]/40' : 'opacity-70 hover:opacity-100'}`}
     onClick={() => changeProgress('business')}
   >
@@ -3735,46 +3900,46 @@ useEffect(()=>{
 
   return(
     <div className="flex flex-col items-center h-full">
-       <div className="flex flex-col gap-2 w-[50%]">
+       <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
           Settings
           <p className="mt-10 text-xl font-medium text-[#fff] text-start">Name</p>
          <p className="mt-1 text-sm font-[400] text-[#d8dcd6] text-start">Change the username as your preference.Keep in mind the name needs to be 8 letters in average</p>
         </h1>          
       </div>
-     <div className="flex flex-col gap-2 w-[50%] mt-4">
+     <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%] mt-4">
        <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Name: <p className="text-[#fff] font-medium">{changeName}</p></p>
-      <input className="w-[40%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={changeName} onChange={(e)=>setChangeName(e.target.value)}/>
+      <input className="w-[30%] xl:w-[40%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={changeName} onChange={(e)=>setChangeName(e.target.value)}/>
      </div>
-     <hr className="w-[50%] h-0.5 bg-[#d8dcd6] mt-6 opacity-30"/>
-        <p className="mt-6 text-xl font-medium text-[#fff] text-start w-[50%]">Notification</p>
-         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-[50%]">Allow the notifications so you can check on what did you achive</p>
-        <div className="flex items-end gap-6 w-[50%] mt-4">
+     <hr className="w-full ml-10 xl:ml-0 xl:w-[50%] h-0.5 bg-[#d8dcd6] mt-6 opacity-30"/>
+        <p className="mt-6 text-xl font-medium text-[#fff] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">Notification</p>
+         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">Allow the notifications so you can check on what did you achive</p>
+        <div className="flex items-end gap-6 w-full pl-10 xl:pl-0 xl:w-[50%] mt-4">
        <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Currently: <p className="text-[#fff] font-medium">{notification}</p></p>
      <input onClick={updateNotif} class="switch focus:outline-0 mt-2" type="checkbox" checked={notifSettings}/>   
     </div>
-     <hr className="w-[50%] h-0.5 bg-[#d8dcd6] mt-6 opacity-30"/>
-      <p className="mt-6 text-xl font-medium text-[#fff] text-start w-[50%]">MouseBinds</p>
-         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-[50%]">Costumize the mousebinds for your preference,Mousebinds needs to be keyboard letters</p>
-         <div className="bg-[#e16363] rounded-md p-0.5 mt-3 text-[#3a0b0b] w-[50%] text-sm font-light flex items-center gap-1.5">
+     <hr className="w-full ml-10 xl:ml-0 xl:w-[50%] h-0.5 bg-[#d8dcd6] mt-6 opacity-30"/>
+      <p className="mt-6 text-xl font-medium text-[#fff] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">MouseBinds</p>
+         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">Costumize the mousebinds for your preference,Mousebinds needs to be keyboard letters</p>
+         <div className="bg-[#e16363] rounded-md p-0.5 mt-3 text-[#3a0b0b] w-full ml-10 xl:ml-0 xl:w-[50%] text-sm font-light flex items-center gap-1.5">
           <MdInfoOutline style={{width:'20px',height:'20px'}}/><p className="text-start">Keep in mind that that for the mousebinds to work one of the keyboard letters needs to have '+' before the letter</p>
          </div>
-         <div className="flex items-center gap-4 w-[50%] mt-2">
+         <div className="flex items-center gap-4 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2">
        <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Mousebinds: <p className="text-[#fff] font-medium">{bind1}{bind2}</p></p>|
         <p className="text-sm font-extralight text-[#a3ac9f] flex items-center mt-2 gap-0.5">What it does: <p className="text-[#fff] font-medium">Opens the Quick Search</p></p>
          </div>
-         <div className="flex items-center gap-3 w-[50%] mt-2">
+         <div className="flex items-center gap-3 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2">
           <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind1} onChange={(e)=>setBind1(e.target.value)}/>
-      <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind2} onChange={(e)=>setBind2(e.target.value)}/>
+      <input className="w-[20%] bg-transparent b w-full pl-10 xl:pl-0oxl:rder border-[#8CE163] focus:outline-0 p-1" value={bind2} onChange={(e)=>setBind2(e.target.value)}/>
          </div>
-           <div className="flex items-center gap-4 w-[50%] mt-2">
+           <div className="flex items-center gap-4 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2">
        <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Mousebinds: <p className="text-[#fff] font-medium">{bind3}</p></p>|
         <p className="text-sm font-extralight text-[#a3ac9f] flex items-center mt-2 gap-0.5">What it does: <p className="text-[#fff] font-medium">Closes the Quick Search</p></p>
          </div>
-         <div className="flex items-center gap-3 w-[50%] mt-2">
+         <div className="flex items-center gap-3 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2">
           <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind3} onChange={(e)=>setBind3(e.target.value)}/>
          </div>
-        <div className="flex items-center gap-4 w-[50%] mt-4">
+        <div className="flex items-center gap-4 w-full px-10 xl:px-0 xl:w-[50%] mt-4">
         <button className="bg-button text-[#000]" onClick={submitChanges}>Save Changes</button>
         </div>
     <div className="empty h-24"></div>
@@ -3955,12 +4120,12 @@ const helpContent = {
 
 
   return(
-  <div className="flex flex-col items-center h-screen">
-     <div className="flex flex-col gap-2 w-[50%]">
+  <div className="flex flex-col items-center h-full">
+     <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">Help</h1> 
         </div>
-        <div className="flex items-center justify-center w-[90%] ml-36 mt-4">
-         <div className="flex flex-col items-center w-[70%]">
+        <div className="flex flex-col gap-8 lg:gap-0 lg:flex-row items-center justify-around xl:justify-center w-full xl:w-[90%] ml-0 xl:ml-36 mt-4">
+         <div className="flex flex-col items-center w-full lg:w-[70%]">
               {Object.keys(helpContent).map((key) => (
           <div
             key={key}
@@ -3971,7 +4136,7 @@ const helpContent = {
           </div>
         ))}
          </div>
-    <div className="w-[40%] mt-4 p-4 bg-[#1b1f21] rounded-lg h-fit">
+    <div className="w-full ml-10 lg:ml-0 lg:w-[40%] mt-4 p-4 bg-[#1b1f21] rounded-lg h-fit">
         {openHelp && helpContent[openHelp]}
       </div>
         </div>
