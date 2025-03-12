@@ -40,7 +40,7 @@ import progressphoto from './images/Capture3.jpg'
 import { useNavigate, useParams } from "react-router-dom";
 import { FaChartPie, FaPlusCircle, FaWallet, FaThLarge } from "react-icons/fa";
 import { BsFillGridFill,BsGrid  } from "react-icons/bs";
-import { FaRegChartBar, FaRegListAlt, FaRegPlusSquare } from "react-icons/fa";
+import { FaRegChartBar, FaRegListAlt, FaRegPlusSquare,FaBullseye,FaMoneyBillWave,FaTimes    } from "react-icons/fa";
 
 const Tracker = () => {
   const [userData, setUserData] = useState({
@@ -271,6 +271,7 @@ const data = [
    
 
       const now = new Date().toISOString(); // Store timestamp
+      
       const relativeTime = formatDistanceToNow(new Date(now), {
         addSuffix: true,
       });
@@ -847,6 +848,14 @@ useEffect(() => {
     localStorage.setItem("notifSettings",notifSettings)
   }
 
+  const [helpSettings,setHelpSettings]=useState(false)
+
+    const updateHelp = ()=>{
+    setHelpSettings((prev) => !prev)
+    localStorage.setItem("helpSettings",helpSettings)
+  }
+
+
   const [drawer,setDrawer]=useState(false)
 
 const [isModalOpen, setIsModalOpen] = useState(false);
@@ -855,6 +864,13 @@ const [isModalOpen, setIsModalOpen] = useState(false);
   const handleCloseModal = () => setIsModalOpen(false);
 
     const [activeTab2, setActiveTab2] = useState("dashboard"); // Default active
+
+   useEffect(()=>{
+    if(isModalOpen){
+      
+    }
+   },[])
+
 
   return (
     <div>
@@ -866,13 +882,14 @@ const [isModalOpen, setIsModalOpen] = useState(false);
         }
         {/* Drawer */}
         {/* Bottom Navigation Bar (Mobile) */}
- <div className="fixed bottom-0 left-0 right-0 bg-[#121212] p-4 flex justify-between items-center shadow-lg z-[500] sm:hidden">
+ <div className="fixed bottom-0 left-0 right-0 bg-[#121212] p-2 flex justify-between items-center shadow-lg z-[500] sm:hidden">
       <button
         onClick={() => {
           chooseInfo("dashboard");
           setActiveTab2("dashboard");
+          setIsModalOpen(false)
         }}
-        className="text-white hover:text-[#8DE163]"
+        className="text-white bg-transparent hover:text-[#8DE163]"
       >
         {activeTab2 === "dashboard" ? <MdDashboard size={24} /> : <MdOutlineDashboard size={24} />}
       </button>
@@ -881,27 +898,35 @@ const [isModalOpen, setIsModalOpen] = useState(false);
         onClick={() => {
           chooseInfo("analytic");
           setActiveTab2("analytic");
+           setIsModalOpen(false)
         }}
-        className="text-white hover:text-[#8DE163]"
+        className="text-white bg-transparent hover:text-[#8DE163]"
       >
         {activeTab2 === "analytic" ? <MdPieChart  size={24} /> : <MdPieChartOutline size={24} />}
       </button>
 
       {/* Centered "+" Button */}
-      <motion.button
-        onClick={handleOpenModal}
-        className="bg-[#8DE163] p-4 rounded-full shadow-lg text-white relative -top-4"
-        whileTap={{ scale: 0.9 }}
-      >
-        <FaPlusCircle size={28} />
-      </motion.button>
+    <motion.button
+  onClick={isModalOpen ? handleCloseModal : handleOpenModal}
+  className={`p-2 rounded-full shadow-lg border border-[#121212] ${isModalOpen ? "text-[#3a0b0b]":"text-[#1a3a0b]"}  relative -top-4  transition-all duration-300 ${
+    isModalOpen ? "bg-[#e16363] rotate-45" : "bg-[#8DE163]"
+  }`}
+  whileTap={{ scale: 0.9 }}
+  style={{zIndex:1000}}
+>
+  <FaPlusCircle size={28} className={`${isModalOpen ? "hidden" : "block"}`} />
+  <FaTimes size={28} className={`${isModalOpen ? "block" : "hidden"}`} />
+</motion.button>
+
 
       <button
         onClick={() => {
           chooseInfo("wallet");
           setActiveTab2("cashflow");
+          setIsModalOpen(false)
+
         }}
-        className="text-white hover:text-[#8DE163]"
+        className="text-white bg-transparent hover:text-[#8DE163]"
       >
         {activeTab2 === "cashflow" ? <MdWallet size={24} /> : <MdOutlineWallet  size={24} />}
       </button>
@@ -910,40 +935,56 @@ const [isModalOpen, setIsModalOpen] = useState(false);
         onClick={() => {
           chooseInfo("category");
           setActiveTab2("category");
+          setIsModalOpen(false)
+
         }}
-        className="text-white hover:text-[#8DE163]"
+        className="text-white bg-transparent hover:text-[#8DE163]"
       >
         {activeTab2 === "category" ? <MdCategory size={24} /> : <MdOutlineCategory size={24} />}
       </button>
     </div>
  <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex justify-center items-center z-[500]"
-            onClick={handleCloseModal}
-          >
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-              className="bg-white p-6 rounded-lg shadow-lg flex flex-col gap-4 text-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button onClick={() => chooseInfo("store")} className="text-lg font-bold text-[#121212] hover:text-[#8DE163]">
-                Create Expense
-              </button>
-              <button onClick={() => chooseInfo("goal")} className="text-lg font-bold text-[#121212] hover:text-[#8DE163]">
-                Create Goal
-              </button>
-              <button onClick={handleCloseModal} className="text-sm text-gray-500 mt-2">
-                Cancel
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
+    {isModalOpen && (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0  bg-black/50 flex justify-center items-center z-[400]"
+    onClick={handleCloseModal}
+  >
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: 50, opacity: 0 }}
+      className="relative top-[30%] flex items-center justify-center gap-6"
+      onClick={(e) => e.stopPropagation()}
+    >
+      
+      {/* Expense Button - Tilted Left */}
+      <div className="flex flex-col items-center rotate-[-20deg]">
+      <span className="text-xs text-white font-bold mb-1">Expense</span>
+      <button
+        onClick={() => chooseInfo("store")}
+        className="w-18 h-18 bg-[#8CE163] rounded-full flex flex-col items-center justify-center shadow-lg relative  hover:bg-[#76c14e] transition-all"
+      >
+      
+        <FaMoneyBillWave size={30} color="#1A3A0B" />
+      </button></div>
+
+      {/* Goal Button - Tilted Right */}
+      <div className="flex flex-col items-center rotate-[20deg]">
+      <span className="text-xs text-white font-bold mb-1">Goal</span>
+      <button
+        onClick={() => chooseInfo("goal")}
+        className="w-18 h-18 bg-[#8CE163] rounded-full flex flex-col items-center justify-center shadow-lg relative hover:bg-[#76c14e] transition-all"
+      >
+        <FaBullseye size={30} color="#1A3A0B" />
+      </button></div>
+    </motion.div>
+  </motion.div>
+)}
+
+
       </AnimatePresence>
         <AnimatePresence>
         <motion.div
@@ -1000,7 +1041,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
           >
             <button
               onClick={() => setOpenSearch(!openSearch)}
-              className="cursor-pointer pl-1 xl:pl-0 px-0 xl:px-3 w-fit xl:w-[250px] flex gap-2 justify-between items-center rounded-md border border-[rgba(222,222,222,0.2)] p-1 focus:outline-0"
+              className="cursor-pointer pl-1 xl:pl-0 px-0 xl:px-3 w-fit xl:w-[250px] hidden md:flex gap-2 justify-between items-center rounded-md border border-[rgba(222,222,222,0.2)] p-1 focus:outline-0"
             >
               {" "}
               <div className="flex items-center gap-2">
@@ -1017,6 +1058,14 @@ const [isModalOpen, setIsModalOpen] = useState(false);
                 </p>
               </label>
             </button>
+            {helpSettings && 
+            <motion.div
+            onClick={()=>chooseInfo('help')}
+            className="border bg-[#1A1A1A] border-[rgba(222,222,222,0.1)] p-1 block md:hidden rounded-md focus:outline-0"
+            >
+              <MdMenuBook style={{color:"rgba(222,222,222,0.6)",width:'18px',height:'18px'}}/>
+            </motion.div>
+            }
            <AnimatePresence>
              {notifSettings &&
             <motion.div
@@ -1042,7 +1091,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0, transtion: { duration: 0.5 } }}
                   exit={{ opacity: 0, y: -10, transtion: { duration: 0.5 } }}
-                  className="drawerNotifaction absolute mt-36 mr-16 p-2"
+                  className="drawerNotifaction absolute mt-32 md:mt-36 mr-0 md:mr-16 p-2"
                 >
                   <div className="flex flex-col items-start gap-3">
                     <h2 className="text-[#fff] font-medium text-lg">
@@ -1109,7 +1158,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
             className="bg-[#1A1A1A] sm:block hidden xl:hidden border border-[rgba(222,222,222,0.2)] rounded-md p-1"><MdMenu style={{color:'rgba(222,222,222,0.6)',width:'20px',height:'20px'}}/></button>         
             <button 
             onClick={()=>chooseInfo('settings')}
-            className="bg-[#1A1A1A] sm:hidden block border border-[rgba(222,222,222,0.2)] rounded-md p-1"><MdSettings style={{color:'rgba(222,222,222,0.6)',width:'20px',height:'20px'}}/></button>
+            className="bg-[#1A1A1A] sm:hidden block border border-[rgba(222,222,222,0.2)] rounded-md p-1"><MdSettings style={{color:'rgba(222,222,222,0.6)',width:'18px',height:'18px'}}/></button>
              </div>
           <AnimatePresence mode="wait">
             <motion.div
@@ -1239,6 +1288,8 @@ const [isModalOpen, setIsModalOpen] = useState(false);
                 userData={userData}
                 notifSettings={notifSettings}
                 updateNotif={updateNotif}
+                helpSettings={helpSettings}
+                updateHelp={updateHelp}
                 bind1={bind1}
                 bind2={bind2}
                 bind3={bind3}
@@ -1278,7 +1329,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
                       opacity: 0,
                       transition: { duration: 0.3 },
                     }}
-                    className="search bg-[#141718] p-6 rounded-xl shadow-lg w-[550px] h-[350px] overflow-y-auto border border-[rgba(222,222,222,0.2)]"
+                    className="search bg-[#141718] p-6 rounded-xl shadow-lg w-fit lg:w-[550px] h-fit lg:h-[350px] overflow-y-auto border border-[rgba(222,222,222,0.2)]"
                     style={{ zIndex: 4000 }}
                     onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside
                   >
@@ -1374,73 +1425,6 @@ const [isModalOpen, setIsModalOpen] = useState(false);
 };
 
 
-const MobileNavbar = ({ chooseInfo }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-
-  return (
-    <>
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#121212] p-4 flex justify-between items-center shadow-lg z-50">
-        <button onClick={() => chooseInfo("dashboard")} className="text-white hover:text-[#8DE163]">
-          <FaThLarge size={24} />
-        </button>
-        <button onClick={() => chooseInfo("analytics")} className="text-white hover:text-[#8DE163]">
-          <FaChartPie size={24} />
-        </button>
-        
-        {/* Centered "+" Button */}
-        <motion.button
-          onClick={handleOpenModal}
-          className="bg-[#8DE163] p-4 rounded-full shadow-lg text-white relative -top-4"
-          whileTap={{ scale: 0.9 }}
-        >
-          <FaPlusCircle size={28} />
-        </motion.button>
-        
-        <button onClick={() => chooseInfo("cashflow")} className="text-white hover:text-[#8DE163]">
-          <FaWallet size={24} />
-        </button>
-        <button onClick={() => chooseInfo("category")} className="text-white hover:text-[#8DE163]">
-          <BsFillGridFill size={24} />
-        </button>
-      </div>
-
-      {/* Modal for Create Expense & Goal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex justify-center items-center z-50"
-            onClick={handleCloseModal}
-          >
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-              className="bg-white p-6 rounded-lg shadow-lg flex flex-col gap-4 text-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button onClick={() => chooseInfo("createExpense")} className="text-lg font-bold text-[#121212] hover:text-[#8DE163]">
-                Create Expense
-              </button>
-              <button onClick={() => chooseInfo("createGoal")} className="text-lg font-bold text-[#121212] hover:text-[#8DE163]">
-                Create Goal
-              </button>
-              <button onClick={handleCloseModal} className="text-sm text-gray-500 mt-2">
-                Cancel
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
-};
 
 
 
@@ -1687,10 +1671,80 @@ useEffect(()=>{
 
 const [chooseProgress,setChooseProgress]=useState('goals')
 
+  const [outerRadius, setOuterRadius] = useState(500); // Default value
+useEffect(() => {
+    // Function to update outerRadius based on window width
+    const updateRadius = () => {
+      if (window.innerWidth < 640) {
+        setOuterRadius(250); // Small screens (Mobile)
+      } else if (window.innerWidth < 1024) {
+        setOuterRadius(400); // Medium screens (Tablets)
+      } else {
+        setOuterRadius(550); // Large screens (Desktops)
+      }
+    };
+
+    updateRadius(); // Set initial value
+    window.addEventListener("resize", updateRadius); // Update on resize
+
+    return () => window.removeEventListener("resize", updateRadius); // Cleanup
+  }, []);
+
   return (
     <div className="flex flex-col items-center justify-center gap-5 h-full">
       <div className="flex flex-col items-center w-full mt-10 gap-5">
-        <div className="flex flex-col lg:flex-row items-center gap-20 justify-end w-full">
+       <div className="flex md:hidden flex-col items-center w-full ml-10 mt-10 gap-6">
+  {/* Total Balance Card */}
+  <div className="w-[300px] bg-[#1C1F23] rounded-xl p-5 text-center shadow-lg">
+    <p className="text-gray-400 text-sm">Total Balance</p>
+    <h1 className="text-4xl font-bold text-white flex items-center justify-center gap-2">
+      <span>{userData.currency}</span>
+      <span>{totalBalance.toFixed(2)}</span>
+    </h1>
+    <div className="flex justify-center mt-2">
+      <button
+        className="bg-[#252923] border border-[#3e453b] text-xs px-3 py-1 rounded-md text-[#d8dcd6]"
+        onClick={cycleBalanceType}
+      >
+        {changeBalance}
+      </button>
+    </div>
+    {lastUpdated && (
+    <p className="text-xs text-gray-500 mt-2">
+      Last Updated: {new Date(lastUpdated).toLocaleString()}
+    </p>
+  )}
+  </div>
+
+  {/* Income & Expenses Cards */}
+  <div className="flex gap-5">
+    {allInfo.slice(1).map((info, index) => (
+      <div
+        key={index}
+        className="w-[140px] bg-[#1C1F23] rounded-xl p-4 text-center shadow-lg"
+      >
+        <div className="flex flex-col items-center">
+          <div className="bg-[#8DE163] p-2 rounded-full">{info.icon}</div>
+          <p className="text-gray-400 text-sm mt-2">{info.name}</p>
+        </div>
+        <h2 className="text-lg font-semibold text-white mt-1 flex items-center justify-center gap-1">
+          <span>{info.currency}</span>
+          <span>{info.income.toFixed(2)}</span>
+        </h2>
+        <button
+          className="bg-[#252923] border border-[#3e453b] text-xs px-3 py-1 rounded-md text-[#d8dcd6] mt-2"
+          onClick={info.button}
+        >
+          {info.buttonText}
+        </button>
+      </div>
+    ))}
+  </div>
+
+  {/* Last Updated */}
+
+</div>
+  <div className="hidden md:flex flex-col lg:flex-row items-center gap-20 justify-end w-full">
           {allInfo.map((info, index) => (
             <div
               key={index}
@@ -1721,19 +1775,19 @@ const [chooseProgress,setChooseProgress]=useState('goals')
             </div>
           ))}
         </div>
-        <div className="flex flex-col lg:flex-row w-[100%] justify-evenly xl:justify-end items-center gap-8 xl:gap-4">
+        <div className="flex flex-col lg:flex-row md:w-[100%] ml-10 px-1 md:px-5 justify-evenly xl:justify-end items-center gap-8 xl:gap-4">
           <div
-            className="bg-[#141718] p-6 rounded-xl shadow-lg w-[60%] xl:w-[52%]"
+            className="bg-[#141718] p-6 rounded-xl shadow-lg w-full md:w-[60%] xl:w-[52%]"
             style={{
               border: "1px solid rgb(222,222,222,0.2)",
             }}
           >
-            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold mb-4"> Finances Breakdown</h2>
+            <div className="flex flex-row justify-between items-center mb-4">
+              <h2 className="text-md lg:text-lg font-semibold mb-4"> Finances Breakdown</h2>
               <select
                 onChange={(e) => setChartView(e.target.value)}
                 value={chartView}
-                className="border border-[#8CE163] bg-transparent text-[#8CE163] py-2 px-3 rounded text-sm font-light outline-none"
+                className="border border-[#8CE163] bg-transparent text-[#8CE163] py-2  px-1 lg:px-3 rounded text-xs md:text-sm font-light outline-none"
               >
                 <option value="Expenses vs Goals" className="bg-[#141718] text-[#8CE163]">
                   Expenses vs Goals
@@ -1751,15 +1805,15 @@ const [chooseProgress,setChooseProgress]=useState('goals')
             </div>
 
             <div className="flex justify-center gap-4  mb-4">
-                <div className="flex justify-center space-x-4 mb-4">
-<p className="text-start px-2 font-light text-sm text-[#dedede]">
+                <div className="flex justify-center space-x-2 md:space-x-4 mb-4">
+<p className="text-start px-0.5 md:px-2 font-light text-xs md:text-sm text-[#dedede]">
   Select an option on the right to view a detailed financial breakdown.  
-  Changing <em className="font-light text-sm text-[rgb(156,163,175)]">Total Balance -  
-    <b className="text[rgb(216,220,214)] font-light text-sm rounded-md border border-[#3E453B] bg-[#252923] p-0.5 mt-1.5">Monthly</b>
+  Changing <em className="font-light text-xs md:text-sm text-[rgb(156,163,175)]">Total Balance -  
+    <b className="text[rgb(216,220,214)] font-light text-xs md:text-sm rounded-md border border-[#3E453B] bg-[#252923] p-[1px] md:p-0.5 mt-1.5">Monthly</b>
   </em> and  
-  <em className="font-light text-sm text-[rgb(156,163,175)]">Total Expenses -  
-    <b className="text[rgb(216,220,214)] font-light text-sm rounded-md border border-[#3E453B] bg-[#252923] p-0.5 mt-1.5">Monthly</b>
-  </em> will also update the chart.For more please check <em className="font-light underline decoration-solid text-sm text-[rgb(156,163,175)]"> 
+  <em className="font-light text-xs md:text-sm text-[rgb(156,163,175)]">Total Expenses -  
+    <b className="text[rgb(216,220,214)] font-light text-xs md:text-sm rounded-md border border-[#3E453B] bg-[#252923] p-[1px] md:p-0.5 mt-1.5">Monthly</b>
+  </em> will also update the chart.For more please check <em onClick={()=>chooseInfo('help')} className="font-light cursor-pointer underline decoration-solid text-sm text-[rgb(156,163,175)]"> 
     Help
   </em>
 </p>
@@ -1768,109 +1822,175 @@ const [chooseProgress,setChooseProgress]=useState('goals')
             </div>
 
             <div className="flex items-start justify-center">
-              <ResponsiveContainer width="100%" height={330}>
+            <ResponsiveContainer width="100%" height={330}>
+  <>
+    {/* If pieData is empty and the Pie Chart is selected, show a message */}
+    {chartSystem === 'piechart' && pieData.length === 0 ? (
+      <div className="h-full flex flex-col-reverse gap-2 items-center justify-center text-xl font-medium text-center">
+        <img width="300px" height="300px" src={analyticImg} />
+        Create some Expenses and Goals for the pie chart to work
+      </div>
+    ) : null}
 
-               <>
-  {/* If pieData is empty and the Pie Chart is selected, show a message */}
-  {chartSystem === 'piechart' && pieData.length === 0 ? (
-    <div className="h-full flex flex-col-reverse gap-2 items-center justify-center text-xl font-medium text-center">
-      <img width="300px" height="300px" src={analyticImg} />
-      Create some Expenses and Goals for the pie chart to work
-    </div>
-  ) : null}
+    {/* Render Pie Chart if there is data */}
+    {chartSystem === 'piechart' && pieData.length > 0 && (
+      <div>
+        <div className="block md:hidden">
+      <PieChart width={outerRadius} className="" height={275}>
+        <Pie
+          data={pieData}
+          cx="50%"
+          cy="50%"
+          outerRadius={100}
+          fill="#8884d8"
+          dataKey="value"
+        >
+          {pieData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#2d2f31',
+            borderRadius: '8px',
+            border: 'none',
+            color: '#ffffff',
+          }}
+          cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }}
+          itemStyle={{ color: "#ffffff" }}
+        />
+      </PieChart>
+      </div>
+      <div className="hidden md:block">
+        <PieChart width={outerRadius} className="" height={275}>
+        <Pie
+          data={pieData}
+          cx="50%"
+          cy="50%"
+          outerRadius={100}
+          fill="#8884d8"
+          dataKey="value"
+          label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+        >
+          {pieData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#2d2f31',
+            borderRadius: '8px',
+            border: 'none',
+            color: '#ffffff',
+          }}
+          cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }}
+          itemStyle={{ color: "#ffffff" }}
+        />
+      </PieChart>
+      </div>
+      </div>
+    )}
 
-  {/* Render Pie Chart if there is data */}
-  {chartSystem === 'piechart' && pieData.length > 0 && (
-    <PieChart width={560} className="piechart" height={275}>
-      <Pie
-        data={pieData}
-        cx="50%"
-        cy="50%"
-        outerRadius={100}
-        fill="#8884d8"
-        dataKey="value"
-        label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
-      >
-        {pieData.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-        ))}
-      </Pie>
- <Tooltip
-    contentStyle={{
-      backgroundColor: '#2d2f31', // Dark background
-      borderRadius: '8px', 
-      border: 'none', 
-      color: '#ffffff', // White text
-    }}
-    cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }} 
-     itemStyle={{ color: "#ffffff" }}// Light green hover effect instead of grey
-  />    </PieChart>
-  )}
+    {/* Render Bar Chart if selected */}
+    {chartSystem === 'barchart' && (
+      <BarChart width={outerRadius} height={275} data={barChartData} className="" style={{ marginTop: "25px" }}>
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: '#2d2f31',
+            borderRadius: '8px',
+            border: 'none',
+            color: '#ffffff',
+          }}
+          cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }}
+        />
+        <Legend />
+        <Bar dataKey="value" fill="#8ce163" stackId="a" name={"Data"} />
+      </BarChart>
+    )}
 
-  {/* Render Bar Chart if selected */}
-  {chartSystem === 'barchart' && (
-    <BarChart width={500} height={275} data={barChartData} className="barchart" style={{marginTop:"25px"}}>
-      <XAxis dataKey="name" />
-      <YAxis />
- <Tooltip
-    contentStyle={{
-      backgroundColor: '#2d2f31', // Dark background
-      borderRadius: '8px', 
-      border: 'none', 
-      color: '#ffffff', // White text
-    }}
-    cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }} // Light green hover effect instead of grey
-  />      <Legend />
-      <Bar dataKey="value" fill="#8ce163" stackId="a" name="Data" />
-    </BarChart>
-  )}
+    {/* If circleChartData is empty and Circle Chart is selected, show a message */}
+    {chartSystem === 'circlechart' && circleChartData.length === 0 ? (
+      <div className="h-full flex flex-col-reverse gap-2 items-center justify-center text-xl font-medium text-center">
+        No data available for the circle chart.
+      </div>
+    ) : null}
 
-  {/* If circleChartData is empty and Circle Chart is selected, show a message */}
-  {chartSystem === 'circlechart' && circleChartData.length === 0 ? (
-    <div className="h-full flex flex-col-reverse gap-2 items-center justify-center text-xl font-medium text-center">
-      No data available for the circle chart.
-    </div>
-  ) : null}
-
-  {/* Render Circle Chart if there is data */}
-  {chartSystem === 'circlechart' && circleChartData.length > 0 && (
-    <PieChart width={650} height={275} className="circlechart">
-      <Pie
-        data={circleChartData}
-        cx={270}
-        cy={160}
-        innerRadius={60}
-        outerRadius={80}
-        fill="#8884d8"
-        paddingAngle={5}
-        dataKey="value"
-         labelStyle={{
-      fill: "#ffffff", // White text color
-      fontSize: "14px",
-      fontWeight: "bold",
-    }}
-        label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
-      >
-        {circleChartData.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-        ))}
-      </Pie>
-       <Tooltip
-    contentStyle={{
-      backgroundColor: '#2d2f31', // Dark background
-      borderRadius: '8px', 
-      border: 'none', 
-      color: '#ffffff', // White text
-    }}
-    cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }} 
-     itemStyle={{ color: "#ffffff" }}// Light green hover effect instead of grey
-  />
-    </PieChart>
-  )}
-</>
-
-
-            </ResponsiveContainer>
+    {/* Render Circle Chart if there is data */}
+    {chartSystem === 'circlechart' && circleChartData.length > 0 && (
+      <div>
+        <div className="block md:hidden">
+          <PieChart width={400} height={275} className="circlechart">
+            <Pie
+              data={circleChartData}
+              cx={270}
+              cy={160}
+              innerRadius={60}
+              outerRadius={80}
+              fill="#8884d8"
+              paddingAngle={5}
+              dataKey="value"
+              labelStyle={{
+                fill: "#ffffff",
+                fontSize: "14px",
+                fontWeight: "bold",
+              }}
+            >
+              {circleChartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#2d2f31',
+                borderRadius: '8px',
+                border: 'none',
+                color: '#ffffff',
+              }}
+              cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }}
+              itemStyle={{ color: "#ffffff" }}
+            />
+          </PieChart>
+        </div>
+        <div className="hidden md:block">
+          <PieChart width={600} height={275} className="circlechart">
+            <Pie
+              data={circleChartData}
+              cx={270}
+              cy={160}
+              innerRadius={60}
+              outerRadius={80}
+              fill="#8884d8"
+              paddingAngle={5}
+              dataKey="value"
+              labelStyle={{
+                fill: "#ffffff",
+                fontSize: "14px",
+                fontWeight: "bold",
+              }}
+              label={({ name, value, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+            >
+              {circleChartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#2d2f31',
+                borderRadius: '8px',
+                border: 'none',
+                color: '#ffffff',
+              }}
+              cursor={{ fill: 'rgba(140, 225, 99, 0.3)' }}
+              itemStyle={{ color: "#ffffff" }}
+            />
+          </PieChart>
+        </div>
+      </div>
+    )}
+  </>
+</ResponsiveContainer>
 
             </div>
           </div>
@@ -2014,7 +2134,7 @@ const [chooseProgress,setChooseProgress]=useState('goals')
         </div>
       </div>
       <div className="empty h-26"></div>
-       <div className="empty h-26"></div>
+       <div className="empty h-32"></div>
     </div>
   );
 }
@@ -2045,21 +2165,21 @@ function Expenses({
   return (
     <div className="exp flex flex-col items-center justify-center gap-5 h-screen">
       <div className="flex flex-col gap-2 w-[100%] pl-6 xl:pl-0 xl:w-[50%]">
-        <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
+        <h1 className="text-3xl md:text-4xl font-medium text-[#fff]  text-start mt-10">
           Expenses
         </h1>
-        <p className="text-start text-[#dedede] font-normal text-md">
+        <p className="text-start text-[#dedede] font-normal text-sm md:text-md">
           Let's see what we've got to do today.
         </p>
       </div>
-      <div className="expensess flex flex-col grid-cols-1 gap-6 xl:grid xl:grid-cols-2 xl:gap-5 ml-24 xl:ml-32 overflow-y-auto h-[calc(100vh-50px)] py-4 w-fit">
+      <div className="expensess flex flex-col grid-cols-1 gap-6 xl:grid xl:grid-cols-2 xl:gap-5 ml-10 lg:ml-24 xl:ml-32 overflow-y-auto h-[calc(100vh-50px)] py-4 w-fit">
         {expenses.length > 0 ? (
           expenses.map((info) => (
             <div
               key={info.id || `${info.nameExpense}-${info.howMuch}`}
               className="flex flex-col rounded-xl px-2 border h-fit border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900 "
             >
-              <div className="flex items-center justify-between w-[400px]">
+              <div className="flex items-center justify-between w-[320px] lg:w-[400px]">
                 <h1 className="text-[#fff] font-medium text-lg">
                   {info.nameExpense}
                 </h1>{" "}
@@ -2076,19 +2196,19 @@ function Expenses({
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-[#dedede] font-normal text-sm flex items-center">
+                <p className="text-[#dedede] font-extralight lg:font-normal text-xs lg:text-sm flex items-center">
                   Category:
                   <b className="text-[#fff] font-medium"> {info.category.slice(0,10)}</b>
                 </p>{" "}
                 <p className="text-[rgba(222,222,222,0.7)]">/</p>
-                <p className="text-[#dedede] font-light text-sm flex items-center">
+                <p className="text-[#dedede] font-extralight lg:font-light text-xs lg:text-sm flex items-center">
                   Amount:{" "}
                   <b className="text-[#fff] font-medium">{info.howMuch}</b>
                   {userData.currency}
                 </p>
                 <p className="text-[rgba(222,222,222,0.7)]">/</p>
-                <p className="text-xs text-gray-500">
-                  Added: {new Date(info.id).toLocaleString()}
+                <p className="text-xs font-light text-gray-500">
+                  Added: {new Date(info.id).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -2097,7 +2217,7 @@ function Expenses({
           <div className="expen text-3xl font-semibold h-full text-center flex items-center justify-center -mr-14">No Expenses Yet</div>
         )}
 
-        <div className="fixed bottom-2 left-1/2 w-full max-w-xl -translate-x-1/2 px-4">
+        <div className="fixed bottom-[5.5rem] sm:bottom-2 left-1/2 w-full max-w-xl -translate-x-1/2 px-4 z-[500]">
           <AnimatePresence>
             {openExpense && (
               <motion.form
@@ -2125,7 +2245,7 @@ function Expenses({
                   onChange={(e) => setNameExpense(e.target.value)}
                   className="h-20 w-full resize-none rounded bg-[#141718] p-3 text-sm text-zinc-50 placeholder-zinc-500 caret-zinc-50 focus:outline-0"
                 />
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col lg:flex-row items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <input
                       placeholder="Categorize as ..."
@@ -2158,7 +2278,7 @@ function Expenses({
                   </div>
                   <button
                     type="submit"
-                    className="rounded bg-[#8DE163] px-1.5 py-1 text-xs text-[#000] transition-colors hover:bg-[rgba(141,225,99,0.7)]"
+                    className="rounded w-full lg:w-fit bg-[#8DE163] px-1.5 py-1 text-xs text-[#000] transition-colors hover:bg-[rgba(141,225,99,0.7)]"
                   >
                     Submit
                   </button>
@@ -2637,7 +2757,15 @@ const [analyzeGoalAfter, setAnalyzeGoalAfter] = useState(false);
 }, [analyzeGoalAfter, allGoal, allExpenses, totalBalance, totalExpenses]);
 
 
+  const [isMobilePie, setIsMobilePie] = useState(window.innerWidth < 350);
 
+ useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 350);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
 
 
@@ -2680,10 +2808,10 @@ const [analyzeGoalAfter, setAnalyzeGoalAfter] = useState(false);
              {changeMethods === 'expenses' && <PieChart>
                 <Pie
                   dataKey="value"
-                  data={sortedData}
+                 data={sortedData}
                   cx="50%"
                   cy="50%"
-                  outerRadius={110}
+                  outerRadius={isMobilePie ? 110 : 80}
                   fill="#8CE163"
                   label={({ name, percent }) =>
                     `${name} ${(percent * 100).toFixed(1)}%`
@@ -3063,7 +3191,7 @@ onClick={totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum +
     className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
 onClick={changeFunction ? () => setContinueLess(true) : resetAll}
   >
-    {changeFunction ? 'Improve Expenses':'Continue Analyzing'}
+    {changeFunction ? 'Improve Expenses':'Finish Analyzing'}
   </motion.em>
 </motion.p>
 </div>
@@ -3300,14 +3428,14 @@ const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
           Let's see what we can achive today
         </p>
       </div>
-      <div className="expensess flex flex-col items-center justify-center  mt-5 gap-5 ml-20 xl:ml-28 overflow-y-auto h-[400px] py-6 w-fit">
+      <div className="expensess flex flex-col items-center justify-center  mt-5 gap-5 ml-10 lg:ml-20 xl:ml-28 overflow-y-auto h-[400px] py-6 w-fit">
        {allGoal && allGoal.length > 0 ? (
           allGoal.map((info) => (
             <div
               key={info.id || `${info.userGoal}-${info.priceGoal}`}
               className="flex flex-col rounded-xl px-2 border border-[rgb(222,222,222,0.2)] bg-[#141718] py-3 text-lg text-white transition-colors  active:bg-zinc-900 "
             >
-              <div className="flex items-center justify-between w-[400px]">
+              <div className="flex items-center justify-between w-[320px] lg:w-[400px]">
                 <h1 className="text-[#fff] font-medium text-lg">
                   {info.userGoal}
                 </h1>{" "}
@@ -3322,19 +3450,19 @@ const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-[#dedede] font-normal text-sm flex items-center">
+                <p className="text-[#dedede] font-extralight lg:font-normal text-xs lg:text-sm flex items-center">
                   Category:
                   <b className="text-[#fff] font-medium"> {info.categoryGoal.slice(0,10)}</b>
                 </p>{" "}
                 <p className="text-[rgba(222,222,222,0.7)]">/</p>
-                <p className="text-[#dedede] font-light text-sm flex items-center">
+                <p className="text-[#dedede] font-extralight lg:font-normal text-xs lg:text-sm flex items-center">
                   Amount:{" "}
                   <b className="text-[#fff] font-medium">{info.priceGoal}</b>
                   {userData.currency}
                 </p>
                 <p className="text-[rgba(222,222,222,0.7)]">/</p>
-                <p className="text-xs text-gray-500">
-                  Added: {new Date(info.id).toLocaleString()}
+                <p className="text-xs font-light text-gray-500">
+                  Added: {new Date(info.id).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -3343,7 +3471,7 @@ const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
           <div className="expen text-3xl font-semibold">No Goals Yet</div>
         )}
 
-        <div className="fixed bottom-2 left-1/2 w-full max-w-xl -translate-x-1/2 px-4">
+        <div className="fixed bottom-[5.5rem] xl:bottom-2 left-1/2 w-full max-w-xl -translate-x-1/2 px-4">
           <AnimatePresence>
             {openGoal && (
               <motion.form
@@ -3390,12 +3518,13 @@ const Goal =({userGoal,categoryGoal,priceGoal,handleSubmitGoal,openGoal,
                     
                   </div>
                   <button
-                    type="submit"
+             type="submit"
                     className="rounded bg-[#8DE163] px-1.5 py-1 text-xs text-[#000] transition-colors hover:bg-[rgba(141,225,99,0.7)]"
                   >
                     Submit
                   </button>
                 </div>
+                              
               </motion.form>
             )}
           </AnimatePresence>
@@ -3474,16 +3603,16 @@ const yearlyProfit = yearlyRevenue - (businessExpenses * 365);
   return (
     <div className="cashflow-container flex flex-col items-center h-full">
        <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%]">
-        <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
+        <h1 className="text-3xl md:text-4xl font-medium text-[#fff]  text-start mt-10">
           Cash Flow
         </h1>
-        <p className="text-start text-[#dedede] font-normal text-md">
+        <p className="text-start text-[#dedede] font-normal text-sm md:text-md">
           Let's see what we can achive today
         </p>
       </div>
       {/* Toggle between Employee & Business Mode */}
-      <div className="flex flex-col lg:flex-row items-center gap-8 ml-16">
-      <div className="bg-[#1b1f21] mt-10 rounded-md p-3 w-[450px]" 
+      <div className="flex flex-col lg:flex-row items-center gap-8 ml-10 lg:ml-16">
+      <div className="bg-[#1b1f21] mt-10 rounded-md p-3 w-[320px] lg:w-[450px]" 
       style={{border:'1px solid rgba(172, 233, 142,0.6)',height:mode === 'business' && ["Restaurant", "Retail", "Freelancer", "Coffee Shop", "Car Wash", "Rent Cars", "Other"].includes(businessType)  ? '530px':'370px',transition:'height 0.5s ease'}}>
       <div className="flex flex-col items-center gap-2">
       <div className="toggle-container flex items-center gap-24 justify-around rounded-md mt-10">
@@ -3738,18 +3867,18 @@ const chooseCategory =(select)=>{
   return(
    <div className="category flex flex-col items-center h-full">
      <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%]">
-        <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
+        <h1 className="text-3xl md:text-4xl font-medium text-[#fff]  text-start mt-10">
           Category
         </h1>
-        <p className="text-start text-[#dedede] font-normal text-md">
+        <p className="text-start text-[#dedede] font-normal text-sm md:text-md">
           Make changes to your preferences
         </p>
       </div>
-      <h1 className="text-2xl font-medium text-[#fff] w-full pl-10 xl:pl-0 xl:w-[50%] text-start mt-10">
+      <h1 className="text-xl md:text-2xl font-medium text-[#fff] w-full pl-10 xl:pl-0 xl:w-[50%] text-start mt-10">
           Charts
         </h1>
-      <p className="w-full xl:w-[50%] pl-10 xl:pl-0 mt-4 text-[#dedede] text-start font-light text-sm">Current chosen : {chartSystem}</p>
-      <div className="flex flex-col lg:flex-row items-center gap-6 ml-[5%] justify-end w-[100%] mt-8">
+      <p className="w-full xl:w-[50%] pl-10 xl:pl-0 mt-2 md:mt-4 text-[#dedede] text-start font-light text-xs sm:text-sm">Current chosen : {chartSystem}</p>
+      <div className="flex flex-col lg:flex-row items-center gap-6 ml-10 lg:ml-[5%] justify-end w-[100%] mt-8">
       <div onClick={()=>changeChart('piechart')} className="cursor-pointer bg-[#1b1f21] p-1 rounded-md" style={{border:chartSystem === 'piechart' ? '1px solid #8ce163':'1px solid #3e453b',opacity:chartSystem==='piechart'? '1': '0.7',transition:'all 0.5s ease'}}>
          <PieChart width={300} height={275}>
           <Pie
@@ -3805,11 +3934,11 @@ const chooseCategory =(select)=>{
        </div>
        
       </div>
-      <h1 className="text-2xl font-medium text-[#fff] w-full pl-10 xl:pl-0 xl:w-[50%] text-start mt-10">
+      <h1 className="text-xl md:text-2xl font-medium text-[#fff] w-full pl-10 xl:pl-0 xl:w-[50%] text-start mt-10">
           Progress
         </h1>
        
-      <p className="w-full pl-10 xl:pl-0 xl:w-[50%] mt-4 text-[#dedede] text-start font-light text-sm">
+      <p className="w-full pl-10 xl:pl-0 xl:w-[50%] mt-2 lg:mt-4 text-[#dedede] text-start font-light text-xs md:text-sm">
   Current chosen : {progressSystem}
 </p>
 
@@ -3832,7 +3961,7 @@ const chooseCategory =(select)=>{
     />
     
     <img 
-      className="object-cover -ml-8 rounded-md border border-[#3e453b] transition-transform duration-500" 
+      className="object-cover -ml-8 rounded-md border border-[#3e453b] transition-transform duration-500 -mr-8 lg:-mr-0" 
       style={{
         transform: progressSystem === 'goalexpenses' ? "rotate(5deg) scale(1.2)" : "rotate(10deg)",
       }}
@@ -3867,7 +3996,7 @@ const chooseCategory =(select)=>{
 }
 
 
-const Settings =({userData,updateNotif,notifSettings,bind1,bind2,bind3,setBind1,setBind2,setBind3})=>{
+const Settings =({userData,updateNotif,notifSettings,bind1,bind2,bind3,setBind1,setBind2,setBind3,helpSettings,updateHelp})=>{
 
   const [changeName,setChangeName]=useState(userData.name)
 
@@ -3883,10 +4012,12 @@ const submitChanges = () => {
 
   localStorage.setItem("userData", JSON.stringify(updatedUserData));
   localStorage.setItem("notifSettings",notifSettings)
+  localStorage.setItem("helpSettings",helpSettings)
   localStorage.setItem("mousebinds", JSON.stringify(mouseBinds));
 };
 
 const [notification,setNotification]=useState('')
+const [notificationHelp,setNotificationHelp]=useState('')
 
 useEffect(()=>{
 
@@ -3898,47 +4029,63 @@ useEffect(()=>{
 
 },[notifSettings])
 
+useEffect(()=>{
+
+  if(helpSettings === true){
+    setNotificationHelp('Enabled')
+  }else{
+    setNotificationHelp('Disabled')
+  }
+
+},[helpSettings])
+
   return(
     <div className="flex flex-col items-center h-full">
        <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%]">
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">
           Settings
           <p className="mt-10 text-xl font-medium text-[#fff] text-start">Name</p>
-         <p className="mt-1 text-sm font-[400] text-[#d8dcd6] text-start">Change the username as your preference.Keep in mind the name needs to be 8 letters in average</p>
+         <p className="mt-1 text-xs md:text-sm font-[400] text-[#d8dcd6] text-start">Change the username as your preference.Keep in mind the name needs to be 8 letters in average</p>
         </h1>          
       </div>
      <div className="flex flex-col gap-2 w-full pl-10 xl:pl-0 xl:w-[50%] mt-4">
        <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Name: <p className="text-[#fff] font-medium">{changeName}</p></p>
-      <input className="w-[30%] xl:w-[40%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={changeName} onChange={(e)=>setChangeName(e.target.value)}/>
+      <input className="w-[90%] xl:w-[40%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={changeName} onChange={(e)=>setChangeName(e.target.value)}/>
      </div>
      <hr className="w-full ml-10 xl:ml-0 xl:w-[50%] h-0.5 bg-[#d8dcd6] mt-6 opacity-30"/>
         <p className="mt-6 text-xl font-medium text-[#fff] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">Notification</p>
-         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">Allow the notifications so you can check on what did you achive</p>
+         <p className="mt-1 text-xs md:text-sm font-base text-[#d8dcd6] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">Allow the notifications so you can check on what did you achive</p>
         <div className="flex items-end gap-6 w-full pl-10 xl:pl-0 xl:w-[50%] mt-4">
        <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Currently: <p className="text-[#fff] font-medium">{notification}</p></p>
      <input onClick={updateNotif} class="switch focus:outline-0 mt-2" type="checkbox" checked={notifSettings}/>   
     </div>
      <hr className="w-full ml-10 xl:ml-0 xl:w-[50%] h-0.5 bg-[#d8dcd6] mt-6 opacity-30"/>
-      <p className="mt-6 text-xl font-medium text-[#fff] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">MouseBinds</p>
-         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-full pl-10 xl:pl-0 xl:w-[50%]">Costumize the mousebinds for your preference,Mousebinds needs to be keyboard letters</p>
-         <div className="bg-[#e16363] rounded-md p-0.5 mt-3 text-[#3a0b0b] w-full ml-10 xl:ml-0 xl:w-[50%] text-sm font-light flex items-center gap-1.5">
+      <p className="mt-6 text-xl font-medium text-[#fff] text-start w-full pl-10 xl:pl-0 xl:w-[50%] hidden md:block">MouseBinds</p>
+         <p className="mt-1 text-sm font-base text-[#d8dcd6] text-start w-full pl-10 xl:pl-0 xl:w-[50%] hidden md:block">Costumize the mousebinds for your preference,Mousebinds needs to be keyboard letters</p>
+         <div className="bg-[#e16363] rounded-md p-0.5 mt-3 text-[#3a0b0b] w-full ml-10 xl:ml-0 xl:w-[50%] hidden md:block text-sm font-light flex items-center gap-1.5">
           <MdInfoOutline style={{width:'20px',height:'20px'}}/><p className="text-start">Keep in mind that that for the mousebinds to work one of the keyboard letters needs to have '+' before the letter</p>
          </div>
-         <div className="flex items-center gap-4 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2">
-       <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Mousebinds: <p className="text-[#fff] font-medium">{bind1}{bind2}</p></p>|
+         <div className="flex items-center gap-4 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2 hidden md:block">
+       <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5 hidden ">Current Mousebinds: <p className="text-[#fff] font-medium">{bind1}{bind2}</p></p>|
         <p className="text-sm font-extralight text-[#a3ac9f] flex items-center mt-2 gap-0.5">What it does: <p className="text-[#fff] font-medium">Opens the Quick Search</p></p>
          </div>
-         <div className="flex items-center gap-3 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2">
+         <div className="flex items-center gap-3 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2 hidden md:block">
           <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind1} onChange={(e)=>setBind1(e.target.value)}/>
-      <input className="w-[20%] bg-transparent b w-full pl-10 xl:pl-0oxl:rder border-[#8CE163] focus:outline-0 p-1" value={bind2} onChange={(e)=>setBind2(e.target.value)}/>
+      <input className="w-[20%] bg-transparent  pl-10 xl:pl-0 border border-[#8CE163] focus:outline-0 p-1" value={bind2} onChange={(e)=>setBind2(e.target.value)}/>
          </div>
-           <div className="flex items-center gap-4 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2">
+           <div className="flex items-center gap-4 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2 hidden md:block">
        <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Current Mousebinds: <p className="text-[#fff] font-medium">{bind3}</p></p>|
         <p className="text-sm font-extralight text-[#a3ac9f] flex items-center mt-2 gap-0.5">What it does: <p className="text-[#fff] font-medium">Closes the Quick Search</p></p>
          </div>
-         <div className="flex items-center gap-3 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2">
+         <div className="flex items-center gap-3 w-full pl-10 xl:pl-0 xl:w-[50%] mt-2 hidden md:block">
           <input className="w-[20%] bg-transparent border border-[#8CE163] focus:outline-0 p-1" value={bind3} onChange={(e)=>setBind3(e.target.value)}/>
          </div>
+      <p className="mt-6 text-xl font-medium text-[#fff] text-start w-full pl-10 xl:pl-0 xl:w-[50%] block md:hidden">Help Center</p>
+        <p className="mt-1 text-xs md:text-sm font-base text-[#d8dcd6] text-start w-full pl-10 xl:pl-0 xl:w-[50%] block md:hidden">For any misunderstanding the Help allows you to quick access and solve your problems</p>
+ <div className="flex items-end gap-6 w-full pl-10 xl:pl-0 xl:w-[50%] mt-4">
+       <p className="text-sm font-light text-[#a3ac9f] flex items-center mt-2 gap-0.5">Currently: <p className="text-[#fff] font-medium">{notificationHelp}</p></p>
+     <input onClick={updateHelp} class="switch focus:outline-0 mt-2" type="checkbox" checked={helpSettings}/>   
+    </div>
         <div className="flex items-center gap-4 w-full px-10 xl:px-0 xl:w-[50%] mt-4">
         <button className="bg-button text-[#000]" onClick={submitChanges}>Save Changes</button>
         </div>
@@ -3963,13 +4110,13 @@ const helpContent = {
         The Dashboard provides an overview of your finances. It includes:
         <ul className="list-disc pl-5 mt-2">
           <li className="text-sm font-light text-[#a3ac9f]">
-            <strong className="text-md font-medium text-[#d8dcd6]">Total Balance:</strong> Displays your remaining balance after all expenses.
+            <strong className="text-md font-medium text-[#d8dcd6] text-start">Total Balance:</strong> Displays your remaining balance after all expenses.
           </li>
           <li className="text-sm font-light text-[#a3ac9f]">
-            <strong className="text-md font-medium text-[#d8dcd6]">Total Income:</strong> Shows your income before expenses are deducted.
+            <strong className="text-md font-medium text-[#d8dcd6] text-start">Total Income:</strong> Shows your income before expenses are deducted.
           </li>
           <li className="text-sm font-light text-[#a3ac9f]">
-            <strong className="text-md font-medium text-[#d8dcd6]">Total Expenses:</strong> Sums up all recorded expenses from the Expenses section.
+            <strong className="text-md font-medium text-[#d8dcd6] text-start">Total Expenses:</strong> Sums up all recorded expenses from the Expenses section.
           </li>
         </ul>
          <p className="text-sm font-light text-[#a3ac9f] text-start flex justify-center mt-1.5">Each financial card has a button (default:Monthly ) to switch views between Monthly, Yearly, and Daily.</p>
@@ -4125,12 +4272,12 @@ const helpContent = {
         <h1 className="text-4xl font-medium text-[#fff]  text-start mt-10">Help</h1> 
         </div>
         <div className="flex flex-col gap-8 lg:gap-0 lg:flex-row items-center justify-around xl:justify-center w-full xl:w-[90%] ml-0 xl:ml-36 mt-4">
-         <div className="flex flex-col items-center w-full lg:w-[70%]">
+         <div className="flex flex-col items-start ml-10 md:ml-0 md:items-center w-full lg:w-[70%]">
               {Object.keys(helpContent).map((key) => (
           <div
             key={key}
             onClick={() => setOpenHelp(openHelp === key ? null : key)}
-            className="mt-4 text-xl font-medium cursor-pointer flex items-center p-2 hover:text-[#8ce163] w-[50%] transition-colors" style={{borderBottom:'1px solid rgba(216, 220, 214,0.6)'}}
+            className="mt-4 text-xl font-medium cursor-pointer flex items-center p-2 hover:text-[#8ce163] w-full md:w-[50%] transition-colors" style={{borderBottom:'1px solid rgba(216, 220, 214,0.6)'}}
           >
             {key}
           </div>

@@ -28,7 +28,12 @@ function App() {
   return (
        <Router>
         <Routes>
-          <Route path="/" element={<HeroSection />} />
+<Route path="/" element={
+  <>
+    <HeroSection />
+    <AllContent />
+  </>
+} />
           <Route path="/setup" element={<Setup />} />
           
           {/* Default Tracker Route */}

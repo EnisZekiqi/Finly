@@ -70,7 +70,7 @@ const HeroSection = () => {
       <div className="relative text-black min-h-screen flex flex-col items-center justify-center">
         {/* Navbar */}
         <div className="hidden md:block">
-          <DefaultNavbar />
+          <DefaultNavbar handleGetStarted={handleGetStarted}/>
         </div>
         <div className="block md:hidden">
           <NavbarResponsive logo={logo} handleClick={handleClick} />
@@ -265,7 +265,7 @@ const HeroSection = () => {
 
 export default HeroSection;
 
-function DefaultNavbar({}) {
+function DefaultNavbar({handleGetStarted}) {
   return (
     <nav className="bg3 container absolute top-0 left-0 w-full items-center flex justify-between mx-auto px-14 py-6">
       <h1 className="text-xl font-semibold text-[#fbfbfb] flex items-center gap-1">
@@ -305,7 +305,9 @@ function DefaultNavbar({}) {
           </a>
         </li>
       </ul>
-      <button className="flex items-center gap-2 rounded-xl -mr-6 hover:border-transparent bg-[#171717] text-[#d8dcd6] hover:bg-[#d8dcd6] hover:text-[#080809] transition-colors">
+      <button
+      onClick={handleGetStarted}
+      className="flex items-center gap-2 rounded-xl -mr-6 hover:border-transparent bg-[#171717] text-[#d8dcd6] hover:bg-[#d8dcd6] hover:text-[#080809] transition-colors">
         Get Started <MdArrowForward />
       </button>
     </nav>

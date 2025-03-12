@@ -21,6 +21,8 @@ import avatar3 from "./images/images 12.jpg";
 import { useInView } from "motion/react";
 import logo from "./assets/tag-svgrepo-com.svg";
 import { FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom'; 
+
 const AllContent = () => {
   const containerVariants = {
     hidden: {
@@ -153,6 +155,28 @@ const AllContent = () => {
     return () => clearInterval(timer);
   }, [hasStarted]);
 
+
+  const [navigateSettings,setNavigateSettings]=useState('')
+    const navigate = useNavigate();  // Initialize the navigate function
+
+
+ useEffect(() => {
+    // Check if userData exists in localStorage
+    const check = localStorage.getItem('userData'); // No need for JSON.stringify here
+    if (check) {
+      setNavigateSettings('/tracker/dashboard');
+    } else {
+      setNavigateSettings('/login');  // Or any default path you want
+    }
+  }, []);
+
+  // This function will handle navigation when you want to navigate based on the state
+  const navigateToPage = () => {
+    if (navigateSettings) {
+      navigate(navigateSettings);  // Navigate to the path stored in navigateSettings
+    }
+  };
+
   return (
     <div className="bg-[#010101]">
       <Benefits
@@ -163,7 +187,7 @@ const AllContent = () => {
       <Services services={services} handleChangeServ={handleChangeServ} />
 
       <div className="empty h-56"></div>
-      <GetStarted avatar1={avatar1} avatar2={avatar2} avatar3={avatar3} />
+      <GetStarted navigateToPage={navigateToPage} avatar1={avatar1} avatar2={avatar2} avatar3={avatar3} />
       <div className="empty h-56"></div>
       <Reviews
         setHasStarted={setHasStarted}
@@ -561,8 +585,8 @@ function Services({ services, handleChangeServ }) {
                 className={`overflow-hidden transition-all duration-500 ${services === "finance" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
               >
                 <p className="text-[#dedede] text-start font-normal text-lg">
-                  Drive targeted visitors to your website with expertly managed
-                  paid traffic campaigns.
+                 Take control of your financial future by tracking your income, expenses, and savings in real-time.
+
                 </p>
               </div>
             </div>
@@ -593,8 +617,7 @@ function Services({ services, handleChangeServ }) {
                 className={`overflow-hidden transition-all duration-500 ${services === "income" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
               >
                 <p className="text-[#dedede] text-start font-normal text-lg">
-                  Drive targeted visitors to your website with expertly managed
-                  paid traffic campaigns.
+                  Boost your earning potential by analyzing your income sources and identifying opportunities for growth.
                 </p>
               </div>
             </div>
@@ -625,8 +648,8 @@ function Services({ services, handleChangeServ }) {
                 className={`overflow-hidden transition-all duration-500 ${services === "detail" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
               >
                 <p className="text-[#dedede] text-start font-normal text-lg">
-                  Drive targeted visitors to your website with expertly managed
-                  paid traffic campaigns.
+                    Stay on top of every financial detail by tracking your transactions, from daily expenses to larger investments.
+
                 </p>
               </div>
             </div>
@@ -665,7 +688,7 @@ function Services({ services, handleChangeServ }) {
   );
 }
 
-function GetStarted({ avatar1, avatar2, avatar3 }) {
+function GetStarted({ avatar1, avatar2, avatar3,navigateToPage }) {
   return (
     <div className="start">
       <div className="relative w-full flex items-center justify-center px-10 md:px-0">
@@ -720,6 +743,7 @@ function GetStarted({ avatar1, avatar2, avatar3 }) {
             <motion.button
               initial={{}}
               whileHover={{}}
+              onClick={navigateToPage}
               className="bg-button text-[#080809] px-6 py-1.5 mt-6.5  flex items-center gap-2 rounded-xl  font-semibold "
             >
               Get Started{" "}
@@ -999,11 +1023,10 @@ function Features({}) {
               <div className="absolute inset-0 flex w-full items-start justify-center top-auto bottom-10 z-20">
                 <div className="flex flex-col gap-2 items-start text-start px-6">
                   <h1 className="text-[#fff] font-medium text-xl">
-                    Full Account Audit
+                    Access to Charts
                   </h1>
                   <p className="text-[#dedede] font-normal  text-md">
-                    Comprehensive analysis to maximize your PPC campaigns'
-                    performance and efficiency.
+                    Check your finances thru the charts and get better understanding of them
                   </p>
                 </div>
               </div>
@@ -1044,11 +1067,10 @@ function Features({}) {
               <div className="absolute inset-0 flex items-center justify-center top-auto bottom-10 z-20">
                 <div className="flex flex-col gap-2 items-start text-center px-6">
                   <h1 className="text-[#fff] font-medium text-xl">
-                    PPC Strategy
+                    Sales Overview
                   </h1>
                   <p className="text-[#dedede] font-normal  text-md text-start">
-                    Tailored strategies crafted to boost your ad campaigns and
-                    achieve your business goals.
+                  If you have a business , check your revenue & your profit in every calendaric way
                   </p>
                 </div>
               </div>
@@ -1093,8 +1115,8 @@ function Features({}) {
                     Daily Reports
                   </h1>
                   <p className="text-[#dedede] font-normal  text-md text-start">
-                    Stay informed with detailed insights into your PPC
-                    performance delivered straight to your inbox.
+                    Stay informed with detailed insights into your finances
+                    performance delivered straight to your notification.
                   </p>
                 </div>
               </div>
@@ -1137,9 +1159,7 @@ function Features({}) {
                     Constant Optimization
                   </h1>
                   <p className="text-[#dedede] font-normal text-md text-start">
-                    Continuous fine-tuning to ensure your PPC campaigns are
-                    always delivering optimal results.
-                  </p>
+                    Continuous analyze of our Finly will make your expenses easier and goal come true                  </p>
                 </div>
               </div>
             </motion.div>
@@ -1178,12 +1198,10 @@ function Features({}) {
               <div className="absolute inset-0 flex items-center justify-center top-auto bottom-14 z-20">
                 <div className="flex flex-col gap-2 items-start text-center px-6">
                   <h1 className="text-[#fff] font-medium text-xl">
-                    Copywriting
+                    Your Information
                   </h1>
                   <p className="text-[#dedede] font-normal text-md text-start">
-                    Compelling ad copy that captivates your audience and drives
-                    conversions.
-                  </p>
+                    Every information stays safe to the browser yet accessible to every section of the UI                   </p>
                 </div>
               </div>
             </motion.div>
@@ -1248,9 +1266,9 @@ function FAQ({ faq, handleChangeFaq }) {
         >
           <p
             onClick={() => handleChangeFaq("quest1")}
-            className="text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
+            className="text-md md:text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
           >
-            Track your Finances{" "}
+            How Finly manages my finances?{" "}
             <MdOutlineClose
               style={{
                 transform: faq === "quest1" ? "none" : "rotate(135deg)",
@@ -1261,9 +1279,8 @@ function FAQ({ faq, handleChangeFaq }) {
           <div
             className={`overflow-hidden transition-all duration-500 ${faq === "quest1" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
           >
-            <p className="text-[#dedede] text-start font-normal text-lg">
-              Drive targeted visitors to your website with expertly managed paid
-              traffic campaigns.
+            <p className="text-[#dedede] text-start font-normal text-sm md:text-lg">
+             The Finly provides a overview of your income, expenses, and goal. It categorizes your spending, tracks your financial goals, and helps you stay within budget.
             </p>
           </div>
         </div>
@@ -1278,9 +1295,10 @@ function FAQ({ faq, handleChangeFaq }) {
         >
           <p
             onClick={() => handleChangeFaq("quest2")}
-            className="text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
+            className="text-md md:text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
           >
-            Track your Finances{" "}
+            
+             Can I have multiple access with Finly?{" "}
             <MdOutlineClose
               style={{
                 transform: faq === "quest2" ? "none" : "rotate(135deg)",
@@ -1291,9 +1309,8 @@ function FAQ({ faq, handleChangeFaq }) {
           <div
             className={`overflow-hidden transition-all duration-500 ${faq === "quest2" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
           >
-            <p className="text-[#dedede] text-start font-normal text-lg">
-              Drive targeted visitors to your website with expertly managed paid
-              traffic campaigns.
+            <p className="text-[#dedede] text-start font-normal text-sm md:text-lg">
+              Finly does not offer the user to track it's finances thru multiple devices it clearly uses your information thru the browser.
             </p>
           </div>
         </div>
@@ -1307,9 +1324,9 @@ function FAQ({ faq, handleChangeFaq }) {
         >
           <p
             onClick={() => handleChangeFaq("quest3")}
-            className="text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
+            className="text-md md:text-xl cursor-pointer   mb-4 font-medium text-[#fff] hover:text-[#dedede] flex justify-between items-center transition-colors"
           >
-            Track your Finances{" "}
+             Is my financial data safe in the Finly?
             {faq === "quest3" ? (
               <MdOutlineClose
                 onClick={() => handleChangeFaq("")}
@@ -1331,9 +1348,8 @@ function FAQ({ faq, handleChangeFaq }) {
           <div
             className={`overflow-hidden transition-all duration-500 ${faq === "quest3" ? "max-h-[100px] opacity-100" : "max-h-0 opacity-0"}`}
           >
-            <p className="text-[#dedede] text-start font-normal text-lg">
-              Drive targeted visitors to your website with expertly managed paid
-              traffic campaigns.
+            <p className="text-[#dedede] text-start font-normal text-sm md:text-lg">
+              Absolutely! We prioritize your privacy and security. Your financial data is safe on the browser and there is no information of your credit cards or any valuable information
             </p>
           </div>
         </div>

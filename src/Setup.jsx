@@ -35,7 +35,6 @@ const Setup = () => {
       currency: currency,
     };
     localStorage.setItem("lastUpdated", updated);
-    localStorage.setItem("userData", JSON.stringify(userData));
     navigate("/tracker");
   };
 
@@ -74,7 +73,7 @@ const Setup = () => {
           <form
             onSubmit={handleSubmit}
             action=""
-            className="flex flex-col items-start gap-4 "
+            className="flex flex-col items-start gap-4 px-2 md:px-0"
           >
             <label className="block text-[#D2D2D2] ">Your Name :</label>
             <input
