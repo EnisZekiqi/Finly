@@ -28,3 +28,26 @@
 
 ---
 
+## **📌 Refreshing the Page Causes a 404 Error (GitHub Pages & HashRouter Issue)**  
+
+While navigating back and forth within the app works smoothly, **refreshing the page** on any route other than the homepage (e.g., `/dashboard`) will result in a **404 error**.  
+
+### ❓ Why does this happen?  
+- GitHub Pages doesn’t support **client-side routing**, so when you refresh a page, it tries to load a **physical file** like `/dashboard`, which doesn’t exist.  
+- Since Finly is a **Single Page Application (SPA)** using React’s `HashRouter`, all routes are handled dynamically by JavaScript.  
+
+### ✅ Workaround  
+- The app uses **HashRouter (`/#/`)** to prevent this issue, so all URLs will have a `#` in them (e.g., `yourwebsite.com/#/dashboard`).  
+- If you still face a refresh issue, a **custom redirect script** has been added to the project to ensure proper routing.  
+
+> **Tip:** If you’re hosting elsewhere (like Vercel or Netlify), you can configure proper redirects to avoid this issue completely.  
+
+---
+
+## **💻 Installation & Running Locally**  
+
+```bash
+git clone https://github.com/your-username/finly.git  
+cd finly  
+npm install  
+npm start  
