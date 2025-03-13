@@ -222,7 +222,8 @@ const AllContent = () => {
                 <img src={logo} alt="" />
               </h1>
               <p className="font-normal text-[#dedede] text-md text-center md:text-start ">
-                Get a high-end conversion-focused website for your agency.
+Start tracking. Start growing. Start winning with Finly.
+
               </p>
             </div>
 
@@ -427,10 +428,9 @@ function Benefits({ containerVariants, childVariants }) {
                 }}
               />
             </div>
-            <h2 className="text-lg font-medium text-[#fff]">ROI Obsessed</h2>
+            <h2 className="text-lg font-medium text-[#fff]">ROI Focused</h2>
             <p className="text-base font-normal text-[#dedede] w-full md:w-[60%] text-start">
-              Our focus on ROI drives every decision we make, ensuring maximum
-              value and impact for your investment.
+Our focus on Finly drives every decision we make ,ensuring maximum value and impace for your finances
             </p>
           </motion.div>
 
@@ -460,8 +460,8 @@ function Benefits({ containerVariants, childVariants }) {
             </div>
             <h2 className="text-lg font-medium text-[#fff]">No Contracts</h2>
             <p className="text-base font-normal text-[#dedede]  w-full md:w-[60%] text-start">
-              Our focus on ROI drives every decision we make, ensuring maximum
-              value and impact for your investment.
+              Our focus on Finly drives every decision we make, ensuring maximum
+              value and impact for your finances.
             </p>
           </motion.div>
 

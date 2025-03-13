@@ -111,6 +111,11 @@ body {
   position: relative;
   overflow: hidden;
 }
+@media (max-width: 768px) {
+  .bg-wrapper {
+    overflow: hidden;
+  }
+}
 .bg-button {
   border-color: var(--token-6);
   background: linear-gradient(90deg, var(--token-5), var(--token-6));
@@ -124,7 +129,7 @@ body {
 }
 .finlty {
   width: 1024px;
-  height: max-content;
+  height: auto;
 }
 @media (max-width: 764px) {
   .finlty {
@@ -218,7 +223,7 @@ backdrop-filter: blur( 4px );
       rgba(0, 0, 0, 0.5)
     ),
     url("./images/heroWallpaper.jpg") no-repeat;
-  background-position: center calc(100%);
+  background-position: center center;
   background-size: cover;
   filter: blur(10px); /* Add blur only to the background */
   width: 100%;

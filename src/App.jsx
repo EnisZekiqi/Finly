@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route,Navigate } from "react-router-dom";
+import { HashRouter as Router, Routes, Route,Navigate } from "react-router-dom";
 
 import HeroSection from "./HeroSection";
 import AllContent from "./AllContent";
@@ -26,25 +26,19 @@ function App() {
 
 
   return (
-       <Router>
-        <Routes>
-<Route path="/" element={
-  <>
-    <HeroSection />
-    <AllContent />
-  </>
-} />
-          <Route path="/setup" element={<Setup />} />
-          
-          {/* Default Tracker Route */}
-          <Route path="/tracker" element={<Navigate to="/tracker/dashboard" replace />} />
-          
-          {/* Tracker with Dynamic Section Handling */}
-          <Route path="/tracker/:section" element={<Tracker />} />
-        </Routes>
-      </Router>
+  <Routes>
+    <Route path="/" element={
+      <>
+        <HeroSection />
+        <AllContent />
+      </>
+    } />
+    <Route path="/setup" element={<Setup />} />
+    <Route path="/tracker" element={<Navigate to="/tracker/dashboard" replace />} />
+    <Route path="/tracker/:section" element={<Tracker />} />
+  </Routes>
+);
 
-  );
 }
 
 const props = {

@@ -43,22 +43,22 @@ import { BsFillGridFill,BsGrid  } from "react-icons/bs";
 import { FaRegChartBar, FaRegListAlt, FaRegPlusSquare,FaBullseye,FaMoneyBillWave,FaTimes    } from "react-icons/fa";
 
 const Tracker = () => {
-  const [userData, setUserData] = useState({
+ const [userData, setUserData] = useState(() => {
+  const storedUserData = localStorage.getItem("userData");
+  return storedUserData ? JSON.parse(storedUserData) : {
     name: "",
     currency: "",
-    income: "",
-  });
+    income: ""
+  };
+});
 
   const [lastUpdated, setLastUpdated] = useState(() => {
     return localStorage.getItem("lastUpdated") || "";
   });
 
   useEffect(() => {
-    const storedUserData = JSON.parse(localStorage.getItem("userData"));
-    if (storedUserData) {
-      setUserData(storedUserData);
-    }
-  }, []);
+  localStorage.setItem("userData", JSON.stringify(userData));
+}, [userData]);  
 
   const menuItems = [
     {
@@ -882,7 +882,7 @@ const [isModalOpen, setIsModalOpen] = useState(false);
         }
         {/* Drawer */}
         {/* Bottom Navigation Bar (Mobile) */}
- <div className="fixed bottom-0 left-0 right-0 bg-[#121212] p-2 flex justify-between items-center shadow-lg z-[500] sm:hidden">
+ <div className="fixed bottom-0 left-0 right-0 bg-[#121212] border-t border-[rgba(222,222,222,0.2)]  p-2 flex justify-between items-center shadow-lg z-[500] sm:hidden">
       <button
         onClick={() => {
           chooseInfo("dashboard");
@@ -964,7 +964,10 @@ const [isModalOpen, setIsModalOpen] = useState(false);
       <div className="flex flex-col items-center rotate-[-20deg]">
       <span className="text-xs text-white font-bold mb-1">Expense</span>
       <button
-        onClick={() => chooseInfo("store")}
+        onClick={() => {chooseInfo("store")
+        setIsModalOpen(false)
+        }
+        }
         className="w-18 h-18 bg-[#8CE163] rounded-full flex flex-col items-center justify-center shadow-lg relative  hover:bg-[#76c14e] transition-all"
       >
       
@@ -975,7 +978,10 @@ const [isModalOpen, setIsModalOpen] = useState(false);
       <div className="flex flex-col items-center rotate-[20deg]">
       <span className="text-xs text-white font-bold mb-1">Goal</span>
       <button
-        onClick={() => chooseInfo("goal")}
+        onClick={() =>{ chooseInfo("goal") 
+        setIsModalOpen(false)
+        }
+        }
         className="w-18 h-18 bg-[#8CE163] rounded-full flex flex-col items-center justify-center shadow-lg relative hover:bg-[#76c14e] transition-all"
       >
         <FaBullseye size={30} color="#1A3A0B" />
@@ -1724,7 +1730,7 @@ useEffect(() => {
         className="w-[140px] bg-[#1C1F23] rounded-xl p-4 text-center shadow-lg"
       >
         <div className="flex flex-col items-center">
-          <div className="bg-[#8DE163] p-2 rounded-full">{info.icon}</div>
+          <div className="bg-transparent p-2 rounded-full">{info.icon}</div>
           <p className="text-gray-400 text-sm mt-2">{info.name}</p>
         </div>
         <h2 className="text-lg font-semibold text-white mt-1 flex items-center justify-center gap-1">
@@ -2001,7 +2007,7 @@ useEffect(() => {
           <select
            onChange={(e) => setChooseProgress(e.target.value)}
           value={chooseProgress}
-           className="border border-none bg-transparent text-[#8CE163] py-2 px-3 rounded text-sm font-light outline-none"
+           className="border border-[#8ce163] bg-transparent text-[#8CE163] py-2 px-1 lg:px-3 rounded text-sm font-light outline-none"
           >
             <option value="goals" className="bg-[#141718] text-[#8CE163]">Goal Progress</option>
             <option value="expense" className="bg-[#141718] text-[#8CE163]">Expense Progress</option>
@@ -2245,7 +2251,7 @@ function Expenses({
                   onChange={(e) => setNameExpense(e.target.value)}
                   className="h-20 w-full resize-none rounded bg-[#141718] p-3 text-sm text-zinc-50 placeholder-zinc-500 caret-zinc-50 focus:outline-0"
                 />
-                <div className="flex flex-col lg:flex-row items-center justify-between">
+                <div className="flex flex-col gap-2 md:gap-0 lg:flex-row items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <input
                       placeholder="Categorize as ..."
@@ -2412,7 +2418,7 @@ const Analytic = ({
       const dayForBalance = changeBalance
      const currency =userData.currency
       if(balance > expenses){
-        setContinueMessage(`Your Balance which is ${balance}${currency} per ${dayForBalance} is much higher than your Expenses which is ${expenses}${currency} per ${dayForExpense}`)
+        setContinueMessage(`Your Balance which is ${balance.toFixed(2)}${currency} per ${dayForBalance} is much higher than your Expenses which is ${expenses}${currency} per ${dayForExpense}`)
       }else{
         setContinueMessage(`Your Balance which is ${balance} per ${dayForBalance} is much lower than your Expenses which is ${expenses} per ${dayForExpense}.Do you want me to help you constructing so you can have less expenses.`)
       }
@@ -2509,6 +2515,7 @@ const Analytic = ({
 setAnalyzeGoalAfter(false)
 setGoalAnalyzer(false)
 setGoalvsExpenses(false)
+setGoalAnalyzer2(false)
   const analyzedTime = new Date().toLocaleDateString(); // Formats the date
   localStorage.setItem("analyzedTime", analyzedTime);
 
@@ -2702,59 +2709,44 @@ useEffect(() => {
 const [goalAnalysis, setGoalAnalysis] = useState('');
 const [analyzeGoalAfter, setAnalyzeGoalAfter] = useState(false);
 
-    useEffect(() => {
-  if (analyzeGoalAfter) {
-    const goalPrice = allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0);
-    const balance = parseFloat(totalBalance) || 0;
-    const expenses = parseFloat(totalExpenses) || 0;
+   useEffect(() => {
+    if (analyzeGoalAfter) {
+      const goalPrice = allGoal.reduce((sum, goal) => sum + (parseFloat(goal.priceGoal) || 0), 0);
+      const balance = parseFloat(totalBalance) || 0;
+      const expenses = parseFloat(totalExpenses) || 0;
+  
+      let analysisText = ` Financial Analysis:\n\n`;
 
-    const remainingAmountToGoal = goalPrice - balance;
-
-    let analysisText = `📊 **Financial Analysis:**\n\n`;
-
-    // ✅ **Case 1: User can afford everything**
-    if (balance >= goalPrice) {
-      analysisText += `✅ You can achieve all your goals immediately! 🎉`;
-    } 
-    // 🔹 **Case 2: Suggest Expense Adjustments**
-    else if (balance >= 0 && balance < goalPrice) {
-      let neededSavings = remainingAmountToGoal;
-      let adjustableExpenses = [...allExpenses].sort((a, b) => a.howMuch - b.howMuch); // Sort from lowest to highest
-
-      let reducedExpenses = [];
-      let totalReduced = 0;
-
-      for (let i = 0; i < adjustableExpenses.length; i++) {
-        let expense = adjustableExpenses[i];
-
-        if (totalReduced >= neededSavings) break; // Stop once enough has been saved
-
-        let reductionAmount = Math.min(neededSavings - totalReduced, expense.howMuch); // Cut as much as needed
-        totalReduced += reductionAmount;
-
-        reducedExpenses.push({
-          name: expense.nameExpense,
-          newAmount: expense.howMuch - reductionAmount
+      // ✅ **Case 1: User can afford everything**
+      if (balance >= goalPrice) {
+        analysisText += `✅ You can achieve all your goals immediately! `;
+      } 
+      // 🔹 **Case 2: Suggest Expense Adjustments**
+      else if (balance >= 0 && balance < goalPrice) {
+        let remainingAmountToGoal = goalPrice - balance;
+        analysisText += ` You need to save $${remainingAmountToGoal.toFixed(2)} to achieve your goals.\n`;
+        analysisText += `Here are suggestions for reducing expenses:\n`;
+        
+        // Loop through all expenses and suggest reductions
+        let adjustableExpenses = [...allExpenses].sort((a, b) => a.howMuch - b.howMuch); // Sort from lowest to highest
+        adjustableExpenses.forEach((expense, index) => {
+          analysisText += `  ${index + 1}. ${expense.nameExpense}: Reduce by $${expense.howMuch}\n`;
         });
+        
+        analysisText += `With these adjustments, you can reach your goals!\n`;
+      } 
+      // ⛔️ **Case 3: Balance is too low**
+      else {
+        analysisText += `⚠️ Your balance is too low to cover your expenses and goals. Consider adjusting your budget or increasing income.\n`;
       }
 
-      // ✅ If we managed to save enough, show the reduced expenses.
-      if (totalReduced >= neededSavings) {
-        analysisText += `💡 **Reduce these expenses to save for your goals:**\n`;
-        reducedExpenses.forEach((expense, index) => {
-          analysisText += `  ${index + 1}. ${expense.name}: $${expense.newAmount.toFixed(2)} (Adjusted)\n`;
-        });
-        analysisText += `\n✅ With these adjustments, you will reach your goals!\n`;
-      } 
-    } 
-    // ⛔️ **Case 3: Balance is too low**
-    else {
-      analysisText += `⚠️ Your balance is too low to cover your expenses and goals. Consider adjusting your budget or increasing income.\n`;
-    }
+      // Set goal analysis text
+      setGoalAnalysis(analysisText);
 
-    setGoalAnalysis(analysisText);
-  }
-}, [analyzeGoalAfter, allGoal, allExpenses, totalBalance, totalExpenses]);
+      // Mark analysis as complete after the calculation
+    }
+  }, [analyzeGoalAfter, allGoal, totalBalance, totalExpenses]);
+
 
 
   const [isMobilePie, setIsMobilePie] = useState(window.innerWidth < 350);
@@ -2776,7 +2768,7 @@ const [analyzeGoalAfter, setAnalyzeGoalAfter] = useState(false);
         <h1 className="text-4xl font-medium text-[#fff] text-start mt-10">
           Analytics
         </h1>
-        <p className="text-start text-[#dedede] font-normal text-md">
+        <p className="text-start text-[#dedede] font-normal text-sm md:text-md">
           Check where you can make improvements
         </p>
       </div>
@@ -3076,8 +3068,8 @@ onClick={totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum +
          </motion.p>
             </div>
           }
-{analyzeGoalAfter && 
-            <div className="flex flex-col mt-2.5">
+{analyzeGoalAfter && goalAnalysis.length > 0 && 
+           ( <div className="flex flex-col mt-2.5">
                <motion.div
                initial={{opacity:0}}
                animate={{opacity:1,transition:{duration:0.5,delay:0.3}}}
@@ -3091,17 +3083,35 @@ onClick={totalBalance >= 0 && totalBalance < allGoal.reduce((sum, goal) => sum +
            initial="hidden"
            animate="visible"
          >
-           {goalAnalysis.split("").map((char, index) => (
-             <motion.span key={index} variants={letterVariants}>
-               {char}
-             </motion.span>
-           ))}
+          {allExpenses
+              .sort((a, b) => a.howMuch - b.howMuch) // Sorting from lowest to highest expense
+              .map((expense, index) => {
+                // Calculate the new amount (assuming some logic for adjustment here)
+                const newAmount = expense.howMuch - (expense.howMuch * 0.5); // Example: reduce by 50%
+                return (
+                  <motion.li
+                    key={index}
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      opacity: 1,
+                      transition: { duration: 0.5, delay: 0.7 + index * 0.2 },
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="text-red-500">${expense.howMuch}</span>
+                    <span> → </span>
+                    <span className="text-green-500">${newAmount.toFixed(2)}</span>
+                    <span className="text-white">- {expense.nameExpense}</span>
+                  </motion.li>
+                );
+              })}
+
             
           <em className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
               onClick={resetAll}
               > Finish Analyzing</em>
          </motion.p>
-            </div>
+            </div>)
           }
           {analyzeExpense && 
             <div className="flex flex-col mt-2.5">
@@ -3363,12 +3373,12 @@ onClick={changeFunction ? () => setContinueLess(true) : resetAll}
         </ul>
 
         <p className="text-sm mt-2">
-          Do you want to 
+
           <em
             className="font-light ml-1 text-sm text-[rgba(222,222,222,0.6)] underline decoration-solid cursor-pointer"
-            onClick={() => chooseInfo("goal")}
+            onClick={resetAll}
           >
-            Check Goals with Expenses 
+            Finish Analyzing
           </em>
         </p>
       </>

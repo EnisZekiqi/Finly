@@ -34,6 +34,7 @@ const Setup = () => {
       income: parseFloat(income),
       currency: currency,
     };
+      localStorage.setItem("userData", JSON.stringify(userData)); // ✅ Save to LocalStorage
     localStorage.setItem("lastUpdated", updated);
     navigate("/tracker");
   };

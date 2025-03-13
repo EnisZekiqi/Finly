@@ -3,6 +3,6 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/', // Set the base path for routing
+  base: '/Finly/', // Set the base path for routing
   plugins: [react()],
 })
